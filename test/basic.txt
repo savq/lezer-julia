@@ -1,0 +1,195 @@
+# One simple expression
+
+"hello, world"
+
+==>
+
+SourceFile(
+  String
+)
+
+
+# Multiple simple expressions
+
+"hello, world"
+"!!!"
+
+==>
+
+SourceFile(
+  String,
+  String
+)
+
+# Bare Tuple
+
+"Hello", "world!"
+
+==>
+
+SourceFile(
+  BareTupleExpression(String,String)
+)
+
+# Triple String
+
+"""
+multiline here
+ok
+"""
+
+"""simple"""
+
+==>
+
+SourceFile(
+  TripleString,
+  TripleString,
+)
+
+# Line Comments
+
+# some
+
+==>
+
+SourceFile(Comment)
+
+# Block Comments
+
+#=
+ 
+  Block Comment
+
+  #= NESTED =#
+
+=#
+
+==>
+
+SourceFile(BlockComment)
+
+# CallExpression
+
+some()
+some("hello")
+some("hello", "world")
+
+==>
+
+SourceFile(
+  CallExpression(Identifier,ArgumentList),
+  CallExpression(Identifier,ArgumentList(String)),
+  CallExpression(Identifier,ArgumentList(String, String)),
+)
+
+# FunctionDefinition
+
+function some()
+  "hello"
+end
+
+function some() "hello" end
+
+function some() end
+
+function some()
+end
+
+==>
+
+SourceFile(
+  FunctionDefinition(function,Identifier,ParameterList,String,end),
+  FunctionDefinition(function,Identifier,ParameterList,String,end),
+  FunctionDefinition(function,Identifier,ParameterList,end),
+  FunctionDefinition(function,Identifier,ParameterList,end),
+)
+
+# AssignmentExpression 1
+
+name = "hello"
+
+==>
+
+SourceFile(
+  AssignmentExpression(Identifier,String),
+)
+
+# AssignmentExpression 2
+
+name(a, b) = a + b
+
+==>
+
+SourceFile(
+  AssignmentExpression(
+    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+    BinaryExpression(Identifier,Identifier),
+  )
+)
+
+# FunctionExpression
+
+(a, b) -> a + b
+
+==>
+
+SourceFile(
+  FunctionExpression(
+    ParameterList(Identifier,Identifier),
+    BinaryExpression(Identifier,Identifier),
+  )
+)
+
+# QuoteExpression 1
+
+:syntax
+
+==>
+
+SourceFile(
+  QuoteExpression(Identifier),
+)
+
+# QuoteExpression 2
+
+:(a + b)
+
+==>
+
+SourceFile(
+  QuoteExpression(ParenthesizedExpression(BinaryExpression(Identifier,Identifier))),
+)
+
+# QuoteExpression 3
+
+quote
+  $a + $b
+end
+
+==>
+
+SourceFile(
+  QuoteStatement(
+    quote,
+    BinaryExpression(
+      InterpolationExpression(Identifier),
+      InterpolationExpression(Identifier)
+    ),
+    end
+  )
+)
+
+# QuoteExpression 4
+
+:a + :b
+
+==>
+
+SourceFile(
+  BinaryExpression(
+    QuoteExpression(Identifier),
+    QuoteExpression(Identifier),
+  )
+)
+
