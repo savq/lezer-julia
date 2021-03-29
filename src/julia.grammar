@@ -26,12 +26,16 @@
   right10 @right
   regular1
   right0 @right
+  regular0
   regular-1
   right-2 @right
 }
 
+@skip { whitespace | Comment | BlockComment }
+
 expressionList {
-  (expression | AssignmentExpression | BareTupleExpression) (_terminator (expression | AssignmentExpression | BareTupleExpression))* _terminator?
+  (expression | AssignmentExpression | BareTupleExpression)
+  (!regular0 terminator (expression | AssignmentExpression | BareTupleExpression))* terminator?
 }
 
 definition {
@@ -52,7 +56,7 @@ AbstractDefinition {
 }
 
 PrimitiveDefinition {
-  kw<"primitive"> kw<"type"> Identifier TypeParameterList? SubtypeClause? Number { IntegerNumber } kw<"end">
+  kw<"primitive"> kw<"type"> Identifier TypeParameterList? SubtypeClause? Number { integerNumber } kw<"end">
 }
 
 StructDefinition {
@@ -72,7 +76,7 @@ ParameterList {
 }
 
 KeywordParameters {
-  semi (Identifier | SpreadParameter | OptionalParameter | TypedParameter) ("," (Identifier | SpreadParameter | OptionalParameter | TypedParameter))*
+  ";" (Identifier | SpreadParameter | OptionalParameter | TypedParameter) ("," (Identifier | SpreadParameter | OptionalParameter | TypedParameter))*
 }
 
 OptionalParameter {
@@ -115,11 +119,11 @@ statement {
 }
 
 IfStatement {
-  kw<"if"> expression _terminator? expressionList? ElseifClause* ElseClause? kw<"end">
+  kw<"if"> expression terminator? expressionList? ElseifClause* ElseClause? kw<"end">
 }
 
 ElseifClause {
-  kw<"elseif"> expression _terminator? expressionList?
+  kw<"elseif"> expression terminator? expressionList?
 }
 
 ElseClause {
@@ -131,19 +135,19 @@ TryStatement {
 }
 
 CatchClause /* precedence: 1 */ {
-  kw<"catch"> Identifier? !regular1 _terminator? expressionList?
+  kw<"catch"> Identifier? !regular1 terminator? expressionList?
 }
 
 FinallyClause {
-  kw<"finally"> _terminator? expressionList?
+  kw<"finally"> terminator? expressionList?
 }
 
 ForStatement {
-  kw<"for"> ForBinding ("," ForBinding)* _terminator? expressionList? kw<"end">
+  kw<"for"> ForBinding ("," ForBinding)* terminator? expressionList? kw<"end">
 }
 
 WhileStatement {
-  kw<"while"> expression _terminator? expressionList? kw<"end">
+  kw<"while"> expression terminator? expressionList? kw<"end">
 }
 
 BreakStatement {
@@ -159,7 +163,7 @@ ReturnStatement /* precedence: right -2 */ {
 }
 
 LetStatement {
-  kw<"let"> VariableDeclaration ("," VariableDeclaration)* _terminator? expressionList? kw<"end">
+  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList? kw<"end">
 }
 
 ConstStatement {
@@ -279,15 +283,24 @@ BroadcastCallExpression /* precedence: 26 */ {
 }
 
 MacroExpression /* precedence: right 0 */ {
-  MacroIdentifier (!right0 immediateParen ArgumentList | MacroArgumentList)?
+  MacroIdentifier |
+  MacroIdentifier !right0 immediateParen ArgumentList |
+  MacroIdentifier !right0 MacroArgumentList
 }
 
-MacroArgumentList /* precedence: -1 */ {
-  /* precedence: -1 */ (!regular-1 expression)+
+MacroArgumentList[@dynamicPrecedence=-1] /* precedence: -1 */ {
+  (!regular-1 expression)+
 }
 
 ArgumentList {
-  "(" ((expression | NamedArgument { NamedField }) ("," (expression | NamedArgument { NamedField }))*)? (semi NamedArgument { NamedField } ("," NamedArgument { NamedField })*)? ","? ")"
+  !regular0 "("
+  !regular0 (argument ("," argument)*)?
+  (!regular0 ";" NamedArgument { NamedField } (!regular0 "," NamedArgument { NamedField })*)? ","?
+  !regular0 ")"
+}
+
+argument {
+  expression | NamedArgument { NamedField }
 }
 
 DoClause {
@@ -332,7 +345,13 @@ PairExpression /* precedence: right 11 */ {
 }
 
 TupleExpression {
-  "(" (","? | (expression ~expression | NamedField) "," | (expression ~expression | NamedField) ("," (expression ~expression | NamedField))+ ","?) ")"
+  "("
+  !regular0 (","? | tupleElement !regular0 "," | tupleElement (!regular0 "," tupleElement)+ (!regular0 ",")?)
+  !regular0 ")"
+}
+
+tupleElement {
+  expression ~expression | NamedField
 }
 
 ArrayExpression {
@@ -341,7 +360,7 @@ ArrayExpression {
 }
 
 MatrixExpression /* precedence: -1 */ {
-  "[" (MatrixRow (!regular-1 semi MatrixRow)*) semi? "]"
+  "[" (MatrixRow (!regular-1 ";" MatrixRow)*) ";"? "]"
 }
 
 MatrixRow {
@@ -398,36 +417,36 @@ MacroIdentifier {
 }
 
 String {
-  "\"" token_3? "\"" |
-  Identifier !immediate "\"" token_3? "\""
+  "\"" stringContent? "\"" |
+  Identifier !immediate "\"" stringContent? "\""
 }
 
-_terminator {
-  newline | semi
-}
-
-Number { AnyNumber | IntegerNumber }
+Number { number | integerNumber }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
 
-@skip { whitespace | Comment | BlockComment }
-
-@external tokens token from "./tokens" { BlockComment, TripleString, immediateParen, newline }
+@external tokens token from "./tokens" { BlockComment, TripleString, immediateParen }
+@external tokens terminator from "./tokens" { terminator }
 
 @tokens {
   whitespace {
     $[ \t\r\n]
   }
-  IntegerNumber {
+  integerNumber {
     $[1-9] $[0-9]*
+  }
+  number {
+    (
+      "0" $[xX] $[0-9a-fA-F] $[0-9a-fA-F_]* |
+      $[0-9] $[0-9_]* "."? ($[0-9] $[0-9_]*)? |
+      "." $[0-9] $[0-9_]*
+    )
+    ($[eE] ("-" | "+")? $[0-9]+)?
   }
   Identifier {
     $[_a-zA-Z]+
   }
-  AnyNumber {
-    ("0" $[xX] $[0-9a-fA-F] $[0-9a-fA-F_]* | $[0-9] $[0-9_]* "."? $[0-9] $[0-9_]*? | "." $[0-9] $[0-9_]*) $[eE] $[+-]? $[0-9]+?
-  }
-  token_3 {
+  stringContent {
     (!["\\\n] | "\\\\" ![\n])+
   }
   CommandString {
@@ -460,20 +479,17 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
   unaryOperator {
     ">:" | "+" | "-" | "!" | "~" | "¬" | "√" | "∛" | "∜"
   }
-  semi {
-    ";"
-  }
   Comment {
     "#" ![\n]*
   }
 
   @precedence {
-    AnyNumber,
-    IntegerNumber,
-    ".",
     whitespace,
+    number,
+    integerNumber,
+    ".",
     Comment,
-    token_3,
+    stringContent,
     assignOperator,
     "=",
     comparisonOperator,

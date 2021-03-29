@@ -13,7 +13,7 @@ default: build
 build: dist/index.cjs dist/index.es.js
 
 .PHONY: test
-test: build
+test:
 	$(BIN)/mocha test/test-julia.js
 
 src/parser.js src/parser.terms.js: src/julia.grammar

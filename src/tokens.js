@@ -6,6 +6,7 @@ const DQUOTE = '"'.codePointAt(0);
 const HASH = "#".codePointAt(0);
 const EQUAL = "=".codePointAt(0);
 const NEWLINE = "\n".codePointAt(0);
+const SEMICOLON = ";".codePointAt(0);
 
 const isTripleQuote = (input, pos) => {
   return (
@@ -23,15 +24,18 @@ const isBlockCommentEnd = (input, pos) => {
   return input.get(pos) === EQUAL && input.get(pos + 1) === HASH;
 };
 
+export const terminator = new ExternalTokenizer((input, token, stack) => {
+  let curr = input.get(token.start);
+  if (curr === NEWLINE || curr.SEMICOLON) {
+    if (stack.canShift(terms.terminator)) {
+      token.accept(terms.terminator, token.start + 1);
+      return;
+    }
+  }
+});
+
 export const token = new ExternalTokenizer(
   (input, token, stack) => {
-    // newline if needed, otherwise whitespace
-    if (input.get(token.start) === NEWLINE) {
-      if (stack.canShift(terms.newline)) {
-        token.accept(terms.newline, token.start);
-        return;
-      }
-    }
     // immediateParen
     if (
       input.get(token.start) === LPAREN &&
