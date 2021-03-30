@@ -2,6 +2,7 @@ import { ExternalTokenizer } from "lezer";
 import * as terms from "./parser.terms.js";
 
 const LPAREN = "(".codePointAt(0);
+const LBRACE = "{".codePointAt(0);
 const DQUOTE = '"'.codePointAt(0);
 const HASH = "#".codePointAt(0);
 const EQUAL = "=".codePointAt(0);
@@ -42,6 +43,14 @@ export const token = new ExternalTokenizer(
       stack.canShift(terms.immediateParen)
     ) {
       token.accept(terms.immediateParen, token.start - 1);
+      return;
+    }
+    // immediateParen
+    if (
+      input.get(token.start) === LBRACE &&
+      stack.canShift(terms.immediateBrace)
+    ) {
+      token.accept(terms.immediateBrace, token.start - 1);
       return;
     }
     // TripleString

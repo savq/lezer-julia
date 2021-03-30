@@ -50,16 +50,6 @@ SourceFile(
   BareTupleExpression(String,String)
 )
 
-# Tuple_ok
-
-(1, 2)
-
-==>
-
-SourceFile(
-  ParenthesizedExpression(BareTupleExpression(Number,Number))
-)
-
 # Triple String
 
 """
@@ -144,6 +134,154 @@ end
 SourceFile(
   FunctionDefinition(function,Identifier,ParameterList,end),
   FunctionDefinition(function,Identifier,ParameterList,end),
+)
+
+# FunctionDefinition_3
+
+function() end
+function () end
+function()
+end
+
+==>
+
+SourceFile(
+  FunctionDefinition(function,ParameterList,end),
+  FunctionDefinition(function,ParameterList,end),
+  FunctionDefinition(function,ParameterList,end),
+)
+
+# AbstractDefinition
+
+abstract type name end
+abstract type name
+end
+abstract type name{param} end
+abstract type name{param} <: supertype end
+
+==>
+
+SourceFile(
+  AbstractDefinition(abstract,type,Identifier,end),
+  AbstractDefinition(abstract,type,Identifier,end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),SubtypeClause(Identifier),end),
+)
+
+# AbstractDefinition_TypeParameterList
+
+abstract type name{a} end
+abstract type name{a,b} end
+abstract type name{a,} end
+abstract type name{a,b,} end
+abstract type name{a<:b} end
+abstract type name{a<:b,} end
+abstract type name{a, a<:b} end
+abstract type name{a, a<:b,} end
+
+==>
+
+SourceFile(
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,Identifier),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,Identifier),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(ConstrainedParameter(Identifier,Identifier)),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(ConstrainedParameter(Identifier,Identifier)),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,ConstrainedParameter(Identifier,Identifier)),end),
+  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,ConstrainedParameter(Identifier,Identifier)),end))
+
+# PrimitiveDefinition
+
+primitive type name 42 end
+primitive type name
+  42
+end
+primitive type name{param} 42 end
+primitive type name{param} <: supertype 42 end
+
+==>
+
+SourceFile(
+  PrimitiveDefinition(primitive,type,Identifier,Number,end),
+  PrimitiveDefinition(primitive,type,Identifier,Number,end),
+  PrimitiveDefinition(primitive,type,Identifier,TypeParameterList(Identifier),Number,end),
+  PrimitiveDefinition(primitive,type,Identifier,TypeParameterList(Identifier),SubtypeClause(Identifier),Number,end),
+)
+
+# StructDefinition
+
+struct name end
+struct name
+end
+struct name{param}
+end
+struct name{param} <: supertype
+end
+struct name
+  expr
+end
+struct name
+  expr
+  expr
+end
+mutable struct name end
+
+==>
+
+SourceFile(
+  StructDefinition(struct,Identifier,end),
+  StructDefinition(struct,Identifier,end),
+  StructDefinition(struct,Identifier,TypeParameterList(Identifier),end),
+  StructDefinition(struct,Identifier,TypeParameterList(Identifier),SubtypeClause(Identifier),end),
+  StructDefinition(struct,Identifier,Identifier,end),
+  StructDefinition(struct,Identifier,Identifier,Identifier,end),
+  StructDefinition(mutable,struct,Identifier,end),
+)
+
+# ModuleDefinition
+
+module name end
+module name
+  expr
+end
+
+==>
+
+SourceFile(
+  ModuleDefinition(module,Identifier,end),
+  ModuleDefinition(module,Identifier,Identifier,end)
+)
+
+# BareModuleDefinition
+
+baremodule name end
+baremodule name
+  expr
+end
+
+==>
+
+SourceFile(
+  BareModuleDefinition(baremodule,Identifier,end),
+  BareModuleDefinition(baremodule,Identifier,Identifier,end)
+)
+
+# MacroDefinition_ok
+
+macro name() end
+macro name()
+end
+macro name()
+  expr
+end
+
+==>
+
+SourceFile(
+  MacroDefinition(macro,Identifier,ParameterList,end),
+  MacroDefinition(macro,Identifier,ParameterList,end),
+  MacroDefinition(macro,Identifier,ParameterList,Identifier,end),
 )
 
 # AssignmentExpression_1
@@ -308,5 +446,148 @@ SourceFile(
   MacroExpression(
     MacroIdentifier(Identifier),
     MacroArgumentList(Identifier,CompoundExpression(begin,Identifier,end))
+  )
+)
+
+# ParenthesizedExpression_expression_ok
+
+(1)
+
+==>
+
+SourceFile(ParenthesizedExpression(Number))
+
+# ParenthesizedExpression_AssignmentExpression_ok
+
+(a=1)
+
+==>
+
+SourceFile(ParenthesizedExpression(AssignmentExpression(Identifier,Number)))
+
+# Tuple_empty_ok
+
+()
+
+==>
+
+SourceFile(TupleExpression)
+
+# Tuple_one_ok
+
+(1,)
+
+==>
+
+SourceFile(TupleExpression(Number))
+
+# Tuple_many_ok
+
+(1,2)
+(1,2,)
+
+==>
+
+SourceFile(
+  TupleExpression(Number,Number),
+  TupleExpression(Number,Number),
+)
+
+# Tuple_NamedField_one_ok
+
+(a=1,)
+
+==>
+
+SourceFile(
+  TupleExpression(NamedField(Identifier,Number)),
+)
+
+# Tuple_NamedField_many_ok
+
+(a=1, b=2)
+(a=1, b=2,)
+
+==>
+
+SourceFile(
+  TupleExpression(NamedField(Identifier,Number),NamedField(Identifier,Number)),
+  TupleExpression(NamedField(Identifier,Number),NamedField(Identifier,Number)),
+)
+
+# FunctionExpression_ok
+
+(a, b) -> a + b
+(a) -> a
+
+==>
+
+SourceFile(
+  FunctionExpression(ParameterList(Identifier,Identifier),BinaryExpression(Identifier,Identifier)),
+  FunctionExpression(ParameterList(Identifier),Identifier),
+)
+
+# RangeExpression_ok
+
+a:b
+
+==>
+
+SourceFile(RangeExpression(Identifier,Identifier))
+
+# XXX
+
+$x(1, 2)
+
+==>
+
+# TS Macro Definitions
+
+macro treelike(T, fs = nothing)
+  fs = [:($(map(QuoteNode, fs.args)...),)]
+  :(treelike(@__MODULE__, $(esc(T)), $(fs...)))
+end
+
+==>
+
+SourceFile(
+  MacroDefinition(
+    macro,
+    Identifier,
+    ParameterList(Identifier,OptionalParameter(Identifier,Identifier)),
+    AssignmentExpression(
+      Identifier,
+      MatrixExpression(
+        MatrixRow(
+          QuoteExpression(
+            TupleExpression(
+              InterpolationExpression(
+                ParenthesizedExpression(
+                  SpreadExpression(
+                    CallExpression(
+                      Identifier,
+                      ArgumentList(Identifier,FieldExpression(Identifier,Identifier))
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ),
+    QuoteExpression(
+      ParenthesizedExpression(
+        CallExpression(
+          Identifier,
+          ArgumentList(
+            MacroExpression(MacroIdentifier(Identifier)),
+            InterpolationExpression(ParenthesizedExpression(CallExpression(Identifier,ArgumentList(Identifier)))),
+            InterpolationExpression(ParenthesizedExpression(SpreadExpression(Identifier)))
+          )
+        )
+      )
+    ),
+    end
   )
 )
