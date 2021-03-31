@@ -1,0 +1,530 @@
+# Variables
+
+w
+w′
+θ
+θ̄
+logŷ
+ϵ
+ŷ
+
+==>
+
+(source_file
+  (identifier)
+  (identifier)
+  (identifier)
+  (identifier)
+  (identifier)
+  (identifier)
+  (identifier))
+
+# Strings
+
+"foo"
+"""a "quoted" string"""
+"fo\"o"
+
+==>
+
+(source_file
+  (string)
+  (triple_string)
+  (string))
+
+# Command strings
+
+`foo`
+`foo \` bar`
+
+==>
+
+(source_file
+  (command_string)
+  (command_string))
+
+# Prefixed strings
+
+x = r"foo"
+y = v"1.0"
+
+==>
+
+(source_file
+  (assignment_expression (identifier) (string (identifier)))
+  (assignment_expression (identifier) (string (identifier))))
+
+# Characters
+
+'o'
+'\t'
+
+==>
+
+(source_file (character) (character))
+
+# Assignments
+
+a = b
+c &= d ÷= e
+a, b = c, d, e
+
+==>
+
+SourceFile(
+  AssignmentExpression(
+    Identifier,
+    Identifier,
+  ),
+  AssignmentExpression(
+    Identifier,
+    AssignmentExpression(Identifier,Identifier),
+  ),
+  AssignmentExpression(
+    BareTupleExpression(Identifier,Identifier),
+    BareTupleExpression(Identifier,Identifier,Identifier)
+  )
+)
+
+# Functions
+
+function test(x, y)
+end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,
+    Identifier,
+    ParameterList(Identifier,Identifier),
+    end
+  )
+)
+
+# Function calls
+
+a()
+b("hi", 2)
+c(d...)
+d(e; f = g)
+new{typeof(xs)}(xs)
+
+==>
+
+SourceFile(
+  CallExpression(
+    Identifier,
+    ArgumentList
+  ),
+  CallExpression(
+    Identifier,
+    ArgumentList(String,Number)
+  ),
+  CallExpression(
+    Identifier,
+    ArgumentList(SpreadExpression(Identifier))
+  ),
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      Identifier,
+      NamedArgument(NamedField(Identifier,Identifier))
+    )
+  ),
+  CallExpression(
+    ParameterizedIdentifier(
+      Identifier,
+      TypeArgumentList(
+        CallExpression(Identifier,ArgumentList(Identifier))
+      )
+    ),
+    ArgumentList(Identifier)
+  )
+)
+
+# Function calls with do blocks
+
+a(b) do
+  print(c)
+end
+
+==> 
+
+SourceFile(
+  CallExpression(
+    Identifier,
+    ArgumentList(Identifier),
+    DoClause(
+      do,
+      CallExpression(Identifier,ArgumentList(Identifier)),
+      end
+    )
+  )
+)
+
+# Fields and subscripts
+
+(a[1].b().c).d
+
+==>
+
+SourceFile(
+  FieldExpression(
+    ParenthesizedExpression(
+      FieldExpression(
+        CallExpression(
+          FieldExpression(
+            SubscriptExpression(Identifier,Number),
+            Identifier
+          ),
+          ArgumentList
+        ),
+        Identifier
+      )
+    ),
+    Identifier
+  )
+)
+
+# Macro calls
+
+@assert x == y
+@assert x == y "a message"
+
+@. a
+
+@testset "a" begin
+  b = c
+end
+
+==>
+
+SourceFile(
+  MacroExpression(
+    MacroIdentifier(Identifier),
+    MacroArgumentList(
+      BinaryExpression(Identifier,Identifier))
+  ),
+  MacroExpression(
+    MacroIdentifier(Identifier),
+    MacroArgumentList(
+      BinaryExpression(Identifier,Identifier),
+      String
+    )
+  ),
+  MacroExpression(
+    MacroIdentifier(Operator),
+    MacroArgumentList(Identifier)
+  ),
+  MacroExpression(
+    MacroIdentifier(Identifier),
+    MacroArgumentList(
+      String,
+      CompoundExpression(
+        begin,
+        AssignmentExpression(Identifier,Identifier),
+        end)
+      )
+    )
+  )
+
+# Binary operators
+
+a → b ⇶ c ⭄ d
+a * b ⦼ c
+a == b
+
+==>
+
+(source_file
+  (binary_expression
+    (identifier)
+    (binary_expression
+      (identifier)
+      (binary_expression
+        (identifier)
+        (identifier))))
+  (binary_expression
+    (binary_expression
+      (identifier)
+      (identifier))
+    (identifier))
+  (binary_expression
+    (identifier)
+    (identifier)))
+
+# Binary operators with leading dots
+
+a .* b .+ c
+
+==>
+
+SourceFile(
+  BinaryExpression(
+    BinaryExpression(Identifier,Identifier),
+    Identifier
+  )
+)
+
+# Unary operators
+
++a
+-b
+√9
+[a]'
+!(a + b)
+
+==>
+
+(source_file
+  (unary_expression (identifier))
+  (unary_expression (identifier))
+  (unary_expression (number))
+  (unary_expression (array_expression (identifier)))
+  (unary_expression
+    (parenthesized_expression (binary_expression (identifier) (identifier)))))
+
+# The ternary operator
+
+x = batch_size == 1 ?
+  rand(10) :
+  rand(10, batch_size)
+
+==>
+
+SourceFile(
+  AssignmentExpression(
+    Identifier,
+    TernaryExpression(
+      BinaryExpression(Identifier,Number),
+      CallExpression(Identifier,ArgumentList(Number)),
+      CallExpression(Identifier,ArgumentList(Number,Identifier))
+    )
+  )
+)
+
+# Operators as values
+
+x = +
+print(:)
+foo(^, ÷)
+
+==>
+
+SourceFile(
+  AssignmentExpression(Identifier,Operator),
+  CallExpression(Identifier,ArgumentList(Operator)),
+  CallExpression(Identifier,ArgumentList(Operator,Operator))
+)
+
+# Numerical expressions
+
+1
+2.0
+3.
+0xdeadbeef999
+100_000_000
+.4
+1.0e-7
+
+==>
+
+SourceFile(
+  Number,
+  Number,
+  Number,
+  Number,
+  Number,
+  Number,
+  Number
+)
+
+# Coefficient expressions
+
+2x^2 - 3x + 1
+1.5x^2 - .5x + 1
+2^2x
+2(x-1)^2 - 3(x-1) + 1
+
+==>
+
+SourceFile(
+  BinaryExpression(
+    BinaryExpression(
+      BinaryExpression(
+        CoefficientExpression(Number,Identifier),
+        Number
+      ),
+      CoefficientExpression(Number,Identifier)
+    ),
+    Number
+  ),
+  BinaryExpression(
+    BinaryExpression(
+      BinaryExpression(
+        CoefficientExpression(Number,Identifier),
+        Number
+      ),
+      CoefficientExpression(Number,Identifier)
+    ),
+    Number
+  ),
+  BinaryExpression(
+    Number,
+    CoefficientExpression(Number,Identifier)
+  ),
+  BinaryExpression(
+    BinaryExpression(
+      BinaryExpression(
+        CoefficientExpression(
+          Number,
+          ParenthesizedExpression(BinaryExpression(Identifier,Number))
+        ),
+        Number
+      ),
+      CoefficientExpression(
+        Number,
+        ParenthesizedExpression(
+          BinaryExpression(Identifier,Number)
+        )
+      )
+    ),
+    Number
+  )
+)
+
+# Tuples
+
+()
+(1)
+(1,)
+(2,3,4,)
+
+==>
+
+SourceFile(
+  TupleExpression,
+  ParenthesizedExpression(Number),
+  TupleExpression(Number),
+  TupleExpression(Number,Number,Number)
+)
+
+# Named tuples
+
+(a = 1)
+(a = 1,)
+(a = 1, b = 2)
+
+==>
+
+SourceFile(
+  ParenthesizedExpression(
+    AssignmentExpression(Identifier,Number)
+  ),
+  TupleExpression(
+    NamedField(Identifier,Number)
+  ),
+  TupleExpression(
+    NamedField(Identifier,Number),
+    NamedField(Identifier,Number)
+  )
+)
+
+# Arrays
+
+[]
+[1, 2,]
+
+==>
+
+SourceFile(
+  ArrayExpression,
+  ArrayExpression(Number,Number),
+)
+
+# Matrices
+
+[1 2]
+[1 2; 3 4]
+[1 2; 3 4;]
+
+==>
+
+SourceFile(
+  MatrixExpression(MatrixRow(Number,Number)),
+  MatrixExpression(MatrixRow(Number,Number),MatrixRow(Number,Number)),
+  MatrixExpression(MatrixRow(Number,Number),MatrixRow(Number,Number))
+)
+
+# Pairs
+
+A(b => c, d => e)
+
+==>
+
+SourceFile(
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      PairExpression(Identifier,Identifier),
+      PairExpression(Identifier,Identifier)
+    )
+  )
+)
+
+# Function expressions
+
+x -> x^2
+(x,y,z)->2x+y-z
+()->3
+function () 3 end
+() -> (sleep(0.1); i += 1; l)
+
+==>
+
+SourceFile(
+  FunctionExpression(
+    Identifier,
+    BinaryExpression(Identifier,Number)
+  ),
+  FunctionExpression(
+    ParameterList(Identifier,Identifier,Identifier),
+    BinaryExpression(
+      BinaryExpression(
+        CoefficientExpression(Number,Identifier),
+        Identifier
+      ),
+      Identifier
+    )
+  ),
+  FunctionExpression(ParameterList,Number),
+  FunctionExpression(function,ParameterList,Number,end),
+  FunctionExpression(
+    ParameterList,
+    ParenthesizedExpression(
+      CallExpression(Identifier,ArgumentList(Number)),
+      AssignmentExpression(Identifier,Number),
+      Identifier
+    )
+  )
+)
+
+# Generator expressions
+
+(b(c, e) for c in d, e = 5 if e)
+[b(c, e) for c in d for e in f]
+
+==>
+
+(source_file
+  (generator_expression
+    (call_expression (identifier) (argument_list (identifier) (identifier)))
+    (for_clause
+      (for_binding (identifier) (identifier))
+      (for_binding (identifier) (number)))
+    (if_clause (identifier)))
+  (array_comprehension_expression
+    (call_expression (identifier) (argument_list (identifier) (identifier)))
+    (for_clause (for_binding (identifier) (identifier)))
+    (for_clause (for_binding (identifier) (identifier)))))

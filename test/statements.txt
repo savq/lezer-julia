@@ -1,0 +1,280 @@
+# If statements
+
+if a
+  b()
+elseif c
+  d()
+  d()
+else
+  e()
+end
+
+# empty bodies
+if a
+elseif b
+else
+end
+
+==>
+
+SourceFile(
+  IfStatement(
+    if,Identifier,
+    CallExpression(Identifier,ArgumentList),
+    ElseifClause(
+      elseif,Identifier,
+      CallExpression(Identifier,ArgumentList),
+      CallExpression(Identifier,ArgumentList)
+    ),
+    ElseClause(
+      else,
+      CallExpression(Identifier,ArgumentList)
+    ),
+    end
+  ),
+  Comment,
+  IfStatement(
+    if,Identifier,
+    ElseifClause(elseif,Identifier),
+    ElseClause(else),
+    end
+  )
+)
+
+# For statements
+
+for i in [1, 2, 3]
+  print(i)
+end
+
+for (a, b) in c
+  print(a, b)
+end
+
+==>
+
+SourceFile(
+  ForStatement(
+    for,
+    ForBinding(
+      Identifier,in,
+      ArrayExpression(Number,Number,Number)
+    ),
+    CallExpression(Identifier,ArgumentList(Identifier)),
+    end
+  ),
+  ForStatement(
+    for,
+    ForBinding(
+      TupleExpression(Identifier,Identifier),in,
+      Identifier
+    ),
+    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+    end
+  )
+)
+
+# While statements
+
+while i < 5
+  print(i)
+  continue
+  break
+end
+
+while a(); b(); end
+while a() b(); end
+
+==>
+
+SourceFile(
+  WhileStatement(
+    while,
+    BinaryExpression(Identifier,Number),
+    CallExpression(Identifier,ArgumentList(Identifier)),
+    ContinueStatement(continue),
+    BreakStatement(break),
+    end
+  ),
+  WhileStatement(
+    while,
+    CallExpression(Identifier,ArgumentList),
+    CallExpression(Identifier,ArgumentList),
+    end
+  ),
+  WhileStatement(
+    while,
+    CallExpression(Identifier,ArgumentList),
+    CallExpression(Identifier,ArgumentList),
+    end
+  )
+)
+
+# Return statements
+
+return
+return a
+return a || b
+return a, b, c
+
+==>
+
+SourceFile(
+  ReturnStatement(return),
+  ReturnStatement(return,
+    Identifier),
+  ReturnStatement(return,
+    BinaryExpression(Identifier,Identifier)),
+  ReturnStatement(return,
+    BareTupleExpression(Identifier,Identifier,Identifier))
+)
+
+# Let statements
+
+let var1 = value1, var2, var3 = value3
+    code
+end
+
+==>
+
+SourceFile(
+  LetStatement(let,
+    VariableDeclaration(Identifier,Identifier),
+    VariableDeclaration(Identifier),
+    VariableDeclaration(Identifier,Identifier),
+    Identifier,
+    end
+  )
+)
+
+# Const statements
+
+const x, y = 5
+
+==>
+
+SourceFile(
+  ConstStatement(const,
+    VariableDeclaration(Identifier),
+    VariableDeclaration(Identifier,Number)
+  )
+)
+
+# Quote statements
+
+quote
+  x = 1
+  y = 2
+  x + y
+end
+
+==>
+
+SourceFile(
+  QuoteStatement(quote,
+    AssignmentExpression(Identifier,Number),
+    AssignmentExpression(Identifier,Number),
+    BinaryExpression(Identifier,Identifier),
+    end
+  )
+)
+
+# Try statements
+
+try
+    sqrt(x)
+catch
+    sqrt(complex(x, 0))
+end
+
+try
+    operate_on_file(f)
+finally
+    close(f)
+end
+
+==>
+
+SourceFile(
+  TryStatement(try,
+    CallExpression(Identifier,ArgumentList(Identifier)),
+    CatchClause(catch,
+      CallExpression(
+        Identifier,
+        ArgumentList(
+          CallExpression(Identifier,ArgumentList(Identifier,Number))
+        )
+      )
+    ),
+    end
+  ),
+  TryStatement(try,
+    CallExpression(Identifier,ArgumentList(Identifier)),
+    FinallyClause(finally,
+      CallExpression(Identifier,ArgumentList(Identifier))
+    ),
+    end
+  )
+)
+
+# Import statements
+
+using Lib
+using BigLib: thing1, thing2
+import Base.show
+import .A: @b
+using A, B, C
+
+==>
+
+SourceFile(
+  ImportStatement(using,
+    Identifier),
+  ImportStatement(using,
+    SelectedImport(Identifier,Identifier),Identifier),
+  ImportStatement(import,
+    ScopedIdentifier(Identifier,Identifier)),
+  ImportStatement(import,
+    SelectedImport(
+      ScopedIdentifier(Identifier),
+      MacroIdentifier(Identifier)
+    )
+  ),
+  ImportStatement(using,Identifier,Identifier,Identifier)
+)
+
+# Export statements
+
+export a
+export a, b, c
+
+==>
+
+SourceFile(
+  ExportStatement(export,Identifier),
+  ExportStatement(export,Identifier,Identifier,Identifier)
+)
+
+# Comments
+
+# comment
+#= comment =#
+#=
+comment
+=#
+x = #= comment =# 1
+
+#=
+nested #= comments =# =#
+#==#
+
+==>
+
+SourceFile(
+  Comment,
+  BlockComment,
+  BlockComment,
+  AssignmentExpression(Identifier,BlockComment,Number),
+  BlockComment,
+  BlockComment,
+)

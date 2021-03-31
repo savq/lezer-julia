@@ -506,13 +506,27 @@ SourceFile(
 # Tuple_NamedField_many_ok
 
 (a=1, b=2)
+
+==>
+
+SourceFile(
+  TupleExpression(
+    NamedField(Identifier,Number),
+    NamedField(Identifier,Number)
+  ),
+)
+
+# Tuple_NamedField_many_trailing_comma_ok
+
 (a=1, b=2,)
 
 ==>
 
 SourceFile(
-  TupleExpression(NamedField(Identifier,Number),NamedField(Identifier,Number)),
-  TupleExpression(NamedField(Identifier,Number),NamedField(Identifier,Number)),
+  TupleExpression(
+    NamedField(Identifier,Number),
+    NamedField(Identifier,Number)
+  ),
 )
 
 # FunctionExpression_ok
@@ -541,53 +555,23 @@ $x(1, 2)
 
 ==>
 
-# TS Macro Definitions
+SourceFile(
+  CallExpression(
+    InterpolationExpression(Identifier),
+    ArgumentList(Number,Number)
+  )
+)
 
-macro treelike(T, fs = nothing)
-  fs = [:($(map(QuoteNode, fs.args)...),)]
-  :(treelike(@__MODULE__, $(esc(T)), $(fs...)))
-end
+# while_call_ok
+
+while call(); end
 
 ==>
 
 SourceFile(
-  MacroDefinition(
-    macro,
-    Identifier,
-    ParameterList(Identifier,OptionalParameter(Identifier,Identifier)),
-    AssignmentExpression(
-      Identifier,
-      MatrixExpression(
-        MatrixRow(
-          QuoteExpression(
-            TupleExpression(
-              InterpolationExpression(
-                ParenthesizedExpression(
-                  SpreadExpression(
-                    CallExpression(
-                      Identifier,
-                      ArgumentList(Identifier,FieldExpression(Identifier,Identifier))
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    ),
-    QuoteExpression(
-      ParenthesizedExpression(
-        CallExpression(
-          Identifier,
-          ArgumentList(
-            MacroExpression(MacroIdentifier(Identifier)),
-            InterpolationExpression(ParenthesizedExpression(CallExpression(Identifier,ArgumentList(Identifier)))),
-            InterpolationExpression(ParenthesizedExpression(SpreadExpression(Identifier)))
-          )
-        )
-      )
-    ),
+  WhileStatement(
+    while,
+    CallExpression(Identifier,ArgumentList),
     end
   )
 )

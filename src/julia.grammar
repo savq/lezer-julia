@@ -93,7 +93,7 @@ MacroDefinition {
   kw<"end">
 }
 
-ParameterList[@dynamicPrecedence=2] {
+ParameterList {
   "(" 
   !regular0 (
     (Identifier ~field | SpreadParameter | OptionalParameter | TypedParameter)
@@ -261,12 +261,12 @@ expression {
   SpreadExpression |
   RangeExpression |
   QuoteExpression |
-  InterpolationExpression |
   Number |
   primaryExpression
 }
 
 primaryExpression {
+  InterpolationExpression |
   Identifier |
   Operator ~operator |
   String |
@@ -325,7 +325,10 @@ CompoundExpression {
 }
 
 CallExpression /* precedence: 26 */ {
-  primaryExpression ~dollar !call_coeff immediateParen !call_coeff (ArgumentList | GeneratorExpression) DoClause?
+  primaryExpression
+  !call_coeff immediateParen
+  (args[@dynamicPrecedence=2] { ArgumentList } | GeneratorExpression)
+  DoClause?
 }
 
 BroadcastCallExpression /* precedence: 26 */ {
@@ -333,24 +336,31 @@ BroadcastCallExpression /* precedence: 26 */ {
 }
 
 MacroExpression /* precedence: right 0 */ {
-  MacroIdentifier |
-  MacroIdentifier !right0 immediateParen ArgumentList |
-  MacroIdentifier !right0 MacroArgumentList
+  MacroIdentifier (
+    !right0 (
+      immediateParen args[@dynamicPrecedence=3] { ArgumentList } |
+      MacroArgumentList
+    )
+  )?
 }
 
 MacroArgumentList /* precedence: -1 */ {
   (!regular-1 expression)+
 }
 
-ArgumentList[@dynamicPrecedence=2] {
+ArgumentList {
   !regular0 "("
-  !regular0 (argument ("," argument)*)?
-  (!regular0 ";" NamedArgument { NamedField } (!regular0 "," NamedArgument { NamedField })*)? ","?
+  !regular0 (
+    (expression | NamedArgument { NamedField })
+    ("," (expression | NamedArgument { NamedField }))*
+  )?
+  (
+    !regular0 ";"
+    NamedArgument { NamedField }
+    (!regular0 "," NamedArgument { NamedField })*
+  )?
+  ","?
   !regular0 ")"
-}
-
-argument {
-  expression | NamedArgument { NamedField }
 }
 
 DoClause {
@@ -458,7 +468,7 @@ QuoteExpression /* precedence: left 19 */ {
 }
 
 InterpolationExpression[@dynamicPrecedence=3] /* precedence: left 19 */ {
-  "$" ~dollar !quote_interp expression
+  "$" !quote_interp primaryExpression
 }
 
 MacroIdentifier {
@@ -493,7 +503,7 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
     ($[eE] ("-" | "+")? $[0-9]+)?
   }
   Identifier {
-    $[_a-zA-Z]+
+    $[_a-zA-Z] $[_a-zA-Z0-9]*
   }
   stringContent {
     (!["\\\n] | "\\\\" ![\n])+

@@ -27,7 +27,7 @@ const isBlockCommentEnd = (input, pos) => {
 
 export const terminator = new ExternalTokenizer((input, token, stack) => {
   let curr = input.get(token.start);
-  if (curr === NEWLINE || curr.SEMICOLON) {
+  if (curr === NEWLINE || curr == SEMICOLON) {
     if (stack.canShift(terms.terminator)) {
       token.accept(terms.terminator, token.start + 1);
       return;

@@ -1,0 +1,233 @@
+# Modules
+
+module A
+
+module B
+end
+
+module C
+end
+
+end
+
+==>
+
+SourceFile(
+  ModuleDefinition(module,Identifier,
+    ModuleDefinition(module,Identifier,end),
+    ModuleDefinition(module,Identifier,end),
+    end
+  )
+)
+
+# Structs
+
+# primitive
+primitive type T 8 end
+primitive type T <: S 16 end
+primitive type Ptr{T} 32 end
+
+# abstract
+abstract type T end
+abstract type T <: S end
+abstract type T{S} <: U end
+
+# empty
+struct NoFields
+end
+
+# mutable
+mutable struct Bar
+  baz
+  qux::Float64
+end
+
+# parametric
+struct Point{T}
+  x::T
+  y::T
+end
+
+# parametric with constraints, parent type
+struct Rational{T<:Integer} <: Real
+  num::T
+  den::T
+end
+
+# parametric fields
+mutable struct Foo<:Bar
+  asd::Vector{Bar}
+end
+
+==>
+
+SourceFile(
+  Comment,
+  PrimitiveDefinition(
+    primitive,type,Identifier,
+    Number,
+    end),
+  PrimitiveDefinition(
+    primitive,type,Identifier,
+    SubtypeClause(Identifier),
+    Number,
+    end),
+  PrimitiveDefinition(
+    primitive,type,Identifier,
+    TypeParameterList(Identifier),
+    Number,
+    end),
+  Comment,
+  AbstractDefinition(
+    abstract,type,Identifier,
+    end),
+  AbstractDefinition(
+    abstract,type,Identifier,
+    SubtypeClause(Identifier),
+    end),
+  AbstractDefinition(
+    abstract,type,Identifier,
+    TypeParameterList(Identifier),
+    SubtypeClause(Identifier),
+    end),
+  Comment,
+  StructDefinition(
+    struct,Identifier,
+    end),
+  Comment,
+  StructDefinition(
+    mutable,struct,Identifier,
+    Identifier,
+    TypedExpression(Identifier,Identifier),
+    end),
+  Comment,
+  StructDefinition(
+    struct,Identifier,
+    TypeParameterList(Identifier),
+    TypedExpression(Identifier,Identifier),
+    TypedExpression(Identifier,Identifier),
+    end),
+  Comment,
+  StructDefinition(
+    struct,Identifier,
+    TypeParameterList(ConstrainedParameter(Identifier,Identifier)),
+    SubtypeClause(Identifier),
+    TypedExpression(Identifier,Identifier),
+    TypedExpression(Identifier,Identifier),
+    end),
+  Comment,
+  StructDefinition(
+    mutable,struct,Identifier,
+    SubtypeClause(Identifier),
+    TypedExpression(
+      Identifier,
+      ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))
+    ),
+    end)
+)
+
+# Functions with typed parameters
+
+function a(b::C)
+end
+
+function d{E}(f::E)
+end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,Identifier,
+    ParameterList(TypedParameter(Identifier,Identifier)),
+    end
+  ),
+  FunctionDefinition(
+    function,Identifier,
+    TypeParameterList(Identifier),
+    ParameterList(TypedParameter(Identifier,Identifier)),
+    end
+  ),
+)
+
+# Functions with optional and keyword parameters
+
+function a(b::C = 1; d, e::F = 2)
+end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,Identifier,
+    ParameterList(
+      OptionalParameter(TypedParameter(Identifier,Identifier),Number),
+      KeywordParameters(
+        Identifier,
+        OptionalParameter(TypedParameter(Identifier,Identifier),Number))
+    ),
+    end
+  )
+)
+
+# Macro definitions
+
+macro treelike(T, fs = nothing)
+  fs = [:($(map(QuoteNode, fs.args)...),)]
+  :(treelike(@__MODULE__, $(esc(T)), $(fs...)))
+end
+
+==>
+
+SourceFile(
+  MacroDefinition(
+    macro,Identifier,
+    ParameterList(Identifier,OptionalParameter(Identifier,Identifier)),
+    AssignmentExpression(
+      Identifier,
+      MatrixExpression(MatrixRow(
+        QuoteExpression(
+          TupleExpression(
+            InterpolationExpression(
+              ParenthesizedExpression(
+                SpreadExpression(
+                  CallExpression(
+                    Identifier,
+                    ArgumentList(
+                      Identifier,
+                      FieldExpression(Identifier,Identifier)
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      ))
+    ),
+    QuoteExpression(
+      ParenthesizedExpression(
+        CallExpression(
+          Identifier,
+          ArgumentList(
+            MacroExpression(MacroIdentifier(Identifier)),
+            InterpolationExpression(
+              ParenthesizedExpression(
+                CallExpression(
+                  Identifier,
+                  ArgumentList(Identifier)
+                )
+              )
+            ),
+            InterpolationExpression(
+              ParenthesizedExpression(
+                SpreadExpression(Identifier)
+              )
+            )
+          )
+        )
+      )
+    ),
+    end
+  )
+)
