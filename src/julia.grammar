@@ -1,24 +1,24 @@
 @precedence {
   immediate
-  regular30
-  regular29
-  regular28
+  prefix
+  postfix
+  dot
   regular27
   quote_interp @left
   call_coeff
-  left25 @left
-  left23 @left
-  left21 @left
-  left20 @left
-  left18 @left
-  right17 @right
-  left16 @left
-  right15 @right
-  left14 @right
-  left13 @right
+  power @left
+  times @left
+  plus @left
+  range @left
+  pipe @left
+  pipeback @right
+  contains @left
+  arrow @right
+  band @right
+  bor @right
   right12 @right
   right11 @right
-  right10 @right
+  assign @right
   regular1
   right0 @right
   regular0
@@ -227,15 +227,26 @@ QuoteStatement {
 }
 
 ImportStatement /* precedence: right 0 */ {
-  (kw<"using"> | kw<"import">) (Identifier | ScopedIdentifier | SelectedImport) (!right0 "," (Identifier | ScopedIdentifier | SelectedImport))*
+  !right0 (kw<"using"> | kw<"import">)
+  !right0 (Import | SelectedImport)
 }
 
-SelectedImport {
-  (Identifier | ScopedIdentifier) !immediate ":" /* precedence: right 0 */ ((Identifier | MacroIdentifier) (!right0 "," (Identifier | MacroIdentifier))*)
+Import {
+  (Identifier | ScopedIdentifier)
+  (!right0 "," (Identifier | ScopedIdentifier))*
+}
+
+SelectedImport[@dynamicPrecedence=1] {
+  (Identifier | ScopedIdentifier)
+  !immediate (immediateColon ":")
+  importList {
+    (Identifier | MacroIdentifier)
+    (!right0 "," (Identifier | MacroIdentifier))*
+  }
 }
 
 ScopedIdentifier /* precedence: 28 */ {
-  (Identifier | ScopedIdentifier)? !regular28 "." Identifier
+  (Identifier | ScopedIdentifier)? !dot "." Identifier
 }
 
 ExportStatement /* precedence: right 0 */ {
@@ -270,6 +281,7 @@ primaryExpression {
   Identifier |
   Operator ~operator |
   String |
+  PrefixedString |
   CommandString |
   Character |
   TripleString |
@@ -301,11 +313,11 @@ ParenthesizedExpression /* precedence: 1 */ {
 }
 
 FieldExpression /* precedence: 28 */ {
-  primaryExpression !regular28 "." Identifier
+  primaryExpression !dot "." Identifier
 }
 
 SubscriptExpression {
-  primaryExpression !immediate "[" (expression ("," expression)*)? ","? "]"
+  primaryExpression !immediate immediateBracket "[" (expression ("," expression)*)? ","? "]"
 }
 
 TypedExpression /* precedence: 27 */ {
@@ -372,28 +384,30 @@ NamedField {
 }
 
 SpreadExpression /* precedence: 28 */ {
-  expression !regular28 "..."
+  expression !dot "..."
 }
 
 AssignmentExpression /* precedence: right 10 */ {
-  (expression | BareTupleExpression) !right10 (assignOperator | "=") (expression | AssignmentExpression | BareTupleExpression)
+  (expression | BareTupleExpression)
+  !assign (assignOperator | "=")
+  (expression | AssignmentExpression | BareTupleExpression)
 }
 
 UnaryExpression {
-  /* precedence: 30 */ (unaryOperator !regular30 expression) |
-  /* precedence: 29 */ (expression !regular29 ("'" | ".'"))
+  /* precedence: 30 */ (unaryOperator !prefix expression) |
+  /* precedence: 29 */ (expression !postfix ("'" | ".'"))
 }
 
 BinaryExpression {
-  /* precedence: left 25 */ (expression !left25 powerOperator ~operator expression) |
-  /* precedence: left 23 */ (expression !left23 timesOperator ~operator expression) |
-  /* precedence: left 21 */ (expression !left21 ("$" | plusOperator) ~operator expression) |
-  /* precedence: right 15 */ (expression !right15 arrowOperator expression) |
-  /* precedence: right 17 */ (expression !right17 "<|" expression) |
-  /* precedence: left 18 */ (expression !left18 "|>" expression) |
-  /* precedence: left 16 */ (expression !left16 (kw<"in"> | kw<"isa"> | comparisonOperator) expression) |
-  /* precedence: left 13 */ (expression !left13 "||" expression) |
-  /* precedence: left 14 */ (expression !left14 "&&" expression)
+  /* precedence: left 25 */ (expression !power powerOperator ~operator expression) |
+  /* precedence: left 23 */ (expression !times timesOperator ~operator expression) |
+  /* precedence: left 21 */ (expression !plus ("$" | plusOperator) ~operator expression) |
+  /* precedence: right 15 */ (expression !arrow arrowOperator expression) |
+  /* precedence: right 17 */ (expression !pipeback "<|" expression) |
+  /* precedence: left 18 */ (expression !pipe "|>" expression) |
+  /* precedence: left 16 */ (expression !contains (kw<"in"> | kw<"isa"> | comparisonOperator) expression) |
+  /* precedence: left 13 */ (expression !bor "||" expression) |
+  /* precedence: left 14 */ (expression !band "&&" expression)
 }
 
 TernaryExpression /* precedence: right 12 */ {
@@ -415,11 +429,19 @@ TupleExpression[@dynamicPrecedence=1] {
 
 ArrayExpression {
   "[" "]" |
-  "[" (expression ("," expression)*)? ","? "]"
+  "["
+    !regular0 expression
+    ("," expression)*?
+    (!regular0 ",")?
+    !regular0 "]"
 }
 
 MatrixExpression /* precedence: -1 */ {
-  "[" (MatrixRow (!regular-1 ";" MatrixRow)*) ";"? "]"
+  "["
+    !regular-1 MatrixRow
+    (";" MatrixRow)*
+    (!regular-1 ";")?
+    !regular-1 "]"
 }
 
 MatrixRow {
@@ -431,7 +453,7 @@ GeneratorExpression {
 }
 
 ArrayComprehensionExpression {
-  "[" expression comprehensionClause "]"
+  "[" !regular0 expression !regular0 comprehensionClause "]"
 }
 
 comprehensionClause {
@@ -452,11 +474,11 @@ ForBinding {
 
 FunctionExpression /* precedence: right 15 */ {
   kw<"function"> ParameterList (expression | AssignmentExpression) kw<"end"> |
-  (Identifier | ParameterList) !right15 "->" (expression | AssignmentExpression)
+  (Identifier | ParameterList) !arrow "->" (expression | AssignmentExpression)
 }
 
 RangeExpression /* precedence: left 20 */ {
-  expression !left20 ":" expression
+  expression !range ":" expression
 }
 
 CoefficientExpression /* precedence: 26 */ {
@@ -475,17 +497,34 @@ MacroIdentifier {
   "@" (Identifier | Operator | Operator { "." })
 }
 
-String {
-  "\"" stringContent? "\"" |
-  Identifier !immediate "\"" stringContent? "\""
+@skip {} {
+  String {
+    '"' stringContent? '"'
+  }
+}
+
+PrefixedString {
+  Identifier !immediate immediateDoubleQuote String
 }
 
 Number { number | integerNumber }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
 
-@external tokens token from "./tokens.js" { BlockComment, TripleString, immediateParen, immediateBrace }
-@external tokens terminator from "./tokens.js" { terminator }
+@external tokens immediate from "./tokens.js" {
+  immediateParen,
+  immediateBrace,
+  immediateBracket,
+  immediateDoubleQuote,
+  immediateColon
+}
+@external tokens tokens from "./tokens.js" {
+  BlockComment,
+  TripleString
+}
+@external tokens terminator from "./tokens.js" {
+  terminator
+}
 
 @tokens {
   whitespace {

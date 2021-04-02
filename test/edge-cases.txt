@@ -136,17 +136,15 @@ SourceFile(
   FunctionDefinition(function,Identifier,ParameterList,end),
 )
 
-# FunctionDefinition_3
+# FunctionDefinition_anonymous
 
 function() end
-function () end
 function()
 end
 
 ==>
 
 SourceFile(
-  FunctionDefinition(function,ParameterList,end),
   FunctionDefinition(function,ParameterList,end),
   FunctionDefinition(function,ParameterList,end),
 )

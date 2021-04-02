@@ -1,4 +1,4 @@
-# 01
+# 01.1
 
 a
 b
@@ -7,6 +7,18 @@ c
 ==>
 
 SourceFile(Identifier,Identifier,Identifier)
+
+# 01.2
+
+a, b
+b
+
+==>
+
+SourceFile(
+  BareTupleExpression(Identifier,Identifier),
+  Identifier
+)
 
 # 02
 
@@ -102,7 +114,7 @@ SourceFile(ParenthesizedExpression(Identifier))
 
 ==>
 
-SourceFile(TupleExpression(NamedField(Identifier,Identifier)))
+SourceFile(NamedTupleExpression(NamedField(Identifier,Identifier)))
 
 # 12
 
@@ -111,7 +123,7 @@ SourceFile(TupleExpression(NamedField(Identifier,Identifier)))
 ==>
 
 SourceFile(
-  TupleExpression(
+  NamedTupleExpression(
     NamedField(Identifier,Identifier),
     NamedField(Identifier,Identifier)
   )
@@ -205,3 +217,83 @@ SourceFile(
     ArgumentList(Identifier,Identifier)
   )
 )
+
+# 21.1
+
+import x: y
+
+==>
+
+SourceFile(
+  ImportStatement(import,SelectedImport(Identifier,Identifier))
+)
+
+# 21.2
+
+import x: y, z
+
+==>
+
+SourceFile(
+  ImportStatement(
+    import,
+    SelectedImport(Identifier,Identifier,Identifier)
+  )
+)
+
+# 22
+
+x : y
+
+==>
+
+SourceFile(
+  RangeExpression(Identifier,Identifier)
+)
+
+# 23
+
+[x for x in y]
+
+==>
+
+SourceFile(
+  ArrayComprehensionExpression(
+    Identifier,
+    ForClause(for,
+      ForBinding(Identifier,in,Identifier)
+    )
+  )
+)
+
+# 24.1
+
+"some"
+
+==>
+
+SourceFile(String)
+
+# 24.2
+
+"  some "
+
+==>
+
+SourceFile(String)
+
+# 24.3
+
+"1"
+
+==>
+
+SourceFile(String)
+
+# 24.4
+
+prefix"hello"
+
+==>
+
+SourceFile(PrefixedString(Identifier,String))

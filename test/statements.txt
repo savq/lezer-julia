@@ -229,18 +229,20 @@ using A, B, C
 
 SourceFile(
   ImportStatement(using,
-    Identifier),
+    Import(Identifier)),
   ImportStatement(using,
-    SelectedImport(Identifier,Identifier),Identifier),
+    SelectedImport(Identifier,Identifier,Identifier)),
   ImportStatement(import,
-    ScopedIdentifier(Identifier,Identifier)),
+    Import(ScopedIdentifier(Identifier,Identifier))),
   ImportStatement(import,
     SelectedImport(
       ScopedIdentifier(Identifier),
       MacroIdentifier(Identifier)
     )
   ),
-  ImportStatement(using,Identifier,Identifier,Identifier)
+  ImportStatement(using,
+    Import(Identifier,Identifier,Identifier)
+  )
 )
 
 # Export statements

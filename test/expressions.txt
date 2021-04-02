@@ -517,14 +517,18 @@ SourceFile(
 
 ==>
 
-(source_file
-  (generator_expression
-    (call_expression (identifier) (argument_list (identifier) (identifier)))
-    (for_clause
-      (for_binding (identifier) (identifier))
-      (for_binding (identifier) (number)))
-    (if_clause (identifier)))
-  (array_comprehension_expression
-    (call_expression (identifier) (argument_list (identifier) (identifier)))
-    (for_clause (for_binding (identifier) (identifier)))
-    (for_clause (for_binding (identifier) (identifier)))))
+SourceFile(
+  GeneratorExpression(
+    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+    ForClause(for,
+      ForBinding(Identifier,in,Identifier),
+      ForBinding(Identifier,Number)
+    ),
+    IfClause(if,Identifier)
+  ),
+  ArrayComprehensionExpression(
+    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+    ForClause(for,ForBinding(Identifier,in,Identifier)),
+    ForClause(for,ForBinding(Identifier,in,Identifier))
+  )
+)

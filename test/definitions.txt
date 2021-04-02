@@ -185,7 +185,7 @@ SourceFile(
     ParameterList(Identifier,OptionalParameter(Identifier,Identifier)),
     AssignmentExpression(
       Identifier,
-      MatrixExpression(MatrixRow(
+      ArrayExpression(
         QuoteExpression(
           TupleExpression(
             InterpolationExpression(
@@ -203,7 +203,7 @@ SourceFile(
             )
           )
         )
-      ))
+      )
     ),
     QuoteExpression(
       ParenthesizedExpression(
