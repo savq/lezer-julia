@@ -48,6 +48,7 @@ statement {
   WhileStatement |
   LetStatement |
   ConstStatement |
+  GlobalStatement |
   QuoteStatement |
   BreakStatement |
   ContinueStatement |
@@ -119,7 +120,11 @@ LetStatement {
 }
 
 ConstStatement {
-  kw<"const"> /* precedence: right 0 */ (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"const"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+}
+
+GlobalStatement {
+  kw<"global"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
 }
 
 VariableDeclaration /* precedence: right 0 */ {

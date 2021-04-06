@@ -624,3 +624,15 @@ SourceFile(
     SelectedImport(Identifier,Operator,Operator)
   )
 )
+
+
+# GlobalStatement_ok
+
+global x
+
+==>
+
+SourceFile(
+  GlobalStatement(global,VariableDeclaration(Identifier))
+)
+
