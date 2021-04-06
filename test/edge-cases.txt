@@ -341,16 +341,32 @@ SourceFile(
   AssignmentExpression(Identifier,String),
 )
 
-# AssignmentExpression_2
+# FunctionAssignmentExpression_ok
 
 name(a, b) = a + b
 
 ==>
 
 SourceFile(
-  AssignmentExpression(
-    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-    BinaryExpression(Identifier,Identifier),
+  FunctionAssignmentExpression(
+    Identifier,
+    ParameterList(Identifier,Identifier),
+    BinaryExpression(Identifier,Identifier)
+  )
+)
+
+# FunctionAssignmentExpression_where_ok
+
+name(a::T) where {T} = a
+
+==>
+
+SourceFile(
+  FunctionAssignmentExpression(
+    Identifier,
+    ParameterList(TypedParameter(Identifier,Identifier)),
+    where,TypeParameterList(Identifier),
+    Identifier
   )
 )
 

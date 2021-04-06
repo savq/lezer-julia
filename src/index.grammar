@@ -37,9 +37,9 @@
 // TOP LEVEL
 
 expressionList {
-  (expression | BareTupleExpression | AssignmentExpression)
+  (expression | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression)
   (!regular0 terminator
-    (!regular0 expression | BareTupleExpression | AssignmentExpression))*
+    (!regular0 expression | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression))*
   terminator?
 }
 
@@ -51,6 +51,13 @@ AssignmentExpression {
   ((expression | BareTupleExpression)
   !assign (assignOperator | "=")
   !assign (expression | AssignmentExpression | BareTupleExpression))
+}
+
+FunctionAssignmentExpression[@dynamicPrecedence=2] {
+  Identifier ~id immediateParen !call ParameterList ~id
+  (kw<"where"> TypeParameterList)?
+  !assign (assignOperator | "=")
+  !assign (expression | AssignmentExpression)
 }
 
 // STATEMENTS
