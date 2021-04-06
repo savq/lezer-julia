@@ -526,6 +526,18 @@ SourceFile(
   )
 )
 
+# MacroExpression_MacroFieldExpression_ok
+
+Base.@name
+
+==>
+
+SourceFile(
+  MacroExpression(
+    MacroFieldExpression(Identifier,MacroIdentifier(Identifier))
+  )
+)
+
 # ParenthesizedExpression_expression_ok
 
 (1)
@@ -727,3 +739,4 @@ SourceFile(
     QuoteExpression(ParenthesizedExpression(Operator))
   )
 )
+

@@ -472,6 +472,12 @@ MacroIdentifier {
   !regular0 "@" (Identifier | Operator | Operator { "." })
 }
 
+MacroFieldExpression {
+  primaryExpression
+  !immediate immediateDot !dot "." !dot
+  MacroIdentifier
+}
+
 FunctionExpression {
   kw<"function"> ParameterList
     (expression | AssignmentExpression)?
@@ -480,7 +486,7 @@ FunctionExpression {
 }
 
 MacroExpression {
-  MacroIdentifier (!right0
+  (MacroIdentifier | MacroFieldExpression) (!right0
     immediateParen args[@dynamicPrecedence=1] { ArgumentList }
     | MacroArgumentList
   )?
