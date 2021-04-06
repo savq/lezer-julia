@@ -171,9 +171,18 @@ definition {
 
 FunctionDefinition {
   !regular0 kw<"function">
-    (Identifier (immediateBrace TypeParameterList)?)?
-    immediateParen ParameterList
-    expressionList?
+    (
+      Identifier |
+      Identifier
+      (!immediate immediateBrace !immediate TypeParameterList)?
+      params[@dynamicPrecedence=1] {
+        !immediate immediateParen !immediate ParameterList
+        ReturnType {
+          !typeascription "::" (Identifier | ParameterizedIdentifier)
+        }?
+      }
+    )
+    expressionList? 
   kw<"end">
 }
 
@@ -424,9 +433,10 @@ MacroIdentifier {
   !regular0 "@" (Identifier | Operator | Operator { "." })
 }
 
-FunctionExpression /* precedence: right 15 */ {
-  !regular0 kw<"function"> ParameterList (expression | AssignmentExpression) kw<"end"> |
-
+FunctionExpression {
+  !regular0 kw<"function"> ParameterList
+    (expression | AssignmentExpression)?
+  kw<"end"> |
   (Identifier | ParameterList) !arrow "->" (expression | AssignmentExpression)
 }
 

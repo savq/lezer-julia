@@ -147,10 +147,19 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,ParameterList,end),
-  FunctionDefinition(function,ParameterList,end),
+  FunctionExpression(function,ParameterList,end),
+  FunctionExpression(function,ParameterList,end),
 )
 
+# FunctionDefinition_no_parens_ok
+
+function name end
+
+==>
+
+SourceFile(
+  FunctionDefinition(function,Identifier,end)
+)
 
 # FunctionDefinition_only_type_ok
 
@@ -169,6 +178,22 @@ SourceFile(
       TypedParameter(Identifier)
     ),
     Identifier,
+    end
+  )
+)
+
+# FunctionDefinition_return_type_ok
+
+function name()::T end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,
+    Identifier,
+    ParameterList,
+    ReturnType(Identifier),
     end
   )
 )
