@@ -110,7 +110,9 @@ end
 
 ==>
 
-SourceFile(FunctionDefinition(function,Identifier,ParameterList,String,end))
+SourceFile(
+  FunctionDefinition(function,Identifier,ParameterList,String,end)
+)
 
 # FunctionDefinition_2
 
@@ -498,7 +500,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  TupleExpression(NamedField(Identifier,Number)),
+  NamedTupleExpression(NamedField(Identifier,Number)),
 )
 
 # Tuple_NamedField_many_ok
@@ -508,7 +510,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  TupleExpression(
+  NamedTupleExpression(
     NamedField(Identifier,Number),
     NamedField(Identifier,Number)
   ),
@@ -521,7 +523,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  TupleExpression(
+  NamedTupleExpression(
     NamedField(Identifier,Number),
     NamedField(Identifier,Number)
   ),
@@ -547,7 +549,7 @@ a:b
 
 SourceFile(RangeExpression(Identifier,Identifier))
 
-# XXX
+# InterpolationExpression_call
 
 $x(1, 2)
 

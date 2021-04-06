@@ -22,26 +22,56 @@ logŷ
 # Strings
 
 "foo"
-"""a "quoted" string"""
+"f $name"
+"f $(a + b)"
+"
+f \$name"
 "fo\"o"
 
 ==>
 
-(source_file
-  (string)
-  (triple_string)
-  (string))
+SourceFile(
+  String,
+  String(Identifier),
+  String(BinaryExpression(Identifier,Identifier)),
+  String,
+  String,
+)
+
+# Triple Strings
+
+"""
+a "quoted" string"""
+"""a $name string"""
+"""a $(a + b) string"""
+"""a \$name string"""
+
+==>
+
+SourceFile(
+  TripleString,
+  TripleString(Identifier),
+  TripleString(BinaryExpression(Identifier,Identifier)),
+  TripleString,
+)
 
 # Command strings
 
 `foo`
 `foo \` bar`
+`foo $name bar`
+`foo $(a + b) bar`
+`foo \$name bar`
 
 ==>
 
-(source_file
-  (command_string)
-  (command_string))
+SourceFile(
+  CommandString,
+  CommandString,
+  CommandString(Identifier),
+  CommandString(BinaryExpression(Identifier, Identifier)),
+  CommandString,
+)
 
 # Prefixed strings
 
@@ -50,18 +80,27 @@ y = v"1.0"
 
 ==>
 
-(source_file
-  (assignment_expression (identifier) (string (identifier)))
-  (assignment_expression (identifier) (string (identifier))))
+SourceFile(
+  AssignmentExpression(
+    Identifier,
+    PrefixedString(Identifier,String)
+  ),
+  AssignmentExpression(
+    Identifier,
+    PrefixedString(Identifier,String),
+  ),
+)
 
 # Characters
 
 'o'
 '\t'
+'
+'
 
 ==>
 
-(source_file (character) (character))
+SourceFile(Character,Character,Character)
 
 # Assignments
 
@@ -237,22 +276,20 @@ a == b
 
 ==>
 
-(source_file
-  (binary_expression
-    (identifier)
-    (binary_expression
-      (identifier)
-      (binary_expression
-        (identifier)
-        (identifier))))
-  (binary_expression
-    (binary_expression
-      (identifier)
-      (identifier))
-    (identifier))
-  (binary_expression
-    (identifier)
-    (identifier)))
+SourceFile(
+  BinaryExpression(
+    Identifier,
+    BinaryExpression(
+      Identifier,
+      BinaryExpression(Identifier,Identifier)
+    )
+  ),
+  BinaryExpression(
+    BinaryExpression(Identifier,Identifier),
+    Identifier
+  ),
+  BinaryExpression(Identifier,Identifier)
+)
 
 # Binary operators with leading dots
 
@@ -277,13 +314,13 @@ SourceFile(
 
 ==>
 
-(source_file
-  (unary_expression (identifier))
-  (unary_expression (identifier))
-  (unary_expression (number))
-  (unary_expression (array_expression (identifier)))
-  (unary_expression
-    (parenthesized_expression (binary_expression (identifier) (identifier)))))
+SourceFile(
+  UnaryExpression(Identifier),
+  UnaryExpression(Identifier),
+  UnaryExpression(Number),
+  UnaryExpression(ArrayExpression(Identifier)),
+  UnaryExpression(ParenthesizedExpression(BinaryExpression(Identifier,Identifier))),
+)
 
 # The ternary operator
 
@@ -422,10 +459,10 @@ SourceFile(
   ParenthesizedExpression(
     AssignmentExpression(Identifier,Number)
   ),
-  TupleExpression(
+  NamedTupleExpression(
     NamedField(Identifier,Number)
   ),
-  TupleExpression(
+  NamedTupleExpression(
     NamedField(Identifier,Number),
     NamedField(Identifier,Number)
   )

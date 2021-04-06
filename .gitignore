@@ -1,3 +1,4 @@
 /node_modules/
-/src/parser.*
+/src/index.js
+/src/index.terms.js
 /dist

@@ -1,0 +1,616 @@
+@precedence {
+  immediate
+  dot
+  prefix
+  postfix
+  typeascription
+  interp @left
+  coeff
+  call
+  power @left
+  times @left
+  plus @left
+  range @left
+  pipe @left
+  pipeback @right
+  contains @left
+  arrow @right
+  band @right
+  bor @right
+  ternary @right
+  pair @right
+  assign @right
+  regular1
+  right0 @right
+  regular0
+  regular-1
+  right-2 @right
+}
+
+@top SourceFile {
+  expressionList | ""
+}
+
+@skip { whitespace | Comment | BlockComment }
+
+expressionList {
+  (expression | BareTupleExpression | AssignmentExpression)
+  (!regular0 terminator (!regular0 expression | BareTupleExpression | AssignmentExpression))* terminator?
+}
+
+// STATEMENTS
+
+statement {
+  IfStatement |
+  TryStatement |
+  ForStatement |
+  WhileStatement |
+  LetStatement |
+  ConstStatement |
+  QuoteStatement |
+  BreakStatement |
+  ContinueStatement |
+  ReturnStatement |
+  ImportStatement |
+  ExportStatement
+}
+
+IfStatement {
+  kw<"if"> expression terminator?
+    expressionList?
+  ElseifClause*
+  ElseClause?
+  kw<"end">
+}
+
+ElseifClause {
+  kw<"elseif"> expression terminator?
+    expressionList?
+}
+
+ElseClause {
+  kw<"else">
+    expressionList?
+}
+
+TryStatement {
+  kw<"try">
+    expressionList?
+  CatchClause?
+  FinallyClause?
+  kw<"end">
+}
+
+CatchClause /* precedence: 1 */ {
+  kw<"catch"> Identifier? !regular1 terminator?
+    expressionList?
+}
+
+FinallyClause {
+  kw<"finally"> terminator?
+    expressionList?
+}
+
+ForStatement {
+  !regular0 kw<"for"> ForBinding ("," ForBinding)* terminator?
+    expressionList?
+  kw<"end">
+}
+
+WhileStatement {
+  !regular0 kw<"while"> !regular0 expression !regular0 terminator? !regular0 expressionList? kw<"end">
+}
+
+BreakStatement {
+  kw<"break">
+}
+
+ContinueStatement {
+  kw<"continue">
+}
+
+ReturnStatement /* precedence: right -2 */ {
+  kw<"return"> (!right-2 (expression | BareTupleExpression))?
+}
+
+LetStatement {
+  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList? kw<"end">
+}
+
+ConstStatement {
+  kw<"const"> /* precedence: right 0 */ (VariableDeclaration (!right0 "," VariableDeclaration)*)
+}
+
+VariableDeclaration /* precedence: right 0 */ {
+  Identifier (!right0 "=" expression)?
+}
+
+QuoteStatement {
+  kw<"quote"> expressionList? kw<"end">
+}
+
+ImportStatement {
+  !right0 (kw<"using"> | kw<"import">)
+  !right0 (Import | SelectedImport)
+}
+
+Import {
+  (Identifier | ScopedIdentifier) (!right0 "," (Identifier | ScopedIdentifier))*
+}
+
+SelectedImport[@dynamicPrecedence=1] {
+  (Identifier | ScopedIdentifier)
+  !immediate immediateColon ":"
+  list {
+    (Identifier | MacroIdentifier)
+    (!right0 "," !right0 (Identifier | MacroIdentifier))*
+  }
+}
+
+ExportStatement /* precedence: right 0 */ {
+  kw<"export"> Identifier (!right0 "," Identifier)*
+}
+
+// DEFINITIONS
+
+definition {
+  PrimitiveDefinition |
+  AbstractDefinition |
+  StructDefinition |
+  ModuleDefinition |
+  BareModuleDefinition |
+  MacroDefinition |
+  FunctionDefinition
+}
+
+FunctionDefinition {
+  !regular0 kw<"function"> (Identifier (immediateBrace TypeParameterList)?)? immediateParen ParameterList
+    expressionList?
+  kw<"end">
+}
+
+MacroDefinition {
+  kw<"macro"> (Identifier | Operator) immediateParen ParameterList
+    expressionList?
+  kw<"end">
+}
+
+PrimitiveDefinition {
+  kw<"primitive"> kw<"type"> Identifier
+  (immediateBrace TypeParameterList)?
+  SubtypeClause?
+  Number
+  kw<"end">
+}
+
+AbstractDefinition {
+  kw<"abstract"> kw<"type"> Identifier (immediateBrace TypeParameterList)? SubtypeClause? kw<"end">
+}
+
+StructDefinition {
+  kw<"mutable">? kw<"struct"> Identifier (immediateBrace TypeParameterList)? SubtypeClause?
+    expressionList?
+  kw<"end">
+}
+
+ModuleDefinition {
+  kw<"module"> Identifier
+    expressionList? 
+  kw<"end">
+}
+
+BareModuleDefinition {
+  kw<"baremodule"> Identifier
+    expressionList?
+  kw<"end">
+}
+
+ParameterList {
+  "("
+  !regular0 (
+    (Identifier | SpreadParameter | OptionalParameter | TypedParameter)
+    (!regular0 "," (Identifier | SpreadParameter | OptionalParameter | TypedParameter))*
+  )?
+  !regular0 KeywordParameters?
+  ")"
+}
+
+SpreadParameter {
+  Identifier ~id "..."
+}
+
+OptionalParameter {
+  ((Identifier | TypedParameter) "=" expression) ~namedfield
+}
+
+TypedParameter {
+  Identifier ~id "::" (Identifier | ParameterizedIdentifier)
+}
+
+TypeArgumentList {
+  "{" (expression) ("," (expression))* "}"
+}
+
+KeywordParameters {
+  ";"
+  (Identifier | SpreadParameter | OptionalParameter | TypedParameter)
+  ("," (Identifier | SpreadParameter | OptionalParameter | TypedParameter))*
+}
+
+TypeParameterList {
+  "{"
+  (Identifier | ConstrainedParameter)
+  ("," (Identifier | ConstrainedParameter))*
+  ","?
+  "}"
+}
+
+ConstrainedParameter {
+  Identifier "<:" expression
+}
+
+SubtypeClause {
+  "<:" expression
+}
+
+
+// EXPRESSIONS
+
+expression {
+  statement |
+  definition |
+  TypedExpression |
+  CompoundExpression |
+  PairExpression |
+  MacroExpression |
+  UnaryExpression |
+  BinaryExpression |
+  TernaryExpression |
+  FunctionExpression |
+  CoefficientExpression |
+  RangeExpression |
+  SpreadExpression |
+  Operator { ":" ~op } |
+  primaryExpression
+}
+
+primaryExpression {
+  InterpolationExpression |
+  FieldExpression |
+  SubscriptExpression |
+  QuoteExpression |
+  CallExpression |
+  Identifier ~id |
+  Character |
+  Number |
+  String |
+  TripleString |
+  CommandString |
+  PrefixedString |
+  ParenthesizedExpression |
+  TupleExpression |
+  NamedTupleExpression |
+  ArrayExpression |
+  ArrayComprehensionExpression |
+  MatrixExpression |
+  GeneratorExpression |
+  ParameterizedIdentifier |
+  Operator ~op
+}
+
+ParameterizedIdentifier {
+  (Identifier | FieldExpression) immediateBrace TypeArgumentList
+}
+
+FieldExpression {
+  primaryExpression !immediate immediateDot !dot "." Identifier
+}
+
+SubscriptExpression {
+  primaryExpression !immediate immediateBracket "[" (expression ("," expression)*)? ","? "]"
+}
+
+SpreadExpression {
+  expression !dot "..."
+}
+
+PairExpression {
+  expression !pair "=>" expression
+}
+
+TernaryExpression {
+  expression !ternary "?" expression !ternary ":" expression
+}
+
+TypedExpression {
+  expression !typeascription ("::" | "<:") (Identifier | ParameterizedIdentifier)
+}
+
+InterpolationExpression[@dynamicPrecedence=2] {
+  "$" !interp primaryExpression
+}
+
+QuoteExpression[@dynamicPrecedence=2] {
+  ":" !interp primaryExpression
+}
+
+CoefficientExpression[@dynamicPrecedence=1] {
+  Number !coeff (ParenthesizedExpression | Identifier)
+}
+
+CompoundExpression {
+  kw<"begin"> expressionList kw<"end">
+}
+
+CallExpression {
+  expression
+  !call immediateParen
+  !call args[@dynamicPrecedence=1] { ArgumentList }
+  DoClause?
+}
+
+DoClause {
+  kw<"do"> expressionList kw<"end">
+}
+
+ArgumentList {
+  "("
+  (
+    !regular0 (expression | NamedArgument { NamedField })
+    (!regular0 "," (expression | NamedArgument { NamedField }))*
+  )?
+  (
+    !regular0 ";"
+    !regular0 NamedArgument { NamedField }
+    (!regular0 "," NamedArgument { NamedField })*
+  )?
+  !regular0 ","?
+  !regular0 ")"
+}
+
+BareTupleExpression {
+  expression (!regular-1 "," expression)+
+}
+
+AssignmentExpression {
+  ((expression | BareTupleExpression)
+  !assign (assignOperator | "=")
+  !assign (expression | AssignmentExpression | BareTupleExpression))
+}
+
+ParenthesizedExpression {
+  "(" !regular1 expressionList !regular1 ")"
+}
+
+TupleExpression {
+  "("
+  (
+    (!regular0 expression !regular0 ",") |
+    (
+      !regular0 expression
+      (!regular0 "," expression)+
+      !regular0 ","?
+    )
+  )?
+  !regular0 ")"
+}
+
+NamedTupleExpression[@dynamicPrecedence=1] {
+  "("
+  (
+    (!regular0 NamedField !regular0 ",") |
+    (
+      !regular0 NamedField
+      (!regular0 "," NamedField)+
+      !regular0 ","?
+    )
+  )
+  !regular0 ")"
+}
+
+NamedField {
+  (Identifier ~id "=" expression) ~namedfield
+}
+
+MacroIdentifier {
+  !regular0 "@" (Identifier | Operator | Operator { "." })
+}
+
+FunctionExpression /* precedence: right 15 */ {
+  !regular0 kw<"function"> ParameterList (expression | AssignmentExpression) kw<"end"> |
+
+  (Identifier | ParameterList) !arrow "->" (expression | AssignmentExpression)
+}
+
+MacroExpression {
+  MacroIdentifier (!right0
+    immediateParen args[@dynamicPrecedence=1] { ArgumentList }
+    | MacroArgumentList
+  )?
+}
+
+MacroArgumentList {
+  (!regular-1 expression )+
+}
+
+BinaryExpression {
+  expression !power powerOperator !power expression |
+  expression !times timesOperator !times expression |
+  expression !plus ("$" | plusOperator) !plus expression |
+  expression !arrow arrowOperator expression |
+  expression !pipeback "<|" expression |
+  expression !pipe "|>" expression |
+  expression !contains (kw<"in"> | kw<"isa"> | comparisonOperator) expression |
+  expression !bor "||" expression |
+  expression !band "&&" expression
+}
+
+UnaryExpression {
+  (unaryOperatorExtra | plusminus) ~op !prefix expression |
+  expression !postfix ("'" | ".'")
+}
+
+Operator {
+  !regular0 (
+    "$" |
+    plusOperator |
+    timesOperator |
+    powerOperator
+  )
+}
+
+ArrayExpression {
+  !regular0 "[" "]" |
+  !regular0 "["
+    !regular0 expression
+    ("," expression)*?
+    (!regular0 ",")?
+    !regular0 "]"
+}
+
+MatrixExpression /* precedence: -1 */ {
+  "["
+    !regular-1 MatrixRow
+    (";" MatrixRow)* 
+    (!regular-1 ";")?
+    !regular-1 "]"
+}
+
+MatrixRow {
+  /* precedence: -1 */ (!regular-1 expression)+
+}
+
+ArrayComprehensionExpression {
+  "[" !regular0 expression !regular0 comprehensionClause "]"
+}
+
+GeneratorExpression {
+  "(" expression comprehensionClause ")"
+}
+
+comprehensionClause {
+  ForClause (ForClause | IfClause)*
+}
+
+IfClause {
+  kw<"if"> expression
+}
+
+ForClause {
+  kw<"for"> ForBinding ("," ForBinding)*
+}
+
+ForBinding {
+  (Identifier | TupleExpression) (kw<"in"> | "=" | "∈") expression
+}
+
+ScopedIdentifier {
+  (Identifier | ScopedIdentifier)? !dot "." Identifier
+}
+
+RangeExpression {
+  expression !range ":" expression
+}
+
+@skip {} {
+  String {
+    '"' (stringContent | stringInterpolation)* '"'
+  }
+  TripleString {
+    '"""' (tripleStringContent | stringInterpolation)* '"""'
+  }
+  CommandString {
+    '`' (commandStringContent | stringInterpolation)* '`'
+  }
+}
+
+stringInterpolation {
+  "$" Identifier |
+  "$" immediateParen "(" !regular1 expression !regular1 ")"
+}
+
+PrefixedString {
+  Identifier !immediate immediateDoubleQuote String |
+  Identifier !immediate immediateDoubleQuote TripleString |
+  Identifier !immediate immediateBackquote CommandString
+}
+
+plusOperator {
+  "." !immediate nowhitespace (plusOperatorExtra | plusminus) |
+  (plusOperatorExtra | plusminus)
+}
+
+kw<term> { @specialize[@name={term}]<Identifier, term> }
+
+@external tokens layout from "./index.tokens.js" { terminator }
+@external tokens tokens from "./index.tokens.js" { BlockComment }
+@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
+@external tokens stringContent from "./index.tokens.js" { stringContent }
+@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
+@external tokens layoutExtra from "./index.tokens.js" {
+  immediateParen,
+  immediateColon,
+  immediateBrace,
+  immediateBracket,
+  immediateDoubleQuote,
+  immediateBackquote,
+  immediateDot,
+  nowhitespace
+}
+
+@tokens {
+  whitespace {
+    " " | "\t" | "\n"
+  }
+  Comment {
+    "#" ![\n]*
+  }
+  Identifier {
+    $[_a-zA-Z] $[_a-zA-Z0-9]*
+  }
+  Number {
+    (
+      "0" $[xX] $[0-9a-fA-F] $[0-9a-fA-F_]* |
+      $[0-9] $[0-9_]* "."? ($[0-9] $[0-9_]*)? |
+      "." $[0-9] $[0-9_]*
+    )
+    ($[eE] ("-" | "+")? $[0-9]+)?
+  }
+  powerOperator {
+    "."? ("^" | "↑" | "↓" | "⇵" | "⟰" | "⟱" | "⤈" | "⤉" | "⤊" | "⤋" | "⤒" | "⤓" | "⥉" | "⥌" | "⥍" | "⥏" | "⥑" | "⥔" | "⥕" | "⥘" | "⥙" | "⥜" | "⥝" | "⥠" | "⥡" | "⥣" | "⥥" | "⥮" | "⥯" | "￪" | "￬")
+  }
+  timesOperator {
+    "."? ("*" | "/" | "÷" | "%" | "&" | "⋅" | "∘" | "×" | "\\" | "∩" | "∧" | "⊗" | "⊘" | "⊙" | "⊚" | "⊛" | "⊠" | "⊡" | "⊓" | "∗" | "∙" | "∤" | "⅋" | "≀" | "⊼" | "⋄" | "⋆" | "⋇" | "⋉" | "⋊" | "⋋" | "⋌" | "⋏" | "⋒" | "⟑" | "⦸" | "⦼" | "⦾" | "⦿" | "⧶" | "⧷" | "⨇" | "⨰" | "⨱" | "⨲" | "⨳" | "⨴" | "⨵" | "⨶" | "⨷" | "⨸" | "⨻" | "⨼" | "⨽" | "⩀" | "⩃" | "⩄" | "⩋" | "⩍" | "⩎" | "⩑" | "⩓" | "⩕" | "⩘" | "⩚" | "⩜" | "⩞" | "⩟" | "⩠" | "⫛" | "⊍" | "▷" | "⨝" | "⟕" | "⟖" | "⟗")
+  }
+  plusOperatorExtra {
+    "|||" | "⊕" | "⊖" | "⊞" | "⊟" | "|++|" | "∪" | "∨" | "⊔" | "±" | "∓" | "∔" | "∸" | "≂" | "≏" | "⊎" | "⊻" | "⊽" | "⋎" | "⋓" | "⧺" | "⧻" | "⨈" | "⨢" | "⨣" | "⨤" | "⨥" | "⨦" | "⨧" | "⨨" | "⨩" | "⨪" | "⨫" | "⨬" | "⨭" | "⨮" | "⨹" | "⨺" | "⩁" | "⩂" | "⩅" | "⩊" | "⩌" | "⩏" | "⩐" | "⩒" | "⩔" | "⩖" | "⩗" | "⩛" | "⩝" | "⩡" | "⩢" | "⩣"
+  }
+  arrowOperator {
+    "--" | "-->" | "."?  ("←" | "→" | "↔" | "↚" | "↛" | "↞" | "↠" | "↢" | "↣" | "↦" | "↤" | "↮" | "⇎" | "⇍" | "⇏" | "⇐" | "⇒" | "⇔" | "⇴" | "⇶" | "⇷" | "⇸" | "⇹" | "⇺" | "⇻" | "⇼" | "⇽" | "⇾" | "⇿" | "⟵" | "⟶" | "⟷" | "⟹" | "⟺" | "⟻" | "⟼" | "⟽" | "⟾" | "⟿" | "⤀" | "⤁" | "⤂" | "⤃" | "⤄" | "⤅" | "⤆" | "⤇" | "⤌" | "⤍" | "⤎" | "⤏" | "⤐" | "⤑" | "⤔" | "⤕" | "⤖" | "⤗" | "⤘" | "⤝" | "⤞" | "⤟" | "⤠" | "⥄" | "⥅" | "⥆" | "⥇" | "⥈" | "⥊" | "⥋" | "⥎" | "⥐" | "⥒" | "⥓" | "⥖" | "⥗" | "⥚" | "⥛" | "⥞" | "⥟" | "⥢" | "⥤" | "⥦" | "⥧" | "⥨" | "⥩" | "⥪" | "⥫" | "⥬" | "⥭" | "⥰" | "⧴" | "⬱" | "⬰" | "⬲" | "⬳" | "⬴" | "⬵" | "⬶" | "⬷" | "⬸" | "⬹" | "⬺" | "⬻" | "⬼" | "⬽" | "⬾" | "⬿" | "⭀" | "⭁" | "⭂" | "⭃" | "⭄" | "⭇" | "⭈" | "⭉" | "⭊" | "⭋" | "⭌" | "￩" | "￫" | "⇜" | "⇝" | "↜" | "↝" | "↩" | "↪" | "↫" | "↬" | "↼" | "↽" | "⇀" | "⇁" | "⇄" | "⇆" | "⇇" | "⇉" | "⇋" | "⇌" | "⇚" | "⇛" | "⇠" | "⇢")
+  }
+  comparisonOperator {
+    "|<:|" | "|>:|" | "."?  (">" | "<" | ">=" | "≥" | "<=" | "≤" | "==" | "===" | "≡" | "!=" | "≠" | "!==" | "≢" | "∈" | "∉" | "∋" | "∌" | "⊆" | "⊈" | "⊂" | "⊄" | "⊊" | "∝" | "∊" | "∍" | "∥" | "∦" | "∷" | "∺" | "∻" | "∽" | "∾" | "≁" | "≃" | "≂" | "≄" | "≅" | "≆" | "≇" | "≈" | "≉" | "≊" | "≋" | "≌" | "≍" | "≎" | "≐" | "≑" | "≒" | "≓" | "≖" | "≗" | "≘" | "≙" | "≚" | "≛" | "≜" | "≝" | "≞" | "≟" | "≣" | "≦" | "≧" | "≨" | "≩" | "≪" | "≫" | "≬" | "≭" | "≮" | "≯" | "≰" | "≱" | "≲" | "≳" | "≴" | "≵" | "≶" | "≷" | "≸" | "≹" | "≺" | "≻" | "≼" | "≽" | "≾" | "≿" | "⊀" | "⊁" | "⊃" | "⊅" | "⊇" | "⊉" | "⊋" | "⊏" | "⊐" | "⊑" | "⊒" | "⊜" | "⊩" | "⊬" | "⊮" | "⊰" | "⊱" | "⊲" | "⊳" | "⊴" | "⊵" | "⊶" | "⊷" | "⋍" | "⋐" | "⋑" | "⋕" | "⋖" | "⋗" | "⋘" | "⋙" | "⋚" | "⋛" | "⋜" | "⋝" | "⋞" | "⋟" | "⋠" | "⋡" | "⋢" | "⋣" | "⋤" | "⋥" | "⋦" | "⋧" | "⋨" | "⋩" | "⋪" | "⋫" | "⋬" | "⋭" | "⋲" | "⋳" | "⋴" | "⋵" | "⋶" | "⋷" | "⋸" | "⋹" | "⋺" | "⋻" | "⋼" | "⋽" | "⋾" | "⋿" | "⟈" | "⟉" | "⟒" | "⦷" | "⧀" | "⧁" | "⧡" | "⧣" | "⧤" | "⧥" | "⩦" | "⩧" | "⩪" | "⩫" | "⩬" | "⩭" | "⩮" | "⩯" | "⩰" | "⩱" | "⩲" | "⩳" | "⩵" | "⩶" | "⩷" | "⩸" | "⩹" | "⩺" | "⩻" | "⩼" | "⩽" | "⩾" | "⩿" | "⪀" | "⪁" | "⪂" | "⪃" | "⪄" | "⪅" | "⪆" | "⪇" | "⪈" | "⪉" | "⪊" | "⪋" | "⪌" | "⪍" | "⪎" | "⪏" | "⪐" | "⪑" | "⪒" | "⪓" | "⪔" | "⪕" | "⪖" | "⪗" | "⪘" | "⪙" | "⪚" | "⪛" | "⪜" | "⪝" | "⪞" | "⪟" | "⪠" | "⪡" | "⪢" | "⪣" | "⪤" | "⪥" | "⪦" | "⪧" | "⪨" | "⪩" | "⪪" | "⪫" | "⪬" | "⪭" | "⪮" | "⪯" | "⪰" | "⪱" | "⪲" | "⪳" | "⪴" | "⪵" | "⪶" | "⪷" | "⪸" | "⪹" | "⪺" | "⪻" | "⪼" | "⪽" | "⪾" | "⪿" | "⫀" | "⫁" | "⫂" | "⫃" | "⫄" | "⫅" | "⫆" | "⫇" | "⫈" | "⫉" | "⫊" | "⫋" | "⫌" | "⫍" | "⫎" | "⫏" | "⫐" | "⫑" | "⫒" | "⫓" | "⫔" | "⫕" | "⫖" | "⫗" | "⫘" | "⫙" | "⫷" | "⫸" | "⫹" | "⫺" | "⊢" | "⊣" | "⟂")
+  }
+  assignOperator {
+    ":=" | "~" | "$=" | "."? ("=" | "+=" | "-=" | "*=" | "/=" | "//=" | "|=|" | "^=" | "÷=" | "%=" | "<<=" | ">>=" | ">>>=" | "||=|" | "&=" | "⊻=" | "≔" | "⩴" | "≕")
+  }
+  unaryOperatorExtra {
+    ">:" | "!" | "~" | "¬" | "√" | "∛" | "∜"
+  }
+  plusminus {
+    "+" | "-"
+  }
+  Character {
+    "'" ("\\" !['] | ![']) "'"
+  }
+
+  @precedence {
+    Number,
+    comparisonOperator,
+    "=",
+    assignOperator,
+    unaryOperatorExtra,
+    plusOperatorExtra,
+    "."
+  }
+}

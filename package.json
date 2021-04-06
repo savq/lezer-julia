@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "lezer-based Julia grammar",
   "main": "dist/index.cjs",
+  "module": "dist/index.es.js",
   "type": "module",
   "exports": {
     "import": "./dist/index.es.js",
     "require": "./dist/index.cjs"
   },
-  "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "author": "Andrey Popp <me@andreypopp.com>",
   "devDependencies": {

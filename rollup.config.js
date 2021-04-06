@@ -1,16 +1,19 @@
-import {nodeResolve} from "@rollup/plugin-node-resolve"
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 
 export default {
-  input: "./src/parser.js",
-  output: [{
-    format: "cjs",
-    file: "./dist/index.cjs"
-  }, {
-    format: "es",
-    file: "./dist/index.es.js"
-  }],
-  external(id) { return !/^[\.\/]/.test(id) },
-  plugins: [
-    nodeResolve()
-  ]
-}
+  input: process.env.ROLLUP_IN,
+  output: [
+    {
+      format: "cjs",
+      file: process.env.ROLLUP_OUT + ".cjs",
+    },
+    {
+      format: "es",
+      file: process.env.ROLLUP_OUT + ".es.js",
+    },
+  ],
+  external(id) {
+    return !/^[\.\/]/.test(id);
+  },
+  plugins: [nodeResolve()],
+};
