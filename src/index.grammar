@@ -34,9 +34,23 @@
 
 @skip { whitespace | Comment | BlockComment }
 
+// TOP LEVEL
+
 expressionList {
   (expression | BareTupleExpression | AssignmentExpression)
-  (!regular0 terminator (!regular0 expression | BareTupleExpression | AssignmentExpression))* terminator?
+  (!regular0 terminator
+    (!regular0 expression | BareTupleExpression | AssignmentExpression))*
+  terminator?
+}
+
+BareTupleExpression {
+  expression (!regular-1 "," expression)+
+}
+
+AssignmentExpression {
+  ((expression | BareTupleExpression)
+  !assign (assignOperator | "=")
+  !assign (expression | AssignmentExpression | BareTupleExpression))
 }
 
 // STATEMENTS
@@ -409,16 +423,6 @@ ArgumentList {
   )?
   !regular0 ","?
   !regular0 ")"
-}
-
-BareTupleExpression {
-  expression (!regular-1 "," expression)+
-}
-
-AssignmentExpression {
-  ((expression | BareTupleExpression)
-  !assign (assignOperator | "=")
-  !assign (expression | AssignmentExpression | BareTupleExpression))
 }
 
 ParenthesizedExpression {
