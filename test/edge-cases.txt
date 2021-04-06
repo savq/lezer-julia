@@ -575,3 +575,16 @@ SourceFile(
     end
   )
 )
+
+# Import_operator_ok
+
+import Module: ==, +
+
+==>
+
+SourceFile(
+  ImportStatement(
+    import,
+    SelectedImport(Identifier,Operator,Operator)
+  )
+)

@@ -142,8 +142,8 @@ SelectedImport[@dynamicPrecedence=1] {
   (Identifier | ScopedIdentifier)
   !immediate immediateColon ":"
   list {
-    (Identifier | MacroIdentifier)
-    (!right0 "," !right0 (Identifier | MacroIdentifier))*
+    (Identifier | MacroIdentifier | Operator)
+    (!right0 "," !right0 (Identifier | MacroIdentifier | Operator))*
   }
 }
 
@@ -440,7 +440,7 @@ BinaryExpression {
   expression !arrow arrowOperator expression |
   expression !pipeback "<|" expression |
   expression !pipe "|>" expression |
-  expression !contains (kw<"in"> | kw<"isa"> | comparisonOperator) expression |
+  expression !contains (kw<"in"> | kw<"isa"> | comparisonOperator) !contains expression |
   expression !bor "||" expression |
   expression !band "&&" expression
 }
@@ -455,7 +455,8 @@ Operator {
     "$" |
     plusOperator |
     timesOperator |
-    powerOperator
+    powerOperator |
+    comparisonOperator
   )
 }
 
