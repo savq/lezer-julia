@@ -151,6 +151,28 @@ SourceFile(
   FunctionDefinition(function,ParameterList,end),
 )
 
+
+# FunctionDefinition_only_type_ok
+
+function name(arg::A, ::B)
+  ok
+end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,
+    Identifier,
+    ParameterList(
+      TypedParameter(Identifier,Identifier),
+      TypedParameter(Identifier)
+    ),
+    Identifier,
+    end
+  )
+)
+
 # AbstractDefinition
 
 abstract type name end

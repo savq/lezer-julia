@@ -164,7 +164,9 @@ definition {
 }
 
 FunctionDefinition {
-  !regular0 kw<"function"> (Identifier (immediateBrace TypeParameterList)?)? immediateParen ParameterList
+  !regular0 kw<"function">
+    (Identifier (immediateBrace TypeParameterList)?)?
+    immediateParen ParameterList
     expressionList?
   kw<"end">
 }
@@ -224,7 +226,7 @@ OptionalParameter {
 }
 
 TypedParameter {
-  Identifier ~id "::" (Identifier | ParameterizedIdentifier)
+  (Identifier ~id)? "::" (Identifier | ParameterizedIdentifier)
 }
 
 TypeArgumentList {
