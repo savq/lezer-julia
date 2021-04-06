@@ -312,15 +312,34 @@ primaryExpression {
 }
 
 ParameterizedIdentifier {
-  (Identifier | FieldExpression) immediateBrace TypeArgumentList
+  (Identifier | FieldExpression)
+  !immediate immediateBrace !immediate
+  TypeArgumentList
 }
 
 FieldExpression {
-  primaryExpression !immediate immediateDot !dot "." Identifier
+  primaryExpression
+  !immediate immediateDot !dot "." !dot
+  (Identifier | QuoteExpression | InterpolationExpression)
 }
 
 SubscriptExpression {
-  primaryExpression !immediate immediateBracket "[" (expression ("," expression)*)? ","? "]"
+  primaryExpression !immediate immediateBracket "["
+    (
+      GeneratorExpression { expression comprehensionClause } |
+      (expression |
+       kw<"end"> |
+       AssignmentExpression {
+         expression !assign (assignOperator | "=") !assign expression
+       })
+      ("," (expression |
+            kw<"end"> |
+            AssignmentExpression {
+              expression !assign (assignOperator | "=") !assign expression
+            }))*
+    )?
+    ","?
+  "]"
 }
 
 SpreadExpression {
@@ -515,7 +534,7 @@ IfClause {
 }
 
 ForClause {
-  kw<"for"> ForBinding ("," ForBinding)*
+  kw<"for"> ForBinding (!regular0 "," ForBinding)*
 }
 
 ForBinding {

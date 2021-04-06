@@ -650,6 +650,44 @@ SourceFile(
   )
 )
 
+# SubscriptExpression_end_ok
+
+Bc[end]
+
+==>
+
+SourceFile(
+  SubscriptExpression(Identifier,end)
+)
+
+# SubscriptExpression_assignment_ok
+
+arr[s += 1]
+
+==>
+
+SourceFile(
+  SubscriptExpression(
+    Identifier,
+    AssignmentExpression(Identifier,Number)
+  )
+)
+
+# SubscriptExpression_generator_ok
+
+arr[x for x in xs]
+
+==>
+
+SourceFile(
+  SubscriptExpression(
+    Identifier,
+    GeneratorExpression(
+      Identifier,
+      ForClause(for,ForBinding(Identifier,in,Identifier))
+    )
+  )
+)
 
 # GlobalStatement_ok
 
@@ -661,3 +699,15 @@ SourceFile(
   GlobalStatement(global,VariableDeclaration(Identifier))
 )
 
+# FieldExpression_QuoteExpression_ok
+
+Base.:(==)
+
+==>
+
+SourceFile(
+  FieldExpression(
+    Identifier,
+    QuoteExpression(ParenthesizedExpression(Operator))
+  )
+)
