@@ -161,10 +161,10 @@ SourceFile(
   FunctionDefinition(
     function,Identifier,
     ParameterList(
-      OptionalParameter(TypedParameter(Identifier,Identifier),Number),
+      OptionalParameter(NamedField(TypedParameter(Identifier,Identifier),Number)),
       KeywordParameters(
         Identifier,
-        OptionalParameter(TypedParameter(Identifier,Identifier),Number))
+        OptionalParameter(NamedField(TypedParameter(Identifier,Identifier),Number)))
     ),
     end
   )
@@ -182,7 +182,7 @@ end
 SourceFile(
   MacroDefinition(
     macro,Identifier,
-    ParameterList(Identifier,OptionalParameter(Identifier,Identifier)),
+    ParameterList(Identifier,OptionalParameter(NamedField(Identifier,Identifier))),
     AssignmentExpression(
       Identifier,
       ArrayExpression(

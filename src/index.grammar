@@ -225,8 +225,8 @@ BareModuleDefinition {
 ParameterList {
   "("
   !regular0 (
-    (Identifier | SpreadParameter | OptionalParameter | TypedParameter)
-    (!regular0 "," (Identifier | SpreadParameter | OptionalParameter | TypedParameter))*
+    (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter)
+    (!regular0 "," (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter))*
   )?
   !regular0 KeywordParameters?
   ")"
@@ -234,10 +234,6 @@ ParameterList {
 
 SpreadParameter {
   Identifier ~id "..."
-}
-
-OptionalParameter {
-  ((Identifier | TypedParameter) "=" expression) ~namedfield
 }
 
 TypedParameter {
@@ -250,8 +246,8 @@ TypeArgumentList {
 
 KeywordParameters {
   ";"
-  (Identifier | SpreadParameter | OptionalParameter | TypedParameter)
-  ("," (Identifier | SpreadParameter | OptionalParameter | TypedParameter))*
+  (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter)
+  ("," (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter))*
 }
 
 TypeParameterList {
@@ -419,14 +415,16 @@ NamedTupleExpression[@dynamicPrecedence=1] {
     (
       !regular0 NamedField
       (!regular0 "," NamedField)+
-      !regular0 ","?
+      (!regular0 ",")?
     )
   )
   !regular0 ")"
 }
 
 NamedField {
-  (Identifier ~id "=" expression) ~namedfield
+  // TODO(andreypopp): TypedParameter doesn't always make sense here so consider
+  // to split
+  ((Identifier ~id | TypedParameter) "=" expression) ~namedfield
 }
 
 MacroIdentifier {
