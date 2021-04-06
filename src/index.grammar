@@ -358,7 +358,11 @@ PairExpression {
 }
 
 TernaryExpression {
-  expression !ternary "?" expression !ternary ":" expression
+  expression
+  !ternary ternary1 !ternary
+  expression
+  !ternary ternary2 !ternary
+  expression
 }
 
 TypedExpression {
@@ -650,7 +654,12 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
   Character {
     "'" ("\\" !['] | ![']) "'"
   }
-
+  ternary1 {
+    whitespace+ "?" whitespace+
+  }
+  ternary2 {
+    whitespace+ ":" whitespace+
+  }
   @precedence {
     Number,
     comparisonOperator,
@@ -658,6 +667,9 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
     assignOperator,
     unaryOperatorExtra,
     plusOperatorExtra,
-    "."
+    ".",
+    ternary1,
+    ternary2,
+    whitespace
   }
 }
