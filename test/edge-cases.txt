@@ -432,6 +432,20 @@ SourceFile(
   MacroExpression(MacroIdentifier(Identifier),ArgumentList(Number,Number))
 )
 
+# BinaryExpression_bitshift_ok
+
+a >> 2
+b << 2
+c >>> 3
+
+==>
+
+SourceFile(
+  BinaryExpression(Identifier,Number),
+  BinaryExpression(Identifier,Number),
+  BinaryExpression(Identifier,Number)
+)
+
 # BinaryExpression_span
 
 1 +
