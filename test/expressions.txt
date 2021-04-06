@@ -434,17 +434,19 @@ SourceFile(
 # Tuples
 
 ()
-(1)
-(1,)
-(2,3,4,)
+(a)
+(a,)
+(a,b,c,)
+(a,b,c)
 
 ==>
 
 SourceFile(
   TupleExpression,
-  ParenthesizedExpression(Number),
-  TupleExpression(Number),
-  TupleExpression(Number,Number,Number)
+  ParenthesizedExpression(Identifier),
+  TupleExpression(Identifier),
+  TupleExpression(Identifier,Identifier,Identifier)
+  TupleExpression(Identifier,Identifier,Identifier)
 )
 
 # Named tuples

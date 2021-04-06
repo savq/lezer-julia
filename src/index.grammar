@@ -224,12 +224,19 @@ BareModuleDefinition {
 
 ParameterList {
   "("
-  !regular0 (
-    (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter)
-    (!regular0 "," (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter))*
+  (
+    !regular0 param ~id
+    (!regular0 "," param ~id)*
   )?
-  !regular0 KeywordParameters?
-  ")"
+  (!regular0 KeywordParameters)?
+  !regular0 ")"
+}
+
+param {
+  Identifier ~id |
+  SpreadParameter |
+  OptionalParameter { NamedField } |
+  TypedParameter
 }
 
 SpreadParameter {
@@ -421,7 +428,7 @@ TupleExpression {
     (
       !regular0 expression
       (!regular0 "," expression)+
-      !regular0 ","?
+      (!regular0 ",")?
     )
   )?
   !regular0 ")"
@@ -451,7 +458,7 @@ MacroIdentifier {
 }
 
 FunctionExpression {
-  !regular0 kw<"function"> ParameterList
+  kw<"function"> ParameterList
     (expression | AssignmentExpression)?
   kw<"end"> |
   (Identifier | ParameterList) !arrow "->" (expression | AssignmentExpression)
