@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { inspect } from "util";
-import * as fs from 'fs';
+import * as fs from "fs";
 import { stringInput, Tree } from "lezer-tree";
 import { parser } from "../dist/index.es.js";
 
@@ -52,7 +52,28 @@ function printTree(tree, input, from = 0, to = input.length) {
   }
 }
 
+function hlerror(s) {
+  return `\u001b[31m${s}\u001b[39m`;
+}
+
 let filename = process.argv[2];
-let input = fs.readFileSync(filename, 'utf8');
-let tree = parser.configure({ strict: true }).parse(input);
-console.log(printTree(tree, input));
+let input = fs.readFileSync(filename, "utf8");
+let tree;
+try {
+  tree = parser.configure({ strict: true }).parse(input);
+} catch (e) {
+  if (e instanceof SyntaxError) {
+    let m = /No parse at (\d+)/.exec(e.message);
+    if (m) {
+      let pos = parseInt(m[1], 10);
+      let b = input.lastIndexOf("\n", pos);
+      let e = input.indexOf("\n", pos);
+      console.log(hlerror("SYNTAX ERROR:"));
+      console.log(input.slice(b + 1, e));
+      console.log(hlerror("^".padStart(pos - b, " ")));
+      process.exit(1);
+    }
+  }
+  throw e;
+}
+// console.log(printTree(tree, input));
