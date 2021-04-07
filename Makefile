@@ -16,7 +16,7 @@ build: dist/index.cjs dist/index.es.js
 test:
 	$(BIN)/mocha test/test-julia.js
 
-.PRECIOUS: src/%.js
+.PRECIOUS: src/%.js src/%.terms.js
 src/%.js src/%.terms.js: src/%.grammar
 	$(BIN)/lezer-generator $(LEZER_ARGS) $< -o $(<:%.grammar=%)
 
