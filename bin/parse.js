@@ -3,7 +3,7 @@
 import { inspect } from "util";
 import * as fs from "fs";
 import { stringInput, Tree } from "lezer-tree";
-import { parser } from "../dist/index.es.js";
+import { parser } from "../src/index.js";
 
 function printTree(tree, input, from = 0, to = input.length) {
   if (typeof input === "string") input = stringInput(input);
@@ -76,4 +76,4 @@ try {
   }
   throw e;
 }
-// console.log(printTree(tree, input));
+console.log(printTree(tree, input));
