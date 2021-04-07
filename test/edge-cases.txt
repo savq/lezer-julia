@@ -40,6 +40,14 @@ SourceFile(
   String
 )
 
+# String_stringInterpolation_not_really_ok
+
+"hello $ dollar"
+
+==>
+
+SourceFile(String)
+
 # Bare Tuple
 
 "Hello", "world!"

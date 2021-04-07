@@ -59,7 +59,7 @@ export const terminator = new ExternalTokenizer((input, token, stack) => {
 // See https://github.com/JuliaLang/julia/blob/8218480f059b7d2ba3388646497b76759248dd86/src/flisp/julia_extensions.c#L67-L152
 
 // prettier-ignore
-function isIdentifierStartChar(s, c) {
+function isIdentifierStartCharExtra(s, c) {
   return (
     CAT_Lu.test(s) || CAT_Ll.test(s) ||
     CAT_Lt.test(s) || CAT_Lm.test(s) ||
@@ -120,6 +120,21 @@ function isIdentifierStartChar(s, c) {
   ); 
 }
 
+function isIdentifierStartChar(c) {
+  if (
+    (c >= CHAR_A && c <= CHAR_Z) ||
+    (c >= CHAR_a && c <= CHAR_z) ||
+    c == CHAR_UNDERSCORE
+  ) {
+    return true;
+  } else if (c < 0xa1 || c > 0x10ffff) {
+    return false;
+  } else {
+    let s = String.fromCodePoint(c);
+    return isIdentifierStartCharExtra(s, c);
+  }
+}
+
 export const Identifier = new ExternalTokenizer((input, token, stack) => {
   let start = true;
   let ok = true;
@@ -128,21 +143,8 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
     let c = input.get(pos);
     if (start) {
       start = false;
-      if (
-        (c >= CHAR_A && c <= CHAR_Z) ||
-        (c >= CHAR_a && c <= CHAR_z) ||
-        c == CHAR_UNDERSCORE
-      ) {
-        // accept
-      } else if (c < 0xa1 || c > 0x10ffff) {
+      if (!isIdentifierStartChar(c)) {
         break;
-      } else {
-        let s = String.fromCodePoint(c);
-        if (isIdentifierStartChar(s, c)) {
-          // accept
-        } else {
-          break;
-        }
       }
     } else {
       if (
@@ -157,7 +159,7 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
         break;
       } else {
         let s = String.fromCodePoint(c);
-        if (isIdentifierStartChar(s, c)) {
+        if (isIdentifierStartCharExtra(s, c)) {
           // accept
         } else if (
           CAT_Mn.test(s) ||
@@ -186,6 +188,12 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
 
 // STRING TOKENIZERS
 
+const isStringInterpolation = (input, pos) => {
+  let c = input.get(pos);
+  let nc = input.get(pos + 1);
+  return c === CHAR_DOLLAR && (isIdentifierStartChar(nc) || nc == CHAR_LPAREN);
+};
+
 const makeStringContent = ({ till, term }) => {
   return new ExternalTokenizer((input, token, stack) => {
     let pos = token.start;
@@ -196,7 +204,7 @@ const makeStringContent = ({ till, term }) => {
         eatNext = true;
       } else if (eatNext) {
         eatNext = false;
-      } else if (c === CHAR_DOLLAR || till(input, pos)) {
+      } else if (isStringInterpolation(input, pos) || till(input, pos)) {
         if (pos > token.start) {
           token.accept(term, pos);
         }
