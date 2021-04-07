@@ -42,6 +42,7 @@ const CAT_Pc = /^\p{Pc}/u;
 const CAT_Sc = /^\p{Sc}/u;
 const CAT_Sk = /^\p{Sk}/u;
 const CAT_So = /^\p{So}/u;
+const CAT_Emoji = /^\p{Emoji}/u;
 
 // TERMINATOR
 
@@ -65,6 +66,7 @@ function isIdentifierStartCharExtra(s, c) {
     CAT_Lt.test(s) || CAT_Lm.test(s) ||
     CAT_Lo.test(s) || CAT_Nl.test(s) ||
     CAT_Sc.test(s) || // allow currency symbols
+    CAT_Emoji.test(s) || // allow emoji
     // other symbols, but not arrows or replacement characters
     (CAT_So.test(s) &&
       !(c >= 0x2190 && c <= 0x21FF) &&
@@ -120,30 +122,57 @@ function isIdentifierStartCharExtra(s, c) {
   ); 
 }
 
-function isIdentifierStartChar(c) {
+function isIdentifierStartChar(input, pos) {
+  let c = input.get(pos);
   if (
     (c >= CHAR_A && c <= CHAR_Z) ||
     (c >= CHAR_a && c <= CHAR_z) ||
     c == CHAR_UNDERSCORE
   ) {
-    return true;
+    return 1;
   } else if (c < 0xa1 || c > 0x10ffff) {
-    return false;
+    return 0;
   } else {
-    let s = String.fromCodePoint(c);
-    return isIdentifierStartCharExtra(s, c);
+    let s = combineSurrogates(input, pos);
+    if (isIdentifierStartCharExtra(s, c)) {
+      return s.length;
+    } else {
+      return 0;
+    }
   }
+}
+
+/**
+ * Return a string at current position by combining surrogate code points.
+ */
+function combineSurrogates(input, pos) {
+  let eat = 1;
+  let c = input.get(pos);
+  let s = String.fromCodePoint(c);
+  while (true) {
+    let nc = input.get(pos + eat);
+    // Break if c and nc are not surrogate pairs
+    if (!(0xd800 <= c && c <= 0xdbff && 0xdc00 <= nc && nc <= 0xdfff)) {
+      break;
+    }
+    s = s + String.fromCodePoint(nc);
+    c = nc;
+    eat = eat + 1;
+  }
+  return s;
 }
 
 export const Identifier = new ExternalTokenizer((input, token, stack) => {
   let start = true;
   let ok = true;
   let pos = token.start;
+  let eat = 1;
   while (pos < input.length) {
     let c = input.get(pos);
     if (start) {
       start = false;
-      if (!isIdentifierStartChar(c)) {
+      eat = isIdentifierStartChar(input, pos);
+      if (eat === 0) {
         break;
       }
     } else {
@@ -158,7 +187,8 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
       } else if (c < 0xa1 || c > 0x10ffff) {
         break;
       } else {
-        let s = String.fromCodePoint(c);
+        let s = combineSurrogates(input, pos);
+        eat = s.length;
         if (isIdentifierStartCharExtra(s, c)) {
           // accept
         } else if (
@@ -179,7 +209,8 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
         }
       }
     }
-    pos = pos + 1;
+    pos = pos + eat;
+    eat = 1;
   }
   if (pos !== token.start) {
     token.accept(terms.Identifier, pos);
@@ -191,7 +222,10 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
 const isStringInterpolation = (input, pos) => {
   let c = input.get(pos);
   let nc = input.get(pos + 1);
-  return c === CHAR_DOLLAR && (isIdentifierStartChar(nc) || nc == CHAR_LPAREN);
+  return (
+    c === CHAR_DOLLAR &&
+    (isIdentifierStartChar(input, pos + 1) !== 0 || nc == CHAR_LPAREN)
+  );
 };
 
 const makeStringContent = ({ till, term }) => {
