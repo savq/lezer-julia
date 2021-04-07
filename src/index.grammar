@@ -71,6 +71,7 @@ statement {
   LetStatement |
   ConstStatement |
   GlobalStatement |
+  LocalStatement |
   QuoteStatement |
   BreakStatement |
   ContinueStatement |
@@ -147,6 +148,10 @@ ConstStatement {
 
 GlobalStatement {
   kw<"global"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+}
+
+LocalStatement {
+  kw<"local"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
 }
 
 VariableDeclaration /* precedence: right 0 */ {
