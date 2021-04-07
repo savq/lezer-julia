@@ -271,7 +271,7 @@ SpreadParameter {
 }
 
 TypedParameter {
-  (Identifier ~id)? "::" (Identifier | ParameterizedIdentifier)
+  (Identifier ~id)? "::" (Identifier | FieldExpression | ParameterizedIdentifier)
 }
 
 TypeArgumentList {

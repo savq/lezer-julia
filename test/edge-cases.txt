@@ -206,6 +206,21 @@ SourceFile(
   )
 )
 
+# TypedParameter_FieldExpression_ok
+
+function name(param::Type.Some) end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,
+    Identifier,
+    ParameterList(TypedParameter(Identifier,FieldExpression(Identifier,Identifier))),
+    end
+  )
+)
+
 # AbstractDefinition
 
 abstract type name end
