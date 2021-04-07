@@ -2,7 +2,7 @@
 
 import { inspect } from "util";
 import { stringInput, Tree } from "lezer-tree";
-import { parser } from "./src/index.js";
+import { parser } from "../dist/index.es.js";
 
 function printTree(tree, input, from = 0, to = input.length) {
   if (typeof input === "string") input = stringInput(input);
@@ -52,6 +52,5 @@ function printTree(tree, input, from = 0, to = input.length) {
 }
 
 let input = process.argv[2];
-console.log("input", input);
 let tree = parser.configure({ strict: true }).parse(input);
 console.log(printTree(tree, input));
