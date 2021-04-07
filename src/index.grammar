@@ -26,6 +26,7 @@
   regular0
   regular-1
   right-2 @right
+  regular-2
 }
 
 @top SourceFile {
@@ -493,7 +494,7 @@ MacroExpression {
 }
 
 MacroArgumentList {
-  (!regular-1 expression )+
+  (!regular-2 (expression | AssignmentExpression))+
 }
 
 BinaryExpression {

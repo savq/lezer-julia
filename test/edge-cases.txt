@@ -538,6 +538,19 @@ SourceFile(
   )
 )
 
+# MacroExpression_AssignmentExpression_ok
+
+@eval a = 2
+
+==>
+
+SourceFile(
+  MacroExpression(
+    MacroIdentifier(Identifier),
+    MacroArgumentList(AssignmentExpression(Identifier,Number))
+  )
+)
+
 # ParenthesizedExpression_expression_ok
 
 (1)
@@ -739,4 +752,3 @@ SourceFile(
     QuoteExpression(ParenthesizedExpression(Operator))
   )
 )
-
