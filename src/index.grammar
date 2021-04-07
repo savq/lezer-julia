@@ -608,8 +608,9 @@ plusOperator {
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
 
-@external tokens layout from "./index.tokens.js" { terminator }
-@external tokens tokens from "./index.tokens.js" { BlockComment }
+@external tokens terminator from "./index.tokens.js" { terminator }
+@external tokens Identifier from "./index.tokens.js" { Identifier }
+@external tokens BlockComment from "./index.tokens.js" { BlockComment }
 @external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
 @external tokens stringContent from "./index.tokens.js" { stringContent }
 @external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
@@ -630,9 +631,6 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
   }
   Comment {
     "#" ![\n]*
-  }
-  Identifier {
-    $[_a-zA-Z] $[_a-zA-Z0-9!]*
   }
   Number {
     (

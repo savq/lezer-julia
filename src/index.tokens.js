@@ -1,65 +1,53 @@
 import { ExternalTokenizer } from "lezer";
 import * as terms from "./index.terms.js";
 
-const DOT = ".".codePointAt(0);
-const BACKSLASH = "\\".codePointAt(0);
-const BACKQUOTE = "`".codePointAt(0);
-const DOLLAR = "$".codePointAt(0);
-const HASH = "#".codePointAt(0);
-const EQUAL = "=".codePointAt(0);
-const LPAREN = "(".codePointAt(0);
-const LBRACE = "{".codePointAt(0);
-const LBRACKET = "[".codePointAt(0);
-const SEMICOLON = ";".codePointAt(0);
-const COLON = ":".codePointAt(0);
-const DQUOTE = '"'.codePointAt(0);
-const NEWLINE = "\n".codePointAt(0);
-const SPACE = " ".codePointAt(0);
-const TAB = "\t".codePointAt(0);
+// UNICODE CODEPOINTS
 
-const isWhitespace = (input, pos) => {
-  let c = input.get(pos);
-  return (
-    (c >= 9 && c < 14) ||
-    (c >= 32 && c < 33) ||
-    (c >= 133 && c < 134) ||
-    (c >= 160 && c < 161) ||
-    (c >= 5760 && c < 5761) ||
-    (c >= 8192 && c < 8203) ||
-    (c >= 8232 && c < 8234) ||
-    (c >= 8239 && c < 8240) ||
-    (c >= 8287 && c < 8288) ||
-    (c >= 12288 && c < 12289)
-  );
-};
+const CHAR_DOT = ".".codePointAt(0);
+const CHAR_BACKSLASH = "\\".codePointAt(0);
+const CHAR_BACKQUOTE = "`".codePointAt(0);
+const CHAR_DOLLAR = "$".codePointAt(0);
+const CHAR_HASH = "#".codePointAt(0);
+const CHAR_EQUAL = "=".codePointAt(0);
+const CHAR_LPAREN = "(".codePointAt(0);
+const CHAR_LBRACE = "{".codePointAt(0);
+const CHAR_LBRACKET = "[".codePointAt(0);
+const CHAR_SEMICOLON = ";".codePointAt(0);
+const CHAR_COLON = ":".codePointAt(0);
+const CHAR_DQUOTE = '"'.codePointAt(0);
+const CHAR_NEWLINE = "\n".codePointAt(0);
+const CHAR_A = "A".codePointAt(0);
+const CHAR_Z = "Z".codePointAt(0);
+const CHAR_a = "a".codePointAt(0);
+const CHAR_z = "z".codePointAt(0);
+const CHAR_0 = "0".codePointAt(0);
+const CHAR_9 = "9".codePointAt(0);
+const CHAR_UNDERSCORE = "_".codePointAt(0);
+const CHAR_EXCLAMATION = "!".codePointAt(0);
 
-const isTripleQuote = (input, pos) => {
-  return (
-    input.get(pos) === DQUOTE &&
-    input.get(pos + 1) === DQUOTE &&
-    input.get(pos + 2) === DQUOTE
-  );
-};
+// UNICODE CATEGORIES TESTS
 
-const isQuote = (input, pos) => {
-  return input.get(pos) === DQUOTE;
-};
+const CAT_Lu = /^\p{Lu}/u;
+const CAT_Ll = /^\p{Ll}/u;
+const CAT_Lt = /^\p{Lt}/u;
+const CAT_Lm = /^\p{Lm}/u;
+const CAT_Lo = /^\p{Lo}/u;
+const CAT_Me = /^\p{Me}/u;
+const CAT_Mn = /^\p{Mn}/u;
+const CAT_Mc = /^\p{Mc}/u;
+const CAT_Nd = /^\p{Nd}/u;
+const CAT_Nl = /^\p{Nl}/u;
+const CAT_No = /^\p{No}/u;
+const CAT_Pc = /^\p{Pc}/u;
+const CAT_Sc = /^\p{Sc}/u;
+const CAT_Sk = /^\p{Sk}/u;
+const CAT_So = /^\p{So}/u;
 
-const isBackquote = (input, pos) => {
-  return input.get(pos) === BACKQUOTE;
-};
+// TERMINATOR
 
-const isBlockCommentStart = (input, pos) => {
-  return input.get(pos) === HASH && input.get(pos + 1) === EQUAL;
-};
-
-const isBlockCommentEnd = (input, pos) => {
-  return input.get(pos) === EQUAL && input.get(pos + 1) === HASH;
-};
-
-export const layout = new ExternalTokenizer((input, token, stack) => {
+export const terminator = new ExternalTokenizer((input, token, stack) => {
   let curr = input.get(token.start);
-  if (curr === NEWLINE || curr === SEMICOLON) {
+  if (curr === CHAR_NEWLINE || curr === CHAR_SEMICOLON) {
     if (stack.canShift(terms.terminator)) {
       token.accept(terms.terminator, token.start + 1);
       return;
@@ -67,17 +55,148 @@ export const layout = new ExternalTokenizer((input, token, stack) => {
   }
 });
 
+// IDENTIFIER
+// See https://github.com/JuliaLang/julia/blob/8218480f059b7d2ba3388646497b76759248dd86/src/flisp/julia_extensions.c#L67-L152
+
+// prettier-ignore
+function isIdentifierStartChar(s, c) {
+  return (
+    CAT_Lu.test(s) || CAT_Ll.test(s) ||
+    CAT_Lt.test(s) || CAT_Lm.test(s) ||
+    CAT_Lo.test(s) || CAT_Nl.test(s) ||
+    CAT_Sc.test(s) || // allow currency symbols
+    // other symbols, but not arrows or replacement characters
+    (CAT_So.test(s) &&
+      !(c >= 0x2190 && c <= 0x21FF) &&
+      c != 0xfffc && c != 0xfffd &&
+      c != 0x233f &&  // notslash
+      c != 0x00a6) || // broken bar
+
+    // math symbol (category Sm) whitelist
+    (c >= 0x2140 && c <= 0x2a1c &&
+      ((c >= 0x2140 && c <= 0x2144) || // ⅀, ⅁, ⅂, ⅃, ⅄
+      c == 0x223f || c == 0x22be || c == 0x22bf || // ∿, ⊾, ⊿
+      c == 0x22a4 || c == 0x22a5 ||   // ⊤ ⊥
+
+      (c >= 0x2202 && c <= 0x2233 &&
+        (c == 0x2202 || c == 0x2205 || c == 0x2206 || // ∂, ∅, ∆
+        c == 0x2207 || c == 0x220e || c == 0x220f || // ∇, ∎, ∏
+        c == 0x2210 || c == 0x2211 || // ∐, ∑
+        c == 0x221e || c == 0x221f || // ∞, ∟
+        c >= 0x222b)) || // ∫, ∬, ∭, ∮, ∯, ∰, ∱, ∲, ∳
+
+      (c >= 0x22c0 && c <= 0x22c3) ||  // N-ary big ops: ⋀, ⋁, ⋂, ⋃
+      (c >= 0x25F8 && c <= 0x25ff) ||  // ◸, ◹, ◺, ◻, ◼, ◽, ◾, ◿
+
+      (c >= 0x266f &&
+        (c == 0x266f || c == 0x27d8 || c == 0x27d9 || // ♯, ⟘, ⟙
+        (c >= 0x27c0 && c <= 0x27c1) ||  // ⟀, ⟁
+        (c >= 0x29b0 && c <= 0x29b4) ||  // ⦰, ⦱, ⦲, ⦳, ⦴
+        (c >= 0x2a00 && c <= 0x2a06) ||  // ⨀, ⨁, ⨂, ⨃, ⨄, ⨅, ⨆
+        (c >= 0x2a09 && c <= 0x2a16) ||  // ⨉, ⨊, ⨋, ⨌, ⨍, ⨎, ⨏, ⨐, ⨑, ⨒, ⨓, ⨔, ⨕, ⨖
+        c == 0x2a1b || c == 0x2a1c)))) || // ⨛, ⨜
+
+    (c >= 0x1d6c1 && // variants of \nabla and \partial
+      (c == 0x1d6c1 || c == 0x1d6db ||
+      c == 0x1d6fb || c == 0x1d715 ||
+      c == 0x1d735 || c == 0x1d74f ||
+      c == 0x1d76f || c == 0x1d789 ||
+      c == 0x1d7a9 || c == 0x1d7c3)) ||
+
+    // super- and subscript +-=()
+    (c >= 0x207a && c <= 0x207e) ||
+    (c >= 0x208a && c <= 0x208e) ||
+
+    // angle symbols
+    (c >= 0x2220 && c <= 0x2222) || // ∠, ∡, ∢
+    (c >= 0x299b && c <= 0x29af) || // ⦛, ⦜, ⦝, ⦞, ⦟, ⦠, ⦡, ⦢, ⦣, ⦤, ⦥, ⦦, ⦧, ⦨, ⦩, ⦪, ⦫, ⦬, ⦭, ⦮, ⦯
+
+    // Other_ID_Start
+    c == 0x2118 || c == 0x212E || // ℘, ℮
+    (c >= 0x309B && c <= 0x309C) || // katakana-hiragana sound marks
+
+    // bold-digits and double-struck digits
+    (c >= 0x1D7CE && c <= 0x1D7E1) // 𝟎 through 𝟗 (inclusive), 𝟘 through 𝟡 (inclusive)
+  ); 
+}
+
+export const Identifier = new ExternalTokenizer((input, token, stack) => {
+  let start = true;
+  let ok = true;
+  let pos = token.start;
+  while (pos < input.length) {
+    let c = input.get(pos);
+    if (start) {
+      start = false;
+      if (
+        (c >= CHAR_A && c <= CHAR_Z) ||
+        (c >= CHAR_a && c <= CHAR_z) ||
+        c == CHAR_UNDERSCORE
+      ) {
+        // accept
+      } else if (c < 0xa1 || c > 0x10ffff) {
+        break;
+      } else {
+        let s = String.fromCodePoint(c);
+        if (isIdentifierStartChar(s, c)) {
+          // accept
+        } else {
+          break;
+        }
+      }
+    } else {
+      if (
+        (c >= CHAR_A && c <= CHAR_Z) ||
+        (c >= CHAR_a && c <= CHAR_z) ||
+        (c >= CHAR_0 && c <= CHAR_9) ||
+        c == CHAR_UNDERSCORE ||
+        c == CHAR_EXCLAMATION
+      ) {
+        // accept
+      } else if (c < 0xa1 || c > 0x10ffff) {
+        break;
+      } else {
+        let s = String.fromCodePoint(c);
+        if (isIdentifierStartChar(s, c)) {
+          // accept
+        } else if (
+          CAT_Mn.test(s) ||
+          CAT_Mc.test(s) ||
+          CAT_Nd.test(s) ||
+          CAT_Pc.test(s) ||
+          CAT_Sk.test(s) ||
+          CAT_Me.test(s) ||
+          CAT_No.test(s) ||
+          // primes (single, double, triple, their reverses, and quadruple)
+          (c >= 0x2032 && c <= 0x2037) ||
+          c == 0x2057
+        ) {
+          // accept
+        } else {
+          break;
+        }
+      }
+    }
+    pos = pos + 1;
+  }
+  if (pos !== token.start) {
+    token.accept(terms.Identifier, pos);
+  }
+});
+
+// STRING TOKENIZERS
+
 const makeStringContent = ({ till, term }) => {
   return new ExternalTokenizer((input, token, stack) => {
     let pos = token.start;
     let eatNext = false;
     while (pos < input.length) {
       let c = input.get(pos);
-      if (c === BACKSLASH) {
+      if (c === CHAR_BACKSLASH) {
         eatNext = true;
       } else if (eatNext) {
         eatNext = false;
-      } else if (c === DOLLAR || till(input, pos)) {
+      } else if (c === CHAR_DOLLAR || till(input, pos)) {
         if (pos > token.start) {
           token.accept(term, pos);
         }
@@ -86,6 +205,22 @@ const makeStringContent = ({ till, term }) => {
       pos = pos + 1;
     }
   });
+};
+
+const isTripleQuote = (input, pos) => {
+  return (
+    input.get(pos) === CHAR_DQUOTE &&
+    input.get(pos + 1) === CHAR_DQUOTE &&
+    input.get(pos + 2) === CHAR_DQUOTE
+  );
+};
+
+const isQuote = (input, pos) => {
+  return input.get(pos) === CHAR_DQUOTE;
+};
+
+const isBackquote = (input, pos) => {
+  return input.get(pos) === CHAR_BACKQUOTE;
 };
 
 export const tripleStringContent = makeStringContent({
@@ -101,8 +236,17 @@ export const commandStringContent = makeStringContent({
   till: isBackquote,
 });
 
-export const tokens = new ExternalTokenizer((input, token, stack) => {
-  // TripleString
+// BLOCK COMMENT
+
+const isBlockCommentStart = (input, pos) => {
+  return input.get(pos) === CHAR_HASH && input.get(pos + 1) === CHAR_EQUAL;
+};
+
+const isBlockCommentEnd = (input, pos) => {
+  return input.get(pos) === CHAR_EQUAL && input.get(pos + 1) === CHAR_HASH;
+};
+
+export const BlockComment = new ExternalTokenizer((input, token, stack) => {
   // BlockComment
   if (isBlockCommentStart(input, token.start)) {
     let depth = 1;
@@ -126,11 +270,29 @@ export const tokens = new ExternalTokenizer((input, token, stack) => {
   }
 });
 
+// LAYOUT TOKENIZERS
+
+const isWhitespace = (input, pos) => {
+  let c = input.get(pos);
+  return (
+    (c >= 9 && c < 14) ||
+    (c >= 32 && c < 33) ||
+    (c >= 133 && c < 134) ||
+    (c >= 160 && c < 161) ||
+    (c >= 5760 && c < 5761) ||
+    (c >= 8192 && c < 8203) ||
+    (c >= 8232 && c < 8234) ||
+    (c >= 8239 && c < 8240) ||
+    (c >= 8287 && c < 8288) ||
+    (c >= 12288 && c < 12289)
+  );
+};
+
 export const layoutExtra = new ExternalTokenizer(
   (input, token, stack) => {
     // immediateParen
     if (
-      input.get(token.start) === LPAREN &&
+      input.get(token.start) === CHAR_LPAREN &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateParen)
     ) {
@@ -139,7 +301,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
     // immediateColon
     if (
-      input.get(token.start) === COLON &&
+      input.get(token.start) === CHAR_COLON &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateColon)
     ) {
@@ -148,7 +310,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
     // immediateBrace
     if (
-      input.get(token.start) === LBRACE &&
+      input.get(token.start) === CHAR_LBRACE &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateBrace)
     ) {
@@ -157,7 +319,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
     // immediateBracket
     if (
-      input.get(token.start) === LBRACKET &&
+      input.get(token.start) === CHAR_LBRACKET &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateBracket)
     ) {
@@ -166,7 +328,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
     // immediateDoubleQuote
     if (
-      input.get(token.start) === DQUOTE &&
+      input.get(token.start) === CHAR_DQUOTE &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateDoubleQuote)
     ) {
@@ -175,7 +337,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
     // immediateBackquote
     if (
-      input.get(token.start) === BACKQUOTE &&
+      input.get(token.start) === CHAR_BACKQUOTE &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateBackquote)
     ) {
@@ -184,7 +346,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
     // immediateDot
     if (
-      input.get(token.start) === DOT &&
+      input.get(token.start) === CHAR_DOT &&
       !isWhitespace(input, token.start - 1) &&
       stack.canShift(terms.immediateDot)
     ) {
@@ -202,6 +364,7 @@ export const layoutExtra = new ExternalTokenizer(
     }
   },
   {
+    // This is needed so we enable GLR at positions those tokens might appear.
     extend: true,
   }
 );

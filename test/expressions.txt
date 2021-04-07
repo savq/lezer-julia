@@ -10,14 +10,15 @@ logŷ
 
 ==>
 
-(source_file
-  (identifier)
-  (identifier)
-  (identifier)
-  (identifier)
-  (identifier)
-  (identifier)
-  (identifier))
+SourceFile(
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+)
 
 # Strings
 
