@@ -155,7 +155,7 @@ LocalStatement {
 }
 
 VariableDeclaration /* precedence: right 0 */ {
-  Identifier (!right0 "=" expression)?
+  (Identifier | InterpolationExpression) (!right0 "=" expression)?
 }
 
 QuoteStatement {
