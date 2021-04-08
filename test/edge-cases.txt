@@ -869,3 +869,15 @@ SourceFile(
     Import(ScopedIdentifier(ScopedIdentifier(Identifier)))
   )
 )
+
+# Operator_eq_ok
+
+:(=)
+:(+=)
+
+==>
+
+SourceFile(
+  QuoteExpression(ParenthesizedExpression(Operator)),
+  QuoteExpression(ParenthesizedExpression(Operator)),
+)

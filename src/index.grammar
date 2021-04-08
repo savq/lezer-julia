@@ -469,6 +469,8 @@ UnaryExpression {
 Operator {
   !regular0 (
     "$" |
+    "=" |
+    assignOperator |
     plusOperator |
     timesOperator |
     powerOperator |
