@@ -167,7 +167,7 @@ LocalStatement {
 }
 
 VariableDeclaration /* precedence: right 0 */ {
-  (Identifier | InterpolationExpression) (!right0 "=" expression)?
+  (Identifier | InterpolationExpression<primaryExpression>) (!right0 "=" expression)?
 }
 
 QuoteStatement {
@@ -211,23 +211,19 @@ definition {
 
 FunctionDefinition {
   !regular0 kw<"function">
-    (
-      Identifier |
-      Identifier
-      (!immediate immediateBrace !immediate TypeArgumentList)?
-      params[@dynamicPrecedence=1] {
-        !immediate immediateParen !immediate ArgumentList
-        ReturnType {
-          !typeascription "::" primaryExpression
-        }?
-      }
-    )
+    definitionHead
+    params[@dynamicPrecedence=1] {
+      !immediate immediateParen !immediate ArgumentList
+      ReturnType {
+        !typeascription "::" primaryExpression
+      }?
+    }?
     expressionList? 
   end
 }
 
 MacroDefinition {
-  kw<"macro"> (Identifier | Operator) immediateParen ArgumentList
+  kw<"macro"> definitionHead immediateParen ArgumentList
     expressionList?
   end
 }
@@ -256,10 +252,16 @@ BareModuleDefinition {
   end
 }
 
-TypeArgumentList {
-  "{" expression ("," expression)* ","? "}"
+definitionHead {
+  InterpolationExpression<definitionHead> |
+  FieldExpression<definitionHead> |
+  SubscriptExpression<definitionHead> |
+  QuoteExpression<definitionHead> |
+  ParameterizedIdentifier<definitionHead> |
+  Identifier ~id |
+  ParenthesizedExpression |
+  Operator ~op
 }
-
 
 // EXPRESSIONS
 
@@ -281,10 +283,10 @@ expression {
 }
 
 primaryExpression {
-  InterpolationExpression |
-  FieldExpression |
-  SubscriptExpression |
-  QuoteExpression |
+  InterpolationExpression<primaryExpression> |
+  FieldExpression<primaryExpression> |
+  SubscriptExpression<primaryExpression> |
+  QuoteExpression<primaryExpression> |
   CallExpression |
   Identifier ~id |
   Character |
@@ -300,24 +302,28 @@ primaryExpression {
   MatrixExpression |
   GeneratorExpression |
   TypedExpression |
-  ParameterizedIdentifier |
+  ParameterizedIdentifier<primaryExpression> |
   Operator ~op
 }
 
-ParameterizedIdentifier {
-  primaryExpression
+ParameterizedIdentifier<content> {
+  content
   !immediate immediateBrace !immediate
   TypeArgumentList
 }
 
-FieldExpression {
-  primaryExpression
-  !immediate immediateDot !dot "." !dot
-  (Identifier | QuoteExpression | InterpolationExpression)
+TypeArgumentList {
+  "{" expression ("," expression)* ","? "}"
 }
 
-SubscriptExpression {
-  primaryExpression !immediate immediateBracket "["
+FieldExpression<content> {
+  content
+  !immediate immediateDot !dot "." !dot
+  (Identifier | QuoteExpression<content> | InterpolationExpression<content>)
+}
+
+SubscriptExpression<content> {
+  content !immediate immediateBracket "["
     (
       GeneratorExpression { expression comprehensionClause } |
       (expression |
@@ -356,12 +362,12 @@ TypedExpression {
   ("::" | "<:") !typeonlyascription primaryExpression
 }
 
-InterpolationExpression[@dynamicPrecedence=2] {
-  "$" !interp primaryExpression
+InterpolationExpression[@dynamicPrecedence=2]<content> {
+  "$" !interp content
 }
 
-QuoteExpression[@dynamicPrecedence=2] {
-  ":" !interp primaryExpression
+QuoteExpression[@dynamicPrecedence=2]<content> {
+  ":" !interp content
 }
 
 CoefficientExpression[@dynamicPrecedence=1] {

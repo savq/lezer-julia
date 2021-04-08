@@ -206,6 +206,21 @@ SourceFile(
   )
 )
 
+# FunctionDefinition_complexHead_ok
+
+function Base.union!() end
+
+==>
+
+SourceFile(
+  FunctionDefinition(
+    function,
+    FieldExpression(Identifier,Identifier),
+    ArgumentList,
+    end
+  )
+)
+
 # TypedParameter_FieldExpression_ok
 
 function name(param::Type.Some) end
@@ -375,6 +390,21 @@ SourceFile(
   MacroDefinition(macro,Identifier,ArgumentList,end),
   MacroDefinition(macro,Identifier,ArgumentList,end),
   MacroDefinition(macro,Identifier,ArgumentList,Identifier,end),
+)
+
+# MacroDefinition_complexHead_ok
+
+macro Base.union() end
+
+==>
+
+SourceFile(
+  MacroDefinition(
+    macro,
+    FieldExpression(Identifier,Identifier),
+    ArgumentList,
+    end
+  )
 )
 
 # AssignmentExpression_1

@@ -164,8 +164,11 @@ SourceFile(
     end
   ),
   FunctionDefinition(
-    function,Identifier,
-    TypeArgumentList(Identifier),
+    function,
+    ParameterizedIdentifier(
+      Identifier,
+      TypeArgumentList(Identifier),
+    ),
     ArgumentList(TypedExpression(Identifier,Identifier)),
     end
   ),
