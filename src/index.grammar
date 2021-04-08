@@ -85,7 +85,7 @@ IfStatement {
     expressionList?
   ElseifClause*
   ElseClause?
-  kw<"end">
+  end
 }
 
 ElseifClause {
@@ -103,7 +103,7 @@ TryStatement {
     expressionList?
   CatchClause?
   FinallyClause?
-  kw<"end">
+  end
 }
 
 CatchClause /* precedence: 1 */ {
@@ -119,11 +119,11 @@ FinallyClause {
 ForStatement {
   !regular0 kw<"for"> ForBinding ("," ForBinding)* terminator?
     expressionList?
-  kw<"end">
+  end
 }
 
 WhileStatement {
-  !regular0 kw<"while"> !regular0 expression !regular0 terminator? !regular0 expressionList? kw<"end">
+  !regular0 kw<"while"> !regular0 expression !regular0 terminator? !regular0 expressionList? end
 }
 
 BreakStatement {
@@ -139,7 +139,7 @@ ReturnStatement {
 }
 
 LetStatement {
-  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList? kw<"end">
+  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList? end
 }
 
 ConstStatement {
@@ -159,7 +159,7 @@ VariableDeclaration /* precedence: right 0 */ {
 }
 
 QuoteStatement {
-  kw<"quote"> expressionList? kw<"end">
+  kw<"quote"> expressionList? end
 }
 
 ImportStatement {
@@ -210,13 +210,13 @@ FunctionDefinition {
       }
     )
     expressionList? 
-  kw<"end">
+  end
 }
 
 MacroDefinition {
   kw<"macro"> (Identifier | Operator) immediateParen ParameterList
     expressionList?
-  kw<"end">
+  end
 }
 
 PrimitiveDefinition {
@@ -224,29 +224,29 @@ PrimitiveDefinition {
   (immediateBrace TypeParameterList)?
   SubtypeClause?
   Number
-  kw<"end">
+  end
 }
 
 AbstractDefinition {
-  kw<"abstract"> kw<"type"> Identifier (immediateBrace TypeParameterList)? SubtypeClause? kw<"end">
+  kw<"abstract"> kw<"type"> Identifier (immediateBrace TypeParameterList)? SubtypeClause? end
 }
 
 StructDefinition {
   kw<"mutable">? kw<"struct"> Identifier (immediateBrace TypeParameterList)? SubtypeClause?
     expressionList?
-  kw<"end">
+  end
 }
 
 ModuleDefinition {
   kw<"module"> Identifier
     expressionList? 
-  kw<"end">
+  end
 }
 
 BareModuleDefinition {
   kw<"baremodule"> Identifier
     expressionList?
-  kw<"end">
+  end
 }
 
 ParameterList {
@@ -362,12 +362,12 @@ SubscriptExpression {
     (
       GeneratorExpression { expression comprehensionClause } |
       (expression |
-       kw<"end"> |
+       end |
        AssignmentExpression {
          expression !assign (assignOperator | "=") !assign expression
        })
       ("," (expression |
-            kw<"end"> |
+            end |
             AssignmentExpression {
               expression !assign (assignOperator | "=") !assign expression
             }))*
@@ -409,7 +409,7 @@ CoefficientExpression[@dynamicPrecedence=1] {
 }
 
 CompoundExpression {
-  kw<"begin"> expressionList kw<"end">
+  kw<"begin"> expressionList end
 }
 
 CallExpression {
@@ -420,7 +420,7 @@ CallExpression {
 }
 
 DoClause {
-  kw<"do"> expressionList kw<"end">
+  kw<"do"> expressionList end
 }
 
 ArgumentList {
@@ -610,6 +610,8 @@ plusOperator {
   "." !immediate nowhitespace (plusOperatorExtra | plusminus) |
   (plusOperatorExtra | plusminus)
 }
+
+end { @specialize[@name=end]<Identifier, "end"> }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
 
