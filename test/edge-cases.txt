@@ -459,14 +459,14 @@ SourceFile(
   )
 )
 
-# QuoteExpression_1
+# Symbol
 
 :syntax
 
 ==>
 
 SourceFile(
-  QuoteExpression(Identifier),
+  Symbol(Identifier),
 )
 
 # QuoteExpression_2
@@ -506,8 +506,8 @@ SourceFile(
 
 SourceFile(
   BinaryExpression(
-    QuoteExpression(Identifier),
-    QuoteExpression(Identifier),
+    Symbol(Identifier),
+    Symbol(Identifier),
   )
 )
 

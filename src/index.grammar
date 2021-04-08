@@ -291,6 +291,7 @@ primaryExpression {
   Identifier ~id |
   Character |
   Number |
+  Symbol |
   String |
   TripleString |
   CommandString |
@@ -364,6 +365,10 @@ TypedExpression {
 
 InterpolationExpression[@dynamicPrecedence=2]<content> {
   "$" !interp content
+}
+
+Symbol {
+  ":" !interp Identifier
 }
 
 QuoteExpression[@dynamicPrecedence=2]<content> {
