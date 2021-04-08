@@ -68,7 +68,7 @@ try {
       let pos = parseInt(m[1], 10);
       let b = input.lastIndexOf("\n", pos);
       let e = input.indexOf("\n", pos);
-      console.log(hlerror("SYNTAX ERROR:"));
+      console.log(hlerror(`SYNTAX ERROR at ${pos}:`));
       console.log(input.slice(b + 1, e));
       console.log(hlerror("^".padStart(pos - b, " ")));
       process.exit(1);
