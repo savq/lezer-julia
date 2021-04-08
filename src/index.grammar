@@ -485,9 +485,7 @@ MacroFieldExpression {
 }
 
 FunctionExpression {
-  kw<"function"> ParameterList
-    (expression | AssignmentExpression)?
-  kw<"end"> |
+  kw<"function"> ParameterList expressionList? end |
   (Identifier | ParameterList) !arrow "->" (expression | AssignmentExpression)
 }
 
