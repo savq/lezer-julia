@@ -56,6 +56,8 @@ function hlerror(s) {
   return `\u001b[31m${s}\u001b[39m`;
 }
 
+const NEWLINE = "\n".codePointAt(0);
+
 let filename = process.argv[2];
 let input = fs.readFileSync(filename, "utf8");
 let tree;
@@ -66,11 +68,22 @@ try {
     let m = /No parse at (\d+)/.exec(e.message);
     if (m) {
       let pos = parseInt(m[1], 10);
-      let b = input.lastIndexOf("\n", pos);
-      let e = input.indexOf("\n", pos);
+      // add EOF marker
+      let inp = stringInput(input + '␄');
+      // find start of the line
+      let s = pos - 1;
+      while (inp.get(s) !== NEWLINE && s >= 0) {
+        s = s - 1;
+      }
+      // find end of the line
+      let e = pos;
+      while (inp.get(e) !== NEWLINE && e < inp.length) {
+        e = e + 1;
+      }
+      // report error
       console.log(hlerror(`SYNTAX ERROR at ${pos}:`));
-      console.log(input.slice(b + 1, e));
-      console.log(hlerror("^".padStart(pos - b, " ")));
+      console.log(inp.read(s + 1, e));
+      console.log(hlerror("^".padStart(pos - s, " ")));
       process.exit(1);
     }
   }
