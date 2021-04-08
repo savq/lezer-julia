@@ -770,11 +770,15 @@ SourceFile(
 # SubscriptExpression_end_ok
 
 Bc[end]
+Bc[end + 1]
+Bc[end:end]
 
 ==>
 
 SourceFile(
-  SubscriptExpression(Identifier,end)
+  SubscriptExpression(Identifier,end),
+  SubscriptExpression(Identifier,BinaryExpression(end, Number)),
+  SubscriptExpression(Identifier,RangeExpression(end, end)),
 )
 
 # SubscriptExpression_assignment_ok

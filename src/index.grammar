@@ -31,46 +31,46 @@
 }
 
 @top SourceFile {
-  expressionList | ""
+  expressionList<e, pe> | ""
 }
 
 @skip { whitespace | Comment | BlockComment }
 
 // TOP LEVEL
 
-expressionList {
-  (expression ~id | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression)
+expressionList<e, pe> {
+  (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)
   (!regular0 terminator
-    (!regular0 expression | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression))*
+    (!regular0 e | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression))*
   terminator?
 }
 
-BareTupleExpression {
-  expression (!regular-1 "," expression)+
+BareTupleExpression<e> {
+  e (!regular-1 "," e)+
 }
 
-AssignmentExpression {
-  ((expression | BareTupleExpression)
+AssignmentExpression<e> {
+  ((e | BareTupleExpression<e>)
   !assign (assignOperator | "=")
-  (expression | AssignmentExpression | BareTupleExpression))
+  (e | AssignmentExpression<e> | BareTupleExpression<e>))
 }
 
-simpleAssignmentExpression {
-  expression ~id !assign (assignOperator | "=") !assign expression
+simpleAssignmentExpression<e> {
+  e ~id !assign (assignOperator | "=") !assign e
 }
 
-simpleExpressionList {
-  (expression ~id | AssignmentExpression { simpleAssignmentExpression })
+simpleExpressionList<e> {
+  (e ~id | AssignmentExpression { simpleAssignmentExpression<e> })
   (!regular0 terminator
-    (!regular0 expression | AssignmentExpression { simpleAssignmentExpression }))*
+    (!regular0 e | AssignmentExpression { simpleAssignmentExpression<e> }))*
   terminator?
 }
 
 FunctionAssignmentExpression[@dynamicPrecedence=2] {
-  Identifier ~id immediateParen !call ArgumentList ~id
-  (kw<"where"> TypeArgumentList)?
+  Identifier ~id immediateParen !call ArgumentList<e, pe> ~id
+  (kw<"where"> TypeArgumentList<e>)?
   !assign (assignOperator | "=")
-  !assign (expression | AssignmentExpression)
+  !assign (e | AssignmentExpression<e>)
 }
 
 // STATEMENTS
@@ -93,26 +93,26 @@ statement {
 }
 
 IfStatement {
-  kw<"if"> expression terminator?
-    expressionList?
+  kw<"if"> e terminator?
+    expressionList<e, pe>?
   ElseifClause*
   ElseClause?
   end
 }
 
 ElseifClause {
-  kw<"elseif"> expression terminator?
-    expressionList?
+  kw<"elseif"> e terminator?
+    expressionList<e, pe>?
 }
 
 ElseClause {
   kw<"else">
-    expressionList?
+    expressionList<e, pe>?
 }
 
 TryStatement {
   kw<"try">
-    expressionList?
+    expressionList<e, pe>?
   CatchClause?
   FinallyClause?
   end
@@ -120,22 +120,22 @@ TryStatement {
 
 CatchClause /* precedence: 1 */ {
   kw<"catch"> Identifier? !regular1 terminator?
-    expressionList?
+    expressionList<e, pe>?
 }
 
 FinallyClause {
   kw<"finally"> terminator?
-    expressionList?
+    expressionList<e, pe>?
 }
 
 ForStatement {
-  !regular0 kw<"for"> ForBinding ("," ForBinding)* terminator?
-    expressionList?
+  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)* terminator?
+    expressionList<e, pe>?
   end
 }
 
 WhileStatement {
-  !regular0 kw<"while"> !regular0 expression !regular0 terminator? !regular0 expressionList? end
+  !regular0 kw<"while"> !regular0 e !regular0 terminator? !regular0 expressionList<e, pe>? end
 }
 
 BreakStatement {
@@ -147,11 +147,11 @@ ContinueStatement {
 }
 
 ReturnStatement {
-  kw<"return"> (!right-2 (expression | BareTupleExpression))?
+  kw<"return"> (!right-2 (e | BareTupleExpression<e>))?
 }
 
 LetStatement {
-  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList? end
+  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList<e, pe>? end
 }
 
 ConstStatement {
@@ -167,11 +167,11 @@ LocalStatement {
 }
 
 VariableDeclaration /* precedence: right 0 */ {
-  (Identifier | InterpolationExpression<primaryExpression>) (!right0 "=" expression)?
+  (Identifier | InterpolationExpression<pe>) (!right0 "=" e)?
 }
 
 QuoteStatement {
-  kw<"quote"> expressionList? end
+  kw<"quote"> expressionList<e, pe>? end
 }
 
 ImportStatement {
@@ -213,42 +213,42 @@ FunctionDefinition {
   !regular0 kw<"function">
     definitionHead
     params[@dynamicPrecedence=1] {
-      !immediate immediateParen !immediate ArgumentList
+      !immediate immediateParen !immediate ArgumentList<e, pe>
       ReturnType {
-        !typeascription "::" primaryExpression
+        !typeascription "::" pe
       }?
     }?
-    expressionList? 
+    expressionList<e, pe>? 
   end
 }
 
 MacroDefinition {
-  kw<"macro"> definitionHead immediateParen ArgumentList
-    expressionList?
+  kw<"macro"> definitionHead immediateParen ArgumentList<e, pe>
+    expressionList<e, pe>?
   end
 }
 
 PrimitiveDefinition {
-  kw<"primitive"> kw<"type"> primaryExpression Number end
+  kw<"primitive"> kw<"type"> pe Number end
 }
 
 AbstractDefinition {
-  kw<"abstract"> kw<"type"> primaryExpression end
+  kw<"abstract"> kw<"type"> pe end
 }
 
 StructDefinition {
-  kw<"mutable">? kw<"struct"> primaryExpression !regular0 expressionList? end
+  kw<"mutable">? kw<"struct"> pe !regular0 expressionList<e, pe>? end
 }
 
 ModuleDefinition {
   kw<"module"> Identifier
-    expressionList? 
+    expressionList<e, pe>? 
   end
 }
 
 BareModuleDefinition {
   kw<"baremodule"> Identifier
-    expressionList?
+    expressionList<e, pe>?
   end
 }
 
@@ -257,37 +257,38 @@ definitionHead {
   FieldExpression<definitionHead> |
   SubscriptExpression<definitionHead> |
   QuoteExpression<definitionHead> |
-  ParameterizedIdentifier<definitionHead> |
+  ParameterizedIdentifier<e, definitionHead> |
   Identifier ~id |
-  ParenthesizedExpression |
+  ParenthesizedExpression<definitionHead> |
   Operator ~op
 }
 
 // EXPRESSIONS
 
-expression {
+e {
   statement |
   definition |
   CompoundExpression |
-  PairExpression |
-  MacroExpression |
-  UnaryExpression |
-  BinaryExpression |
-  TernaryExpression |
-  FunctionExpression |
-  CoefficientExpression |
-  RangeExpression |
-  SpreadExpression |
+  PairExpression<e> |
+  MacroExpression<e, pe> |
+  UnaryExpression<e> |
+  BinaryExpression<e> |
+  TernaryExpression<e> |
+  FunctionExpression<e, pe> |
+  FunctionExpression { verboseFunctionExpression } |
+  CoefficientExpression<e> |
+  RangeExpression<e> |
+  SpreadExpression<e> |
   Operator { ":" ~op } |
-  primaryExpression
+  pe
 }
 
-primaryExpression {
-  InterpolationExpression<primaryExpression> |
-  FieldExpression<primaryExpression> |
-  SubscriptExpression<primaryExpression> |
-  QuoteExpression<primaryExpression> |
-  CallExpression |
+pe {
+  InterpolationExpression<pe> |
+  FieldExpression<pe> |
+  SubscriptExpression<pe> |
+  QuoteExpression<pe> |
+  CallExpression<e, pe> |
   Identifier ~id |
   Character |
   Number |
@@ -296,179 +297,223 @@ primaryExpression {
   TripleString |
   CommandString |
   PrefixedString |
-  ParenthesizedExpression |
-  TupleExpression |
-  ArrayExpression |
-  ArrayComprehensionExpression |
-  MatrixExpression |
-  GeneratorExpression |
-  TypedExpression |
-  ParameterizedIdentifier<primaryExpression> |
+  ParenthesizedExpression<e> |
+  TupleExpression<e, pe> |
+  ArrayExpression<e> |
+  ArrayComprehensionExpression<e, pe> |
+  MatrixExpression<e> |
+  GeneratorExpression<e, pe> |
+  TypedExpression<pe> |
+  ParameterizedIdentifier<e, pe> |
   Operator ~op
 }
 
-ParameterizedIdentifier<content> {
-  content
+ParameterizedIdentifier<e, pe> {
+  pe
   !immediate immediateBrace !immediate
-  TypeArgumentList
+  TypeArgumentList<e>
 }
 
-TypeArgumentList {
-  "{" expression ("," expression)* ","? "}"
+TypeArgumentList<e> {
+  "{" e ("," e)* ","? "}"
 }
 
-FieldExpression<content> {
-  content
+FieldExpression<pe> {
+  pe
   !immediate immediateDot !dot "." !dot
-  (Identifier | QuoteExpression<content> | InterpolationExpression<content>)
+  (Identifier | QuoteExpression<pe> | InterpolationExpression<pe>)
 }
 
-SubscriptExpression<content> {
-  content !immediate immediateBracket "["
+SubscriptExpression<pe> {
+  pe !immediate immediateBracket "["
     (
-      GeneratorExpression { expression comprehensionClause } |
-      (expression |
-       end |
+      GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
+      (s_e |
        AssignmentExpression {
-         expression !assign (assignOperator | "=") expression
+         s_e !assign (assignOperator | "=") s_e
        })
-      ("," (expression |
-            end |
+      ("," (s_e |
             AssignmentExpression {
-              expression !assign (assignOperator | "=") expression
+              s_e !assign (assignOperator | "=") s_e
             }))*
     )?
     ","?
   "]"
 }
 
-SpreadExpression {
-  expression !dot "..."
+s_e {
+  statement |
+  definition |
+  CompoundExpression |
+  PairExpression<s_e> |
+  MacroExpression<s_e, s_pe> |
+  UnaryExpression<s_e> |
+  BinaryExpression<s_e> |
+  TernaryExpression<s_e> |
+  FunctionExpression<s_e, s_pe> |
+  CoefficientExpression<s_e> |
+  RangeExpression<s_e> |
+  SpreadExpression<s_e> |
+  Operator { ":" ~op } |
+  s_pe
 }
 
-PairExpression {
-  expression !pair "=>" expression
+s_pe {
+  InterpolationExpression<s_pe> |
+  FieldExpression<s_pe> |
+  SubscriptExpression<s_pe> |
+  QuoteExpression<s_pe> |
+  CallExpression<s_e, s_pe> |
+  Identifier ~id |
+  Character |
+  Number |
+  Symbol |
+  String |
+  TripleString |
+  CommandString |
+  PrefixedString |
+  ParenthesizedExpression<s_e> |
+  TupleExpression<s_e, s_pe> |
+  ArrayExpression<s_e> |
+  ArrayComprehensionExpression<s_e, s_pe> |
+  MatrixExpression<s_e> |
+  GeneratorExpression<s_e, s_pe> |
+  TypedExpression<s_pe> |
+  ParameterizedIdentifier<s_e, s_pe> |
+  Operator ~op |
+  kw<"end">
 }
 
-TernaryExpression {
-  expression
+SpreadExpression<pe> {
+  pe !dot "..."
+}
+
+PairExpression<e> {
+  e !pair "=>" e
+}
+
+TernaryExpression<e> {
+  e
   !ternary ternary1 !ternary
-  expression
+  e
   !ternary ternary2 !ternary
-  expression
+  e
 }
 
-TypedExpression {
-  primaryExpression !typeascription ("::" | "<:") !typeascription primaryExpression |
-  ("::" | "<:") !typeonlyascription primaryExpression
+TypedExpression<pe> {
+  pe !typeascription ("::" | "<:") !typeascription pe |
+  ("::" | "<:") !typeonlyascription pe
 }
 
-InterpolationExpression[@dynamicPrecedence=2]<content> {
-  "$" !interp content
+InterpolationExpression[@dynamicPrecedence=2]<pe> {
+  "$" !interp pe
 }
 
 Symbol {
   ":" !interp Identifier
 }
 
-QuoteExpression[@dynamicPrecedence=2]<content> {
-  ":" !interp content
+QuoteExpression[@dynamicPrecedence=2]<pe> {
+  ":" !interp pe
 }
 
-CoefficientExpression[@dynamicPrecedence=1] {
-  Number !coeff (ParenthesizedExpression | Identifier)
+CoefficientExpression[@dynamicPrecedence=1]<e> {
+  Number !coeff (ParenthesizedExpression<e> | Identifier)
 }
 
 CompoundExpression {
-  kw<"begin"> expressionList end
+  kw<"begin"> expressionList<e, pe> end
 }
 
-CallExpression {
-  expression
+CallExpression<e, pe> {
+  pe
   !call immediateParen
-  !call args[@dynamicPrecedence=1] { ArgumentList }
+  !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
   DoClause?
 }
 
 DoClause {
-  kw<"do"> expressionList end
+  kw<"do"> expressionList<e, pe> end
 }
 
-ArgumentList {
+ArgumentList<e, pe> {
   "("
-  (arg ~id ("," arg ~id)*)?
-  (";" arg ("," arg)*)?
+  (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
+  (";" arg<e, pe> ("," arg<e, pe>)*)?
   ","?
   ")"
 }
 
-arg {
-  (expression | NamedArgument { NamedField  }) ~id
+arg<e, pe> {
+  (e | NamedArgument { NamedField<e, pe>  }) ~id
 }
 
-ParenthesizedExpression {
-  "(" !regular1 simpleExpressionList !regular1 ")"
+ParenthesizedExpression<e> {
+  "(" !regular1 simpleExpressionList<e> !regular1 ")"
 }
 
-TupleExpression {
+TupleExpression<e, pe> {
   "("
     (
-    (tupleelem ~id !regular0 ",") |
-    (tupleelem ~id (!regular0 "," tupleelem ~id)+ ","?)
+    (tupleelem<e, pe> ~id !regular0 ",") |
+    (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?)
     )?
   ")"
 }
 
-tupleelem {
-  expression | NamedField
+tupleelem<e, pe> {
+  e | NamedField<e, pe>
 }
 
-NamedField {
-  name { Identifier | TypedExpression } ~id !assign "=" expression
+NamedField<e, pe> {
+  name { Identifier | TypedExpression<pe> } ~id !assign "=" e
 }
 
 MacroIdentifier {
   !regular0 "@" (Identifier | Operator | Operator { "." })
 }
 
-MacroFieldExpression {
-  primaryExpression
+MacroFieldExpression<pe> {
+  pe
   !immediate immediateDot !dot "." !dot
   MacroIdentifier
 }
 
-FunctionExpression {
-  kw<"function"> ArgumentList expressionList? end |
-  (Identifier ~id | ArgumentList) !arrow "->" (expression | AssignmentExpression)
+verboseFunctionExpression {
+  kw<"function"> ArgumentList<e, pe> expressionList<e, pe>? end
 }
 
-MacroExpression {
-  (MacroIdentifier | MacroFieldExpression) (!right0
-    immediateParen args[@dynamicPrecedence=1] { ArgumentList }
-    | MacroArgumentList
+FunctionExpression<e, pe> {
+  (Identifier ~id | ArgumentList<e, pe>) !arrow "->" (e | AssignmentExpression<e>)
+}
+
+MacroExpression<e, pe> {
+  (MacroIdentifier | MacroFieldExpression<pe>) (!right0
+    immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+    | MacroArgumentList<e>
   )?
 }
 
-MacroArgumentList {
-  (!regular-2 (expression | AssignmentExpression))+
+MacroArgumentList<e> {
+  (!regular-2 (e | AssignmentExpression<e>))+
 }
 
-BinaryExpression {
-  expression !power powerOperator !power expression |
-  expression !bitshift bitshiftOperator !bitshift expression |
-  expression !times timesOperator !times expression |
-  expression !plus ("$" | plusOperator) !plus expression |
-  expression !arrow arrowOperator expression |
-  expression !pipeback "<|" expression |
-  expression !pipe "|>" expression |
-  expression !contains (kw<"in"> | kw<"isa"> | comparisonOperator) !contains expression |
-  expression !bor "||" expression |
-  expression !band "&&" expression
+BinaryExpression<e> {
+  e !power powerOperator !power e |
+  e !bitshift bitshiftOperator !bitshift e |
+  e !times timesOperator !times e |
+  e !plus ("$" | plusOperator) !plus e |
+  e !arrow arrowOperator e |
+  e !pipeback "<|" e |
+  e !pipe "|>" e |
+  e !contains (kw<"in"> | kw<"isa"> | comparisonOperator) !contains e |
+  e !bor "||" e |
+  e !band "&&" e
 }
 
-UnaryExpression {
-  (unaryOperatorExtra | plusminus) ~op !prefix expression |
-  expression !postfix ("'" | ".'")
+UnaryExpression<e> {
+  (unaryOperatorExtra | plusminus) ~op !prefix e |
+  e !postfix ("'" | ".'")
 }
 
 Operator {
@@ -483,49 +528,49 @@ Operator {
   )
 }
 
-ArrayExpression {
+ArrayExpression<e> {
   !regular0 "[" "]" |
   !regular0 "["
-    !regular0 expression
-    ("," expression)*?
+    !regular0 e
+    ("," e)*?
     (!regular0 ",")?
     !regular0 "]"
 }
 
-MatrixExpression /* precedence: -1 */ {
+MatrixExpression<e> /* precedence: -1 */ {
   "["
-    !regular-1 MatrixRow
-    (";" MatrixRow)* 
+    !regular-1 MatrixRow<e>
+    (";" MatrixRow<e>)* 
     (!regular-1 ";")?
     !regular-1 "]"
 }
 
-MatrixRow {
-  /* precedence: -1 */ (!regular-1 expression)+
+MatrixRow<e> {
+  /* precedence: -1 */ (!regular-1 e)+
 }
 
-ArrayComprehensionExpression {
-  "[" !regular0 expression !regular0 comprehensionClause "]"
+ArrayComprehensionExpression<e, pe> {
+  "[" !regular0 e !regular0 comprehensionClause<e, pe> "]"
 }
 
-GeneratorExpression {
-  "(" expression comprehensionClause ")"
+GeneratorExpression<e, pe> {
+  "(" e comprehensionClause<e, pe> ")"
 }
 
-comprehensionClause {
-  ForClause (ForClause | IfClause)*
+comprehensionClause<e, pe> {
+  ForClause<e, pe> (ForClause<e, pe> | IfClause<e, pe>)*
 }
 
-IfClause {
-  kw<"if"> expression
+IfClause<e, pe> {
+  kw<"if"> e
 }
 
-ForClause {
-  kw<"for"> ForBinding (!regular0 "," ForBinding)*
+ForClause<e, pe> {
+  kw<"for"> ForBinding<e, pe> (!regular0 "," ForBinding<e, pe>)*
 }
 
-ForBinding {
-  (Identifier | TupleExpression) (kw<"in"> | "=" | "∈") expression
+ForBinding<e, pe> {
+  (Identifier | TupleExpression<e, pe>) (kw<"in"> | "=" | "∈") e
 }
 
 ScopedIdentifier {
@@ -533,8 +578,8 @@ ScopedIdentifier {
   (Identifier | ScopedIdentifier)? !dot "." !dot Identifier
 }
 
-RangeExpression {
-  expression !range ":" !range expression
+RangeExpression<e> {
+  e !range ":" !range e
 }
 
 @skip {} {
@@ -551,7 +596,7 @@ RangeExpression {
 
 stringInterpolation {
   "$" Identifier |
-  "$" immediateParen "(" !regular1 expression !regular1 ")"
+  "$" immediateParen "(" !regular1 e !regular1 ")"
 }
 
 PrefixedString {
