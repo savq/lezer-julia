@@ -3,8 +3,9 @@
   dot
   prefix
   postfix
-  typeascription
   interp @left
+  typeonlyascription @left
+  typeascription @left
   coeff
   call
   power @left
@@ -38,7 +39,7 @@
 // TOP LEVEL
 
 expressionList {
-  (expression | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression)
+  (expression ~id | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression)
   (!regular0 terminator
     (!regular0 expression | BareTupleExpression | AssignmentExpression | FunctionAssignmentExpression))*
   terminator?
@@ -51,12 +52,23 @@ BareTupleExpression {
 AssignmentExpression {
   ((expression | BareTupleExpression)
   !assign (assignOperator | "=")
-  !assign (expression | AssignmentExpression | BareTupleExpression))
+  (expression | AssignmentExpression | BareTupleExpression))
+}
+
+simpleAssignmentExpression {
+  expression ~id !assign (assignOperator | "=") !assign expression
+}
+
+simpleExpressionList {
+  (expression ~id | AssignmentExpression { simpleAssignmentExpression })
+  (!regular0 terminator
+    (!regular0 expression | AssignmentExpression { simpleAssignmentExpression }))*
+  terminator?
 }
 
 FunctionAssignmentExpression[@dynamicPrecedence=2] {
-  Identifier ~id immediateParen !call ParameterList ~id
-  (kw<"where"> TypeParameterList)?
+  Identifier ~id immediateParen !call ArgumentList ~id
+  (kw<"where"> TypeArgumentList)?
   !assign (assignOperator | "=")
   !assign (expression | AssignmentExpression)
 }
@@ -180,7 +192,7 @@ SelectedImport[@dynamicPrecedence=1] {
   }
 }
 
-ExportStatement /* precedence: right 0 */ {
+ExportStatement {
   kw<"export"> Identifier (!right0 "," Identifier)*
 }
 
@@ -201,11 +213,11 @@ FunctionDefinition {
     (
       Identifier |
       Identifier
-      (!immediate immediateBrace !immediate TypeParameterList)?
+      (!immediate immediateBrace !immediate TypeArgumentList)?
       params[@dynamicPrecedence=1] {
-        !immediate immediateParen !immediate ParameterList
+        !immediate immediateParen !immediate ArgumentList
         ReturnType {
-          !typeascription "::" (Identifier | ParameterizedIdentifier)
+          !typeascription "::" primaryExpression
         }?
       }
     )
@@ -214,27 +226,21 @@ FunctionDefinition {
 }
 
 MacroDefinition {
-  kw<"macro"> (Identifier | Operator) immediateParen ParameterList
+  kw<"macro"> (Identifier | Operator) immediateParen ArgumentList
     expressionList?
   end
 }
 
 PrimitiveDefinition {
-  kw<"primitive"> kw<"type"> Identifier
-  (immediateBrace TypeParameterList)?
-  SubtypeClause?
-  Number
-  end
+  kw<"primitive"> kw<"type"> primaryExpression Number end
 }
 
 AbstractDefinition {
-  kw<"abstract"> kw<"type"> Identifier (immediateBrace TypeParameterList)? SubtypeClause? end
+  kw<"abstract"> kw<"type"> primaryExpression end
 }
 
 StructDefinition {
-  kw<"mutable">? kw<"struct"> Identifier (immediateBrace TypeParameterList)? SubtypeClause?
-    expressionList?
-  end
+  kw<"mutable">? kw<"struct"> primaryExpression !regular0 expressionList? end
 }
 
 ModuleDefinition {
@@ -249,55 +255,8 @@ BareModuleDefinition {
   end
 }
 
-ParameterList {
-  "("
-  (
-    !regular0 param ~id
-    (!regular0 "," param ~id)*
-  )?
-  (!regular0 KeywordParameters)?
-  !regular0 ")"
-}
-
-param {
-  Identifier ~id |
-  SpreadParameter |
-  OptionalParameter { NamedField } |
-  TypedParameter
-}
-
-SpreadParameter {
-  Identifier ~id "..."
-}
-
-TypedParameter {
-  (Identifier ~id)? "::" (Identifier | FieldExpression | ParameterizedIdentifier)
-}
-
 TypeArgumentList {
-  "{" (expression) ("," (expression))* "}"
-}
-
-KeywordParameters {
-  ";"
-  (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter)
-  ("," (Identifier | SpreadParameter | OptionalParameter { NamedField } | TypedParameter))*
-}
-
-TypeParameterList {
-  "{"
-  (Identifier | ConstrainedParameter)
-  ("," (Identifier | ConstrainedParameter))*
-  ","?
-  "}"
-}
-
-ConstrainedParameter {
-  Identifier "<:" expression
-}
-
-SubtypeClause {
-  "<:" expression
+  "{" expression ("," expression)* ","? "}"
 }
 
 
@@ -306,7 +265,6 @@ SubtypeClause {
 expression {
   statement |
   definition |
-  TypedExpression |
   CompoundExpression |
   PairExpression |
   MacroExpression |
@@ -336,17 +294,17 @@ primaryExpression {
   PrefixedString |
   ParenthesizedExpression |
   TupleExpression |
-  NamedTupleExpression |
   ArrayExpression |
   ArrayComprehensionExpression |
   MatrixExpression |
   GeneratorExpression |
+  TypedExpression |
   ParameterizedIdentifier |
   Operator ~op
 }
 
 ParameterizedIdentifier {
-  (Identifier | FieldExpression)
+  primaryExpression
   !immediate immediateBrace !immediate
   TypeArgumentList
 }
@@ -364,12 +322,12 @@ SubscriptExpression {
       (expression |
        end |
        AssignmentExpression {
-         expression !assign (assignOperator | "=") !assign expression
+         expression !assign (assignOperator | "=") expression
        })
       ("," (expression |
             end |
             AssignmentExpression {
-              expression !assign (assignOperator | "=") !assign expression
+              expression !assign (assignOperator | "=") expression
             }))*
     )?
     ","?
@@ -393,7 +351,8 @@ TernaryExpression {
 }
 
 TypedExpression {
-  expression !typeascription ("::" | "<:") (Identifier | ParameterizedIdentifier)
+  primaryExpression !typeascription ("::" | "<:") !typeascription primaryExpression |
+  ("::" | "<:") !typeonlyascription primaryExpression
 }
 
 InterpolationExpression[@dynamicPrecedence=2] {
@@ -425,53 +384,35 @@ DoClause {
 
 ArgumentList {
   "("
-  (
-    !regular0 (expression | NamedArgument { NamedField })
-    (!regular0 "," (expression | NamedArgument { NamedField }))*
-  )?
-  (
-    !regular0 ";"
-    !regular0 NamedArgument { NamedField }
-    (!regular0 "," NamedArgument { NamedField })*
-  )?
-  !regular0 ","?
-  !regular0 ")"
+  (arg ~id ("," arg ~id)*)?
+  (";" arg ("," arg)*)?
+  ","?
+  ")"
+}
+
+arg {
+  (expression | NamedArgument { NamedField  }) ~id
 }
 
 ParenthesizedExpression {
-  "(" !regular1 expressionList !regular1 ")"
+  "(" !regular1 simpleExpressionList !regular1 ")"
 }
 
 TupleExpression {
   "("
-  (
-    (!regular0 expression !regular0 ",") |
     (
-      !regular0 expression
-      (!regular0 "," expression)+
-      (!regular0 ",")?
-    )
-  )?
-  !regular0 ")"
+    (tupleelem ~id !regular0 ",") |
+    (tupleelem ~id (!regular0 "," tupleelem ~id)+ ","?)
+    )?
+  ")"
 }
 
-NamedTupleExpression[@dynamicPrecedence=1] {
-  "("
-  (
-    (!regular0 NamedField !regular0 ",") |
-    (
-      !regular0 NamedField
-      (!regular0 "," NamedField)+
-      (!regular0 ",")?
-    )
-  )
-  !regular0 ")"
+tupleelem {
+  expression | NamedField
 }
 
 NamedField {
-  // TODO(andreypopp): TypedParameter doesn't always make sense here so consider
-  // to split
-  ((Identifier ~id | TypedParameter) "=" expression) ~namedfield
+  name { Identifier | TypedExpression } ~id !assign "=" expression
 }
 
 MacroIdentifier {
@@ -485,8 +426,8 @@ MacroFieldExpression {
 }
 
 FunctionExpression {
-  kw<"function"> ParameterList expressionList? end |
-  (Identifier | ParameterList) !arrow "->" (expression | AssignmentExpression)
+  kw<"function"> ArgumentList expressionList? end |
+  (Identifier ~id | ArgumentList) !arrow "->" (expression | AssignmentExpression)
 }
 
 MacroExpression {
@@ -578,7 +519,7 @@ ScopedIdentifier {
 }
 
 RangeExpression {
-  expression !range ":" expression
+  expression !range ":" !range expression
 }
 
 @skip {} {

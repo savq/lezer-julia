@@ -119,7 +119,7 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,ParameterList,String,end)
+  FunctionDefinition(function,Identifier,ArgumentList,String,end)
 )
 
 # FunctionDefinition_2
@@ -129,7 +129,7 @@ function some() "hello" end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,ParameterList,String,end),
+  FunctionDefinition(function,Identifier,ArgumentList,String,end),
 )
 
 # FunctionDefinition_3
@@ -142,8 +142,8 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,ParameterList,end),
-  FunctionDefinition(function,Identifier,ParameterList,end),
+  FunctionDefinition(function,Identifier,ArgumentList,end),
+  FunctionDefinition(function,Identifier,ArgumentList,end),
 )
 
 # FunctionDefinition_anonymous
@@ -155,8 +155,8 @@ end
 ==>
 
 SourceFile(
-  FunctionExpression(function,ParameterList,end),
-  FunctionExpression(function,ParameterList,end),
+  FunctionExpression(function,ArgumentList,end),
+  FunctionExpression(function,ArgumentList,end),
 )
 
 # FunctionDefinition_no_parens_ok
@@ -181,9 +181,9 @@ SourceFile(
   FunctionDefinition(
     function,
     Identifier,
-    ParameterList(
-      TypedParameter(Identifier,Identifier),
-      TypedParameter(Identifier)
+    ArgumentList(
+      TypedExpression(Identifier,Identifier),
+      TypedExpression(Identifier)
     ),
     Identifier,
     end
@@ -200,8 +200,8 @@ SourceFile(
   FunctionDefinition(
     function,
     Identifier,
-    ParameterList,
-    ReturnType(Identifier),
+    ArgumentList,
+    TypedExpression(Identifier),
     end
   )
 )
@@ -216,7 +216,7 @@ SourceFile(
   FunctionDefinition(
     function,
     Identifier,
-    ParameterList(TypedParameter(Identifier,FieldExpression(Identifier,Identifier))),
+    ArgumentList(TypedExpression(Identifier,FieldExpression(Identifier,Identifier))),
     end
   )
 )
@@ -234,8 +234,19 @@ abstract type name{param} <: supertype end
 SourceFile(
   AbstractDefinition(abstract,type,Identifier,end),
   AbstractDefinition(abstract,type,Identifier,end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),SubtypeClause(Identifier),end),
+  AbstractDefinition(
+    abstract,type,
+    ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
+    end
+  ),
+  AbstractDefinition(
+    abstract,type,
+    TypedExpression(
+      ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))
+      Identifier
+    ),
+    end
+  ),
 )
 
 # AbstractDefinition_TypeParameterList
@@ -252,14 +263,14 @@ abstract type name{a, a<:b,} end
 ==>
 
 SourceFile(
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,Identifier),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,Identifier),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(ConstrainedParameter(Identifier,Identifier)),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(ConstrainedParameter(Identifier,Identifier)),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,ConstrainedParameter(Identifier,Identifier)),end),
-  AbstractDefinition(abstract,type,Identifier,TypeParameterList(Identifier,ConstrainedParameter(Identifier,Identifier)),end))
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier)),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier)),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Identifier))),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Identifier))),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Identifier))),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Identifier))),end))
 
 # PrimitiveDefinition
 
@@ -275,8 +286,20 @@ primitive type name{param} <: supertype 42 end
 SourceFile(
   PrimitiveDefinition(primitive,type,Identifier,Number,end),
   PrimitiveDefinition(primitive,type,Identifier,Number,end),
-  PrimitiveDefinition(primitive,type,Identifier,TypeParameterList(Identifier),Number,end),
-  PrimitiveDefinition(primitive,type,Identifier,TypeParameterList(Identifier),SubtypeClause(Identifier),Number,end),
+  PrimitiveDefinition(
+    primitive,type,
+    ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
+    Number,end
+  ),
+  PrimitiveDefinition(
+    primitive,type,
+    TypedExpression(
+      ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
+      Identifier
+    ),
+    Number,
+    end
+  )
 )
 
 # StructDefinition
@@ -302,8 +325,8 @@ mutable struct name end
 SourceFile(
   StructDefinition(struct,Identifier,end),
   StructDefinition(struct,Identifier,end),
-  StructDefinition(struct,Identifier,TypeParameterList(Identifier),end),
-  StructDefinition(struct,Identifier,TypeParameterList(Identifier),SubtypeClause(Identifier),end),
+  StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
+  StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),TypedExpression(Identifier),end),
   StructDefinition(struct,Identifier,Identifier,end),
   StructDefinition(struct,Identifier,Identifier,Identifier,end),
   StructDefinition(mutable,struct,Identifier,end),
@@ -349,9 +372,9 @@ end
 ==>
 
 SourceFile(
-  MacroDefinition(macro,Identifier,ParameterList,end),
-  MacroDefinition(macro,Identifier,ParameterList,end),
-  MacroDefinition(macro,Identifier,ParameterList,Identifier,end),
+  MacroDefinition(macro,Identifier,ArgumentList,end),
+  MacroDefinition(macro,Identifier,ArgumentList,end),
+  MacroDefinition(macro,Identifier,ArgumentList,Identifier,end),
 )
 
 # AssignmentExpression_1
@@ -373,7 +396,7 @@ name(a, b) = a + b
 SourceFile(
   FunctionAssignmentExpression(
     Identifier,
-    ParameterList(Identifier,Identifier),
+    ArgumentList(Identifier,Identifier),
     BinaryExpression(Identifier,Identifier)
   )
 )
@@ -387,8 +410,8 @@ name(a::T) where {T} = a
 SourceFile(
   FunctionAssignmentExpression(
     Identifier,
-    ParameterList(TypedParameter(Identifier,Identifier)),
-    where,TypeParameterList(Identifier),
+    ArgumentList(TypedExpression(Identifier,Identifier)),
+    where,TypeArgumentList(Identifier),
     Identifier
   )
 )
@@ -401,7 +424,7 @@ SourceFile(
 
 SourceFile(
   FunctionExpression(
-    ParameterList(Identifier,Identifier),
+    ArgumentList(Identifier,Identifier),
     BinaryExpression(Identifier,Identifier),
   )
 )
@@ -625,7 +648,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  NamedTupleExpression(NamedField(Identifier,Number)),
+  TupleExpression(NamedField(Identifier,Number)),
 )
 
 # Tuple_NamedField_many_ok
@@ -635,7 +658,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  NamedTupleExpression(
+  TupleExpression(
     NamedField(Identifier,Number),
     NamedField(Identifier,Number)
   ),
@@ -648,7 +671,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  NamedTupleExpression(
+  TupleExpression(
     NamedField(Identifier,Number),
     NamedField(Identifier,Number)
   ),
@@ -662,8 +685,8 @@ SourceFile(
 ==>
 
 SourceFile(
-  FunctionExpression(ParameterList(Identifier,Identifier),BinaryExpression(Identifier,Identifier)),
-  FunctionExpression(ParameterList(Identifier),Identifier),
+  FunctionExpression(ArgumentList(Identifier,Identifier),BinaryExpression(Identifier,Identifier)),
+  FunctionExpression(ArgumentList(Identifier),Identifier),
 )
 
 # RangeExpression_ok

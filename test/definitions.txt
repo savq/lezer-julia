@@ -64,61 +64,82 @@ end
 SourceFile(
   Comment,
   PrimitiveDefinition(
-    primitive,type,Identifier,
+    primitive,type,
+    Identifier,
     Number,
     end),
   PrimitiveDefinition(
-    primitive,type,Identifier,
-    SubtypeClause(Identifier),
+    primitive,type,
+    TypedExpression(Identifier, Identifier),
     Number,
     end),
   PrimitiveDefinition(
-    primitive,type,Identifier,
-    TypeParameterList(Identifier),
+    primitive,type,
+    ParameterizedIdentifier(
+      Identifier,
+      TypeArgumentList(Identifier),
+    ),
     Number,
     end),
   Comment,
   AbstractDefinition(
-    abstract,type,Identifier,
+    abstract,type,
+    Identifier,
     end),
   AbstractDefinition(
-    abstract,type,Identifier,
-    SubtypeClause(Identifier),
+    abstract,type,
+    TypedExpression(Identifier,Identifier),
     end),
   AbstractDefinition(
-    abstract,type,Identifier,
-    TypeParameterList(Identifier),
-    SubtypeClause(Identifier),
+    abstract,type,
+    TypedExpression(
+      ParameterizedIdentifier(
+        Identifier,
+        TypeArgumentList(Identifier),
+      ),
+      Identifier,
+    )
     end),
   Comment,
   StructDefinition(
-    struct,Identifier,
+    struct,
+    Identifier,
     end),
   Comment,
   StructDefinition(
-    mutable,struct,Identifier,
+    mutable,struct,
+    Identifier,
     Identifier,
     TypedExpression(Identifier,Identifier),
     end),
   Comment,
   StructDefinition(
-    struct,Identifier,
-    TypeParameterList(Identifier),
+    struct,
+    ParameterizedIdentifier(
+      Identifier,
+      TypeArgumentList(Identifier),
+    ),
     TypedExpression(Identifier,Identifier),
     TypedExpression(Identifier,Identifier),
     end),
   Comment,
   StructDefinition(
-    struct,Identifier,
-    TypeParameterList(ConstrainedParameter(Identifier,Identifier)),
-    SubtypeClause(Identifier),
+    struct,
+    ParameterizedIdentifier(
+      Identifier,
+      TypeArgumentList(TypedExpression(Identifier,Identifier)),
+    ),
+    TypedExpression(Identifier),
     TypedExpression(Identifier,Identifier),
     TypedExpression(Identifier,Identifier),
     end),
   Comment,
   StructDefinition(
-    mutable,struct,Identifier,
-    SubtypeClause(Identifier),
+    mutable,struct,
+    Identifier,
+    TypedExpression(
+      Identifier,
+    ),
     TypedExpression(
       Identifier,
       ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))
@@ -139,13 +160,13 @@ end
 SourceFile(
   FunctionDefinition(
     function,Identifier,
-    ParameterList(TypedParameter(Identifier,Identifier)),
+    ArgumentList(TypedExpression(Identifier,Identifier)),
     end
   ),
   FunctionDefinition(
     function,Identifier,
-    TypeParameterList(Identifier),
-    ParameterList(TypedParameter(Identifier,Identifier)),
+    TypeArgumentList(Identifier),
+    ArgumentList(TypedExpression(Identifier,Identifier)),
     end
   ),
 )
@@ -160,11 +181,10 @@ end
 SourceFile(
   FunctionDefinition(
     function,Identifier,
-    ParameterList(
-      OptionalParameter(NamedField(TypedParameter(Identifier,Identifier),Number)),
-      KeywordParameters(
-        Identifier,
-        OptionalParameter(NamedField(TypedParameter(Identifier,Identifier),Number)))
+    ArgumentList(
+      NamedArgument(NamedField(TypedExpression(Identifier,Identifier),Number)),
+      Identifier,
+      NamedArgument(NamedField(TypedExpression(Identifier,Identifier),Number))
     ),
     end
   )
@@ -182,7 +202,7 @@ end
 SourceFile(
   MacroDefinition(
     macro,Identifier,
-    ParameterList(Identifier,OptionalParameter(NamedField(Identifier,Identifier))),
+    ArgumentList(Identifier,NamedArgument(NamedField(Identifier,Identifier))),
     AssignmentExpression(
       Identifier,
       ArrayExpression(
