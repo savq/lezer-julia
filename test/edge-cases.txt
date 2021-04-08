@@ -826,3 +826,16 @@ SourceFile(
     QuoteExpression(ParenthesizedExpression(Operator))
   )
 )
+
+# ImportStatement_relative_ok
+
+import ..Ok
+
+==>
+
+SourceFile(
+  ImportStatement(
+    import,
+    Import(ScopedIdentifier(ScopedIdentifier(Identifier)))
+  )
+)

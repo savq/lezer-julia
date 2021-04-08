@@ -1,6 +1,6 @@
 @precedence {
   immediate
-  dot
+  dot @left
   prefix
   postfix
   interp @left
@@ -180,7 +180,8 @@ ImportStatement {
 }
 
 Import {
-  (Identifier | ScopedIdentifier) (!right0 "," (Identifier | ScopedIdentifier))*
+  (Identifier | ScopedIdentifier)
+  (!right0 "," (Identifier | ScopedIdentifier))*
 }
 
 SelectedImport[@dynamicPrecedence=1] {
@@ -515,7 +516,8 @@ ForBinding {
 }
 
 ScopedIdentifier {
-  (Identifier | ScopedIdentifier)? !dot "." Identifier
+  "." !dot ScopedIdentifier |
+  (Identifier | ScopedIdentifier)? !dot "." !dot Identifier
 }
 
 RangeExpression {
