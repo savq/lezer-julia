@@ -11,6 +11,7 @@
   },
   "types": "dist/index.d.ts",
   "author": "Andrey Popp <me@andreypopp.com>",
+  "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^9.0.0",
     "lezer-generator": "^0.13.0",
