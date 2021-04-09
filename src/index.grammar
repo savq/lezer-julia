@@ -92,7 +92,7 @@ statement {
   ExportStatement
 }
 
-IfStatement {
+IfStatement[closedBy="end else elseif"] {
   kw<"if"> e terminator?
     expressionList<e, pe>?
   ElseifClause*
@@ -100,17 +100,17 @@ IfStatement {
   end
 }
 
-ElseifClause {
+ElseifClause[closedBy="end else elseif"] {
   kw<"elseif"> e terminator?
     expressionList<e, pe>?
 }
 
-ElseClause {
+ElseClause[closedBy="end"] {
   kw<"else">
     expressionList<e, pe>?
 }
 
-TryStatement {
+TryStatement[closedBy="end catch finally"] {
   kw<"try">
     expressionList<e, pe>?
   CatchClause?
@@ -118,23 +118,23 @@ TryStatement {
   end
 }
 
-CatchClause /* precedence: 1 */ {
+CatchClause[closedBy="end finally"] {
   kw<"catch"> Identifier? !regular1 terminator?
     expressionList<e, pe>?
 }
 
-FinallyClause {
+FinallyClause[closedBy="end"] {
   kw<"finally"> terminator?
     expressionList<e, pe>?
 }
 
-ForStatement {
+ForStatement[closedBy="end"] {
   !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)* terminator?
     expressionList<e, pe>?
   end
 }
 
-WhileStatement {
+WhileStatement[closedBy="end"] {
   !regular0 kw<"while"> !regular0 e !regular0 terminator? !regular0 expressionList<e, pe>? end
 }
 
@@ -150,7 +150,7 @@ ReturnStatement {
   kw<"return"> (!right-2 (e | BareTupleExpression<e>))?
 }
 
-LetStatement {
+LetStatement[closedBy="end"] {
   kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList<e, pe>? end
 }
 
@@ -166,11 +166,11 @@ LocalStatement {
   kw<"local"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
 }
 
-VariableDeclaration /* precedence: right 0 */ {
+VariableDeclaration {
   (Identifier | InterpolationExpression<pe>) (!right0 "=" e)?
 }
 
-QuoteStatement {
+QuoteStatement[closedBy="end"] {
   kw<"quote"> expressionList<e, pe>? end
 }
 
@@ -209,7 +209,7 @@ definition {
   FunctionDefinition
 }
 
-FunctionDefinition {
+FunctionDefinition[closedBy="end"] {
   !regular0 kw<"function">
     definitionHead
     params[@dynamicPrecedence=1] {
@@ -222,31 +222,31 @@ FunctionDefinition {
   end
 }
 
-MacroDefinition {
+MacroDefinition[closedBy="end"] {
   kw<"macro"> definitionHead immediateParen ArgumentList<e, pe>
     expressionList<e, pe>?
   end
 }
 
-PrimitiveDefinition {
+PrimitiveDefinition[closedBy="end"] {
   kw<"primitive"> kw<"type"> pe Number end
 }
 
-AbstractDefinition {
+AbstractDefinition[closedBy="end"] {
   kw<"abstract"> kw<"type"> pe end
 }
 
-StructDefinition {
+StructDefinition[closedBy="end"] {
   kw<"mutable">? kw<"struct"> pe !regular0 expressionList<e, pe>? end
 }
 
-ModuleDefinition {
+ModuleDefinition[closedBy="end"] {
   kw<"module"> Identifier
     expressionList<e, pe>? 
   end
 }
 
-BareModuleDefinition {
+BareModuleDefinition[closedBy="end"] {
   kw<"baremodule"> Identifier
     expressionList<e, pe>?
   end
@@ -275,11 +275,11 @@ e {
   BinaryExpression<e> |
   TernaryExpression<e> |
   FunctionExpression<e, pe> |
-  FunctionExpression { verboseFunctionExpression } |
+  FunctionExpression[closedBy="end"] { verboseFunctionExpression } |
   CoefficientExpression<e> |
   RangeExpression<e> |
   SpreadExpression<e> |
-  Operator { ":" ~op } |
+  Operator[group="operator"] { ":" ~op } |
   pe
 }
 
@@ -314,7 +314,7 @@ ParameterizedIdentifier<e, pe> {
   TypeArgumentList<e>
 }
 
-TypeArgumentList<e> {
+TypeArgumentList[closedBy="}"]<e> {
   "{" e ("," e)* ","? "}"
 }
 
@@ -324,7 +324,7 @@ FieldExpression<pe> {
   (Identifier | QuoteExpression<pe> | InterpolationExpression<pe>)
 }
 
-SubscriptExpression<pe> {
+SubscriptExpression[closedBy="]"]<pe> {
   pe !immediate immediateBracket "["
     (
       GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
@@ -354,7 +354,7 @@ s_e {
   CoefficientExpression<s_e> |
   RangeExpression<s_e> |
   SpreadExpression<s_e> |
-  Operator { ":" ~op } |
+  Operator[group="operator"] { ":" ~op } |
   s_pe
 }
 
@@ -421,7 +421,7 @@ CoefficientExpression[@dynamicPrecedence=1]<e> {
   Number !coeff (ParenthesizedExpression<e> | Identifier)
 }
 
-CompoundExpression {
+CompoundExpression[closedBy="end"] {
   kw<"begin"> expressionList<e, pe> end
 }
 
@@ -432,11 +432,11 @@ CallExpression<e, pe> {
   DoClause?
 }
 
-DoClause {
+DoClause[closedBy="end"] {
   kw<"do"> expressionList<e, pe> end
 }
 
-ArgumentList<e, pe> {
+ArgumentList[closedBy=")"]<e, pe> {
   "("
   (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
   (";" arg<e, pe> ("," arg<e, pe>)*)?
@@ -448,11 +448,11 @@ arg<e, pe> {
   (e | NamedArgument { NamedField<e, pe>  }) ~id
 }
 
-ParenthesizedExpression<e> {
+ParenthesizedExpression[closedBy=")"]<e> {
   "(" !regular1 simpleExpressionList<e> !regular1 ")"
 }
 
-TupleExpression<e, pe> {
+TupleExpression[closedBy=")"]<e, pe> {
   "("
     (
     (tupleelem<e, pe> ~id !regular0 ",") |
@@ -470,7 +470,7 @@ NamedField<e, pe> {
 }
 
 MacroIdentifier {
-  !regular0 "@" (Identifier | Operator | Operator { "." })
+  !regular0 "@" (Identifier | Operator | Operator[group="operator"] { "." })
 }
 
 MacroFieldExpression<pe> {
@@ -516,7 +516,7 @@ UnaryExpression<e> {
   e !postfix ("'" | ".'")
 }
 
-Operator {
+Operator[group="operator"] {
   !regular0 (
     "$" |
     "=" |
@@ -528,7 +528,7 @@ Operator {
   )
 }
 
-ArrayExpression<e> {
+ArrayExpression[closedBy="]"]<e> {
   !regular0 "[" "]" |
   !regular0 "["
     !regular0 e
@@ -537,7 +537,7 @@ ArrayExpression<e> {
     !regular0 "]"
 }
 
-MatrixExpression<e> /* precedence: -1 */ {
+MatrixExpression[closedBy="]"]<e> {
   "["
     !regular-1 MatrixRow<e>
     (";" MatrixRow<e>)* 
@@ -546,14 +546,14 @@ MatrixExpression<e> /* precedence: -1 */ {
 }
 
 MatrixRow<e> {
-  /* precedence: -1 */ (!regular-1 e)+
+  (!regular-1 e)+
 }
 
-ArrayComprehensionExpression<e, pe> {
+ArrayComprehensionExpression[closedBy="]"]<e, pe> {
   "[" !regular0 e !regular0 comprehensionClause<e, pe> "]"
 }
 
-GeneratorExpression<e, pe> {
+GeneratorExpression[closedBy=")"]<e, pe> {
   "(" e comprehensionClause<e, pe> ")"
 }
 
@@ -590,7 +590,7 @@ RangeExpression<e> {
     '"""' (tripleStringContent | stringInterpolation)* '"""'
   }
   CommandString {
-    '`' (commandStringContent | stringInterpolation)* '`'
+    "`" (commandStringContent | stringInterpolation)* "`"
   }
 }
 
@@ -610,9 +610,8 @@ plusOperator {
   (plusOperatorExtra | plusminus)
 }
 
-end { @specialize[@name=end]<Identifier, "end"> }
-
-kw<term> { @specialize[@name={term}]<Identifier, term> }
+end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
+kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
 
 @external tokens terminator from "./index.tokens.js" { terminator }
 @external tokens Identifier from "./index.tokens.js" { Identifier }
