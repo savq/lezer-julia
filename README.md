@@ -1,7 +1,5 @@
 # lezer-julia
 
-**WORK-IN-PROGRESS: DO NOT USE**
-
 This is a [Julia][] grammar for the [lezer][] parser system.
 
 The grammar was initially ported from [tree-sitter-julia][] using
