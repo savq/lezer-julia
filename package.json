@@ -20,7 +20,8 @@
     "rollup": "^2.27.1"
   },
   "dependencies": {
-    "lezer": "^0.13.0"
+    "@lezer/lr": "^0.15.0",
+    "@lezer/common": "^0.15.0"
   },
   "repository": {
     "type": "git",
