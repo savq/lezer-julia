@@ -2,11 +2,10 @@
 
 import { inspect } from "util";
 import * as fs from "fs";
-import { stringInput, Tree } from "lezer-tree";
+import { Tree } from "@lezer/common";
 import { parser } from "../src/index.js";
 
 function printTree(tree, input, from = 0, to = input.length) {
-  if (typeof input === "string") input = stringInput(input);
   let out = "";
   const c = tree.cursor();
   const childPrefixes = [];
@@ -37,7 +36,7 @@ function printTree(tree, input, from = 0, to = input.length) {
           hasRange ? `[${inspect(cfrom)}..${inspect(cto)}]` : inspect(cfrom)
         }`;
         if (isLeaf && hasRange) {
-          out += `: ${inspect(input.read(cfrom, cto))}`;
+          out += `: ${inspect(input.slice(cfrom, cto))}`;
         }
       }
       if (!isLeaf || type.isTop) continue;
@@ -60,33 +59,5 @@ const NEWLINE = "\n".codePointAt(0);
 
 let filename = process.argv[2];
 let input = fs.readFileSync(filename, "utf8");
-let tree;
-try {
-  tree = parser.configure({ strict: true }).parse(input);
-} catch (e) {
-  if (e instanceof SyntaxError) {
-    let m = /No parse at (\d+)/.exec(e.message);
-    if (m) {
-      let pos = parseInt(m[1], 10);
-      // add EOF marker
-      let inp = stringInput(input + '␄');
-      // find start of the line
-      let s = pos - 1;
-      while (inp.get(s) !== NEWLINE && s >= 0) {
-        s = s - 1;
-      }
-      // find end of the line
-      let e = pos;
-      while (inp.get(e) !== NEWLINE && e < inp.length) {
-        e = e + 1;
-      }
-      // report error
-      console.log(hlerror(`SYNTAX ERROR at ${pos}:`));
-      console.log(inp.read(s + 1, e));
-      console.log(hlerror("^".padStart(pos - s, " ")));
-      process.exit(1);
-    }
-  }
-  throw e;
-}
+let tree = parser.configure({ strict: true }).parse(input);
 console.log(printTree(tree, input));

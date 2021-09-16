@@ -19,7 +19,7 @@ test:
 .PRECIOUS: src/%.js src/%.terms.js
 src/%.js src/%.terms.js: src/%.grammar
 	@echo 'Compiling $(<)'
-	time $(BIN)/lezer-generator $(LEZER_ARGS) $< -o $(<:%.grammar=%)
+	$(BIN)/lezer-generator $(LEZER_ARGS) $< -o $(<:%.grammar=%)
 
 dist/%.cjs dist/%.es.js: src/%.js src/%.tokens.js src/%.terms.js
 	@echo 'Bunding $(<)'

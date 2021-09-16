@@ -1,4 +1,4 @@
-import { ExternalTokenizer } from "lezer";
+import { ExternalTokenizer } from "@lezer/lr";
 import * as terms from "./index.terms.js";
 
 // UNICODE CODEPOINTS
@@ -46,11 +46,11 @@ const CAT_Emoji = /^\p{Emoji}/u;
 
 // TERMINATOR
 
-export const terminator = new ExternalTokenizer((input, token, stack) => {
-  let curr = input.get(token.start);
-  if (curr === CHAR_NEWLINE || curr === CHAR_SEMICOLON) {
+export const terminator = new ExternalTokenizer((input, stack) => {
+  let c = input.peek(0);
+  if (c === CHAR_NEWLINE || c === CHAR_SEMICOLON) {
     if (stack.canShift(terms.terminator)) {
-      token.accept(terms.terminator, token.start + 1);
+      input.acceptToken(terms.terminator, 1);
       return;
     }
   }
@@ -122,8 +122,8 @@ function isIdentifierStartCharExtra(s, c) {
   ); 
 }
 
-function isIdentifierStartChar(input, pos) {
-  let c = input.get(pos);
+function isIdentifierStartChar(input, offset) {
+  let c = input.peek(offset);
   if (
     (c >= CHAR_A && c <= CHAR_Z) ||
     (c >= CHAR_a && c <= CHAR_z) ||
@@ -133,7 +133,7 @@ function isIdentifierStartChar(input, pos) {
   } else if (c < 0xa1 || c > 0x10ffff) {
     return 0;
   } else {
-    let s = combineSurrogates(input, pos);
+    let s = combineSurrogates(input, offset);
     if (isIdentifierStartCharExtra(s, c)) {
       return s.length;
     } else {
@@ -145,12 +145,12 @@ function isIdentifierStartChar(input, pos) {
 /**
  * Return a string at current position by combining surrogate code points.
  */
-function combineSurrogates(input, pos) {
+function combineSurrogates(input, offset) {
   let eat = 1;
-  let c = input.get(pos);
+  let c = input.peek(offset);
   let s = String.fromCodePoint(c);
   while (true) {
-    let nc = input.get(pos + eat);
+    let nc = input.peek(offset + eat);
     // Break if c and nc are not surrogate pairs
     if (!(0xd800 <= c && c <= 0xdbff && 0xdc00 <= nc && nc <= 0xdfff)) {
       break;
@@ -162,16 +162,17 @@ function combineSurrogates(input, pos) {
   return s;
 }
 
-export const Identifier = new ExternalTokenizer((input, token, stack) => {
+export const Identifier = new ExternalTokenizer((input, stack) => {
   let start = true;
   let ok = true;
-  let pos = token.start;
+  let offset = 0;
   let eat = 1;
-  while (pos < input.length) {
-    let c = input.get(pos);
+  while (true) {
+    let c = input.peek(offset);
+    if (c === -1) break;
     if (start) {
       start = false;
-      eat = isIdentifierStartChar(input, pos);
+      eat = isIdentifierStartChar(input, offset);
       if (eat === 0) {
         break;
       }
@@ -187,7 +188,7 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
       } else if (c < 0xa1 || c > 0x10ffff) {
         break;
       } else {
-        let s = combineSurrogates(input, pos);
+        let s = combineSurrogates(input, offset);
         eat = s.length;
         if (isIdentifierStartCharExtra(s, c)) {
           // accept
@@ -209,60 +210,61 @@ export const Identifier = new ExternalTokenizer((input, token, stack) => {
         }
       }
     }
-    pos = pos + eat;
+    offset = offset + eat;
     eat = 1;
   }
-  if (pos !== token.start) {
-    token.accept(terms.Identifier, pos);
+  if (offset !== 0) {
+    input.acceptToken(terms.Identifier, offset);
   }
 });
 
 // STRING TOKENIZERS
 
-const isStringInterpolation = (input, pos) => {
-  let c = input.get(pos);
-  let nc = input.get(pos + 1);
+const isStringInterpolation = (input, offset) => {
+  let c = input.peek(offset);
+  let nc = input.peek(offset + 1);
   return (
     c === CHAR_DOLLAR &&
-    (isIdentifierStartChar(input, pos + 1) !== 0 || nc == CHAR_LPAREN)
+    (isIdentifierStartChar(input, offset + 1) !== 0 || nc == CHAR_LPAREN)
   );
 };
 
 const makeStringContent = ({ till, term }) => {
-  return new ExternalTokenizer((input, token, stack) => {
-    let pos = token.start;
+  return new ExternalTokenizer((input, stack) => {
+    let offset = 0;
     let eatNext = false;
-    while (pos < input.length) {
-      let c = input.get(pos);
+    while (true) {
+      let c = input.peek(offset);
+      if (c === -1) break;
       if (c === CHAR_BACKSLASH) {
         eatNext = true;
       } else if (eatNext) {
         eatNext = false;
-      } else if (isStringInterpolation(input, pos) || till(input, pos)) {
-        if (pos > token.start) {
-          token.accept(term, pos);
+      } else if (isStringInterpolation(input, offset) || till(input, offset)) {
+        if (offset > 0) {
+          input.acceptToken(term, offset);
         }
         return;
       }
-      pos = pos + 1;
+      offset = offset + 1;
     }
   });
 };
 
-const isTripleQuote = (input, pos) => {
+const isTripleQuote = (input, offset) => {
   return (
-    input.get(pos) === CHAR_DQUOTE &&
-    input.get(pos + 1) === CHAR_DQUOTE &&
-    input.get(pos + 2) === CHAR_DQUOTE
+    input.peek(offset) === CHAR_DQUOTE &&
+    input.peek(offset + 1) === CHAR_DQUOTE &&
+    input.peek(offset + 2) === CHAR_DQUOTE
   );
 };
 
-const isQuote = (input, pos) => {
-  return input.get(pos) === CHAR_DQUOTE;
+const isQuote = (input, offset) => {
+  return input.peek(offset) === CHAR_DQUOTE;
 };
 
-const isBackquote = (input, pos) => {
-  return input.get(pos) === CHAR_BACKQUOTE;
+const isBackquote = (input, offset) => {
+  return input.peek(offset) === CHAR_BACKQUOTE;
 };
 
 export const tripleStringContent = makeStringContent({
@@ -280,24 +282,28 @@ export const commandStringContent = makeStringContent({
 
 // BLOCK COMMENT
 
-const isBlockCommentStart = (input, pos) => {
-  return input.get(pos) === CHAR_HASH && input.get(pos + 1) === CHAR_EQUAL;
+const isBlockCommentStart = (input, offset) => {
+  return (
+    input.peek(offset) === CHAR_HASH && input.peek(offset + 1) === CHAR_EQUAL
+  );
 };
 
-const isBlockCommentEnd = (input, pos) => {
-  return input.get(pos) === CHAR_EQUAL && input.get(pos + 1) === CHAR_HASH;
+const isBlockCommentEnd = (input, offset) => {
+  return (
+    input.peek(offset) === CHAR_EQUAL && input.peek(offset + 1) === CHAR_HASH
+  );
 };
 
-export const BlockComment = new ExternalTokenizer((input, token, stack) => {
+export const BlockComment = new ExternalTokenizer((input, stack) => {
   // BlockComment
-  if (isBlockCommentStart(input, token.start)) {
+  if (isBlockCommentStart(input, 0)) {
     let depth = 1;
-    let cur = token.start + 2;
-    while (cur < input.length) {
+    let cur = 2;
+    while (cur !== -1) {
       if (isBlockCommentEnd(input, cur)) {
         depth = depth - 1;
         if (depth === 0) {
-          token.accept(terms.BlockComment, cur + 2);
+          input.acceptToken(terms.BlockComment, cur + 2);
           return;
         }
         cur = cur + 2;
@@ -308,14 +314,14 @@ export const BlockComment = new ExternalTokenizer((input, token, stack) => {
         cur = cur + 1;
       }
     }
-    token.accept(terms.BlockComment, cur);
+    input.acceptToken(terms.BlockComment, cur);
   }
 });
 
 // LAYOUT TOKENIZERS
 
-const isWhitespace = (input, pos) => {
-  let c = input.get(pos);
+const isWhitespace = (input, offset) => {
+  let c = input.peek(offset);
   return (
     (c >= 9 && c < 14) ||
     (c >= 32 && c < 33) ||
@@ -331,77 +337,78 @@ const isWhitespace = (input, pos) => {
 };
 
 export const layoutExtra = new ExternalTokenizer(
-  (input, token, stack) => {
+  (input, stack) => {
     // immediateParen
     if (
-      input.get(token.start) === CHAR_LPAREN &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_LPAREN &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateParen)
     ) {
-      token.accept(terms.immediateParen, token.start);
+      input.acceptToken(terms.immediateParen, 0);
       return;
     }
     // immediateColon
     if (
-      input.get(token.start) === CHAR_COLON &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_COLON &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateColon)
     ) {
-      token.accept(terms.immediateColon, token.start);
+      input.acceptToken(terms.immediateColon, 0);
       return;
     }
     // immediateBrace
     if (
-      input.get(token.start) === CHAR_LBRACE &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_LBRACE &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateBrace)
     ) {
-      token.accept(terms.immediateBrace, token.start);
+      input.acceptToken(terms.immediateBrace, 0);
       return;
     }
     // immediateBracket
     if (
-      input.get(token.start) === CHAR_LBRACKET &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_LBRACKET &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateBracket)
     ) {
-      token.accept(terms.immediateBracket, token.start);
+      input.acceptToken(terms.immediateBracket, 0);
       return;
     }
     // immediateDoubleQuote
     if (
-      input.get(token.start) === CHAR_DQUOTE &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_DQUOTE &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateDoubleQuote)
     ) {
-      token.accept(terms.immediateDoubleQuote, token.start);
+      input.acceptToken(terms.immediateDoubleQuote, 0);
       return;
     }
     // immediateBackquote
     if (
-      input.get(token.start) === CHAR_BACKQUOTE &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_BACKQUOTE &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateBackquote)
     ) {
-      token.accept(terms.immediateBackquote, token.start);
+      input.acceptToken(terms.immediateBackquote, 0);
       return;
     }
     // immediateDot
     if (
-      input.get(token.start) === CHAR_DOT &&
-      !isWhitespace(input, token.start - 1) &&
+      input.peek(0) === CHAR_DOT &&
+      !isWhitespace(input, -1) &&
       stack.canShift(terms.immediateDot)
     ) {
-      token.accept(terms.immediateDot, token.start);
+      input.acceptToken(terms.immediateDot, 0);
       return;
     }
     // nowhitespace
     if (
-      !isWhitespace(input, token.start - 1) &&
-      !isWhitespace(input, token.start) &&
+      !isWhitespace(input, -1) &&
+      !isWhitespace(input, 0) &&
+      input.peek(0) !== -1 &&
       stack.canShift(terms.nowhitespace)
     ) {
-      token.accept(terms.nowhitespace, token.start);
+      input.acceptToken(terms.nowhitespace, 0);
       return;
     }
   },

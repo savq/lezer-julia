@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
 import { inspect } from "util";
-import { stringInput, Tree } from "lezer-tree";
+import { Tree } from "@lezer/common";
 import { parser } from "../src/index.js";
 
 function printTree(tree, input, from = 0, to = input.length) {
-  if (typeof input === "string") input = stringInput(input);
   let out = "";
   const c = tree.cursor();
   const childPrefixes = [];
@@ -36,7 +35,7 @@ function printTree(tree, input, from = 0, to = input.length) {
           hasRange ? `[${inspect(cfrom)}..${inspect(cto)}]` : inspect(cfrom)
         }`;
         if (isLeaf && hasRange) {
-          out += `: ${inspect(input.read(cfrom, cto))}`;
+          out += `: ${inspect(input.slice(cfrom, cto))}`;
         }
       }
       if (!isLeaf || type.isTop) continue;
