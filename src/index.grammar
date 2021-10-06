@@ -180,17 +180,25 @@ ImportStatement {
 }
 
 Import {
-  (Identifier | ScopedIdentifier)
-  (!right0 "," (Identifier | ScopedIdentifier))*
+  (Identifier | ScopedIdentifier | RenamedIdentifier)
+  (!right0 "," (Identifier | ScopedIdentifier | RenamedIdentifier))*
 }
 
 SelectedImport[@dynamicPrecedence=1] {
   (Identifier | ScopedIdentifier)
   !immediate immediateColon ":"
   list {
-    (Identifier | MacroIdentifier | Operator)
-    (!right0 "," !right0 (Identifier | MacroIdentifier | Operator))*
+    (RenamedImport | Identifier | MacroIdentifier | Operator)
+    (!right0 "," !right0 (RenamedImport | Identifier | MacroIdentifier | Operator))*
   }
+}
+
+RenamedIdentifier {
+  (Identifier | ScopedIdentifier) kw<"as"> Identifier
+}
+
+RenamedImport {
+  (Identifier | ScopedIdentifier | MacroIdentifier | Operator) kw<"as"> (Identifier | MacroIdentifier | Operator)
 }
 
 ExportStatement {

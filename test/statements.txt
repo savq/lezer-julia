@@ -224,6 +224,14 @@ using BigLib: thing1, thing2
 import Base.show
 import .A: @b
 using A, B, C
+import A as B
+import A.B as C
+import CSV: a as b
+import A: a as b, b as a, c
+using A: a as c
+import Pkg: Artifacts.archive_artifacts as aa
+import Base: + as -
+using Printf: @sprintf as @format
 
 ==>
 
@@ -242,6 +250,30 @@ SourceFile(
   ),
   ImportStatement(using,
     Import(Identifier,Identifier,Identifier)
+  ),
+  ImportStatement(import,
+    Import(RenamedIdentifier(Identifier,as,Identifier))
+  ),
+  ImportStatement(import,
+    Import(RenamedIdentifier(ScopedIdentifier(Identifier,Identifier),as,Identifier))
+  ),
+  ImportStatement(import,
+    SelectedImport(Identifier,RenamedImport(Identifier,as,Identifier)),
+  ),
+  ImportStatement(import,
+    SelectedImport(Identifier,RenamedImport(Identifier,as,Identifier),RenamedImport(Identifier,as,Identifier),Identifier),
+  ),
+  ImportStatement(using,
+    SelectedImport(Identifier,RenamedImport(Identifier,as,Identifier)),
+  ),
+  ImportStatement(import,
+    SelectedImport(Identifier,RenamedImport(ScopedIdentifier(Identifier,Identifier),as,Identifier))
+  ),
+  ImportStatement(import,
+    SelectedImport(Identifier,RenamedImport(Operator,as,Operator)),
+  ),
+  ImportStatement(using,
+    SelectedImport(Identifier,RenamedImport(MacroIdentifier(Identifier),as,MacroIdentifier(Identifier)))
   )
 )
 
