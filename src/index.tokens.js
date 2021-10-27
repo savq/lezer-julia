@@ -299,7 +299,7 @@ export const BlockComment = new ExternalTokenizer((input, stack) => {
   if (isBlockCommentStart(input, 0)) {
     let depth = 1;
     let cur = 2;
-    while (cur !== -1) {
+    while (input.peek(cur) !== -1) {
       if (isBlockCommentEnd(input, cur)) {
         depth = depth - 1;
         if (depth === 0) {
