@@ -151,7 +151,7 @@ ReturnStatement {
 }
 
 LetStatement[closedBy="end"] {
-  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList<e, pe>? end
+  kw<"let"> VariableDeclaration? ("," VariableDeclaration)* terminator expressionList<e, pe>? end
 }
 
 ConstStatement {
@@ -482,9 +482,8 @@ MacroIdentifier {
 }
 
 MacroFieldExpression<pe> {
-  pe
-  !immediate immediateDot !dot "." !dot
-  MacroIdentifier
+  pe !immediate immediateDot !dot "." !dot MacroIdentifier |
+  MacroIdentifier !immediate immediateDot !dot "." !dot pe
 }
 
 verboseFunctionExpression {
@@ -600,6 +599,16 @@ RangeExpression<e> {
   CommandString {
     "`" (commandStringContent | stringInterpolation)* "`"
   }
+
+  StringWithoutInterpolation {
+    '"' stringContentWithoutInterpolation '"'
+  }
+  TripleStringWithoutInterpolation {
+    '"""' tripleStringContentWithoutInterpolation '"""'
+  }
+  CommandStringWithoutInterpolation {
+    "`" commandStringContentWithoutInterpolation "`"
+  }
 }
 
 stringInterpolation {
@@ -608,9 +617,9 @@ stringInterpolation {
 }
 
 PrefixedString {
-  Identifier !immediate immediateDoubleQuote String |
-  Identifier !immediate immediateDoubleQuote TripleString |
-  Identifier !immediate immediateBackquote CommandString
+  Identifier !immediate immediateDoubleQuote StringWithoutInterpolation |
+  Identifier !immediate immediateDoubleQuote TripleStringWithoutInterpolation |
+  Identifier !immediate immediateBackquote CommandStringWithoutInterpolation
 }
 
 plusOperator {
@@ -627,6 +636,10 @@ kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
 @external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
 @external tokens stringContent from "./index.tokens.js" { stringContent }
 @external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
+@external tokens tripleStringContentWithoutInterpolation from "./index.tokens.js" { tripleStringContentWithoutInterpolation }
+@external tokens stringContentWithoutInterpolation from "./index.tokens.js" { stringContentWithoutInterpolation }
+@external tokens commandStringContentWithoutInterpolation from "./index.tokens.js" { commandStringContentWithoutInterpolation }
+
 @external tokens layoutExtra from "./index.tokens.js" {
   immediateParen,
   immediateColon,

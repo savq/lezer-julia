@@ -236,11 +236,33 @@ const makeStringContent = ({ till, term }) => {
     while (true) {
       let c = input.peek(offset);
       if (c === -1) break;
-      if (c === CHAR_BACKSLASH) {
-        eatNext = true;
-      } else if (eatNext) {
+      if (eatNext) {
         eatNext = false;
+      } else if (c === CHAR_BACKSLASH) {
+        eatNext = true;
       } else if (isStringInterpolation(input, offset) || till(input, offset)) {
+        if (offset > 0) {
+          input.acceptToken(term, offset);
+        }
+        return;
+      }
+      offset = offset + 1;
+    }
+  });
+};
+
+const makeStringContentWithoutInterpolation = ({ till, term }) => {
+  return new ExternalTokenizer((input, stack) => {
+    let offset = 0;
+    let eatNext = false;
+    while (true) {
+      let c = input.peek(offset);
+      if (c === -1) break;
+      if (eatNext) {
+        eatNext = false;
+      } else if (c === CHAR_BACKSLASH) {
+        eatNext = true;
+      } else if (till(input, offset)) {
         if (offset > 0) {
           input.acceptToken(term, offset);
         }
@@ -279,6 +301,22 @@ export const commandStringContent = makeStringContent({
   term: terms.commandStringContent,
   till: isBackquote,
 });
+
+export const tripleStringContentWithoutInterpolation =
+  makeStringContentWithoutInterpolation({
+    term: terms.tripleStringContentWithoutInterpolation,
+    till: isTripleQuote,
+  });
+export const stringContentWithoutInterpolation =
+  makeStringContentWithoutInterpolation({
+    term: terms.stringContentWithoutInterpolation,
+    till: isQuote,
+  });
+export const commandStringContentWithoutInterpolation =
+  makeStringContentWithoutInterpolation({
+    term: terms.commandStringContentWithoutInterpolation,
+    till: isBackquote,
+  });
 
 // BLOCK COMMENT
 

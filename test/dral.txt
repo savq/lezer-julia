@@ -1,0 +1,50 @@
+# Let statements without declarations
+
+let
+    code
+end
+
+==>
+
+SourceFile(
+  LetStatement(let,
+    Identifier,
+    end
+  )
+)
+
+
+# Escaped backslash
+
+"\\" # i am a comment "
+
+==>
+
+SourceFile(String, Comment)
+
+
+# Prefixed strings
+
+z = md"$(x)"
+
+==>
+
+SourceFile(
+  AssignmentExpression(
+    Identifier,
+    PrefixedString(Identifier,StringWithoutInterpolation),
+  ),
+)
+
+# Macro with @ at the beginning
+
+@Test.test 1 == 1
+
+==>
+
+SourceFile(
+  MacroExpression(
+    MacroFieldExpression(MacroIdentifier(Identifier),Identifier),
+    MacroArgumentList(BinaryExpression(Number,Number))
+  )
+)

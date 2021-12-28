@@ -28,6 +28,7 @@ SourceFile(
 "
 f \$name"
 "fo\"o"
+"\\"
 
 ==>
 
@@ -35,6 +36,7 @@ SourceFile(
   String,
   String(Identifier),
   String(BinaryExpression(Identifier,Identifier)),
+  String,
   String,
   String,
 )
@@ -78,17 +80,22 @@ SourceFile(
 
 x = r"foo"
 y = v"1.0"
+z = md"-- $(x) --"
 
 ==>
 
 SourceFile(
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,String)
+    PrefixedString(Identifier,StringWithoutInterpolation)
   ),
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,String),
+    PrefixedString(Identifier,StringWithoutInterpolation),
+  ),
+  AssignmentExpression(
+    Identifier,
+    PrefixedString(Identifier,StringWithoutInterpolation),
   ),
 )
 
