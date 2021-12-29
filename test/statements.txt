@@ -154,11 +154,15 @@ const x, y = 5
 ==>
 
 SourceFile(
-  ConstStatement(const,
-    VariableDeclaration(Identifier),
-    VariableDeclaration(Identifier,Number)
-  )
+  ConstStatement(
+    const,
+    AssignmentExpression(
+      BareTupleExpression(Identifier,Identifier),
+      Number,
+    ),
+  ),
 )
+
 
 # Quote statements
 

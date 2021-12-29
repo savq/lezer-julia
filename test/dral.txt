@@ -75,7 +75,30 @@ const x = a, b
 
 ==>
 
-SourceFile()
+SourceFile(
+  ConstStatement(
+    const,
+    AssignmentExpression(
+      Identifier,
+      BareTupleExpression(Identifier,Identifier)
+    ),
+  ),
+)
+
+
+# Transpose
+
+A'B:C'D
+
+==>
+
+SourceFile(
+  RangeExpression(
+    TransposeExpression(Identifier,Identifier),
+    TransposeExpression(Identifier,Identifier),
+  ),
+)
+
 
 # IDK
 

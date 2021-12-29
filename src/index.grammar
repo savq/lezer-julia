@@ -12,6 +12,7 @@
   bitshift @left
   times @left
   plus @left
+  transpose @left
   range @left
   pipe @left
   pipeback @right
@@ -21,7 +22,9 @@
   bor @right
   ternary @right
   pair @right
+  baretuple
   assign @right
+  assignstatement
   regular1
   right0 @right
   regular0
@@ -46,7 +49,7 @@ expressionList<e, pe> {
 }
 
 BareTupleExpression<e> {
-  e (!regular-1 "," e)+
+  e (!baretuple "," e)+
 }
 
 AssignmentExpression<e> {
@@ -119,17 +122,17 @@ TryStatement[closedBy="end catch finally"] {
 }
 
 CatchClause[closedBy="end finally"] {
-  kw<"catch"> Identifier? !regular1 terminator?
+  kw<"catch"> Identifier? !regular1 terminator
     expressionList<e, pe>?
 }
 
 FinallyClause[closedBy="end"] {
-  kw<"finally"> terminator?
+  kw<"finally"> terminator
     expressionList<e, pe>?
 }
 
 ForStatement[closedBy="end"] {
-  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)* terminator?
+  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)* terminator
     expressionList<e, pe>?
   end
 }
@@ -155,15 +158,23 @@ LetStatement[closedBy="end"] {
 }
 
 ConstStatement {
-  kw<"const"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"const"> AssignmentExpression<e>
 }
 
 GlobalStatement {
-  kw<"global"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"global"> (
+    global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
+    Identifier ~variabledeclaration |
+    InterpolationExpression<pe> ~variabledeclaration
+  )
 }
 
 LocalStatement {
-  kw<"local"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"local"> (
+    global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
+    Identifier ~variabledeclaration |
+    InterpolationExpression<pe> ~variabledeclaration
+  )
 }
 
 VariableDeclaration {
@@ -286,19 +297,20 @@ e {
   FunctionExpression[closedBy="end"] { verboseFunctionExpression } |
   CoefficientExpression<e> |
   RangeExpression<e> |
+  TransposeExpression<e> |
   SpreadExpression<e> |
   Operator[group="operator"] { ":" ~op } |
   pe
 }
 
 pe {
-  InterpolationExpression<pe> |
+  InterpolationExpression<pe> ~variabledeclaration |
   FieldExpression<pe> |
   SubscriptExpression<pe> |
   Symbol |
   QuoteExpression<pe> |
   CallExpression<e, pe> |
-  Identifier ~id |
+  Identifier ~id ~variabledeclaration |
   Character |
   Number |
   String |
@@ -363,6 +375,7 @@ s_e {
   FunctionExpression<s_e, s_pe> |
   CoefficientExpression<s_e> |
   RangeExpression<s_e> |
+  TransposeExpression<s_e> |
   SpreadExpression<s_e> |
   Operator[group="operator"] { ":" ~op } |
   s_pe
@@ -589,6 +602,10 @@ ScopedIdentifier {
 
 RangeExpression<e> {
   e !range ":" !range e
+}
+
+TransposeExpression<e> {
+  e !transpose "'" !transpose e
 }
 
 @skip {} {

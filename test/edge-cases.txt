@@ -813,11 +813,13 @@ SourceFile(
 # GlobalStatement_ok
 
 global x
+global x = 1
 
 ==>
 
 SourceFile(
-  GlobalStatement(global,VariableDeclaration(Identifier))
+  GlobalStatement(global,Identifier),
+  GlobalStatement(global,AssignmentExpression(Identifier, Number))
 )
 
 # LocalStatement_ok
@@ -827,7 +829,7 @@ local x = 1
 ==>
 
 SourceFile(
-  LocalStatement(local,VariableDeclaration(Identifier,Number))
+  LocalStatement(local,AssignmentExpression(Identifier,Number))
 )
 
 # LocalStatement_InterpolationExpression_ok
@@ -840,11 +842,11 @@ local $(x) = 1
 SourceFile(
   LocalStatement(
     local,
-    VariableDeclaration(InterpolationExpression(Identifier),Number)
+    AssignmentExpression(InterpolationExpression(Identifier),Number)
   ),
   LocalStatement(
     local,
-    VariableDeclaration(InterpolationExpression(ParenthesizedExpression(Identifier)),Number)
+    AssignmentExpression(InterpolationExpression(ParenthesizedExpression(Identifier)),Number)
   )
 )
 
