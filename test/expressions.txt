@@ -223,14 +223,14 @@ SourceFile(
         CallExpression(
           FieldExpression(
             SubscriptExpression(Identifier,Number),
-            Identifier
+            FieldName
           ),
           ArgumentList
         ),
-        Identifier
+        FieldName
       )
     ),
-    Identifier
+    FieldName
   )
 )
 
@@ -249,23 +249,23 @@ end
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(
       BinaryExpression(Identifier,Identifier))
   ),
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(
       BinaryExpression(Identifier,Identifier),
       String
     )
   ),
   MacroExpression(
-    MacroIdentifier(Operator),
+    MacroIdentifier(MacroName(Operator)),
     MacroArgumentList(Identifier)
   ),
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(
       String,
       CompoundExpression(

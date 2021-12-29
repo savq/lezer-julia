@@ -218,7 +218,7 @@ SourceFile(
                     Identifier,
                     ArgumentList(
                       Identifier,
-                      FieldExpression(Identifier,Identifier)
+                      FieldExpression(Identifier,FieldName)
                     )
                   )
                 )
@@ -233,7 +233,7 @@ SourceFile(
         CallExpression(
           Identifier,
           ArgumentList(
-            MacroExpression(MacroIdentifier(Identifier)),
+            MacroExpression(MacroIdentifier(MacroName)),
             InterpolationExpression(
               ParenthesizedExpression(
                 CallExpression(

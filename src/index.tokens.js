@@ -162,61 +162,65 @@ function combineSurrogates(input, offset) {
   return s;
 }
 
-export const Identifier = new ExternalTokenizer((input, stack) => {
-  let start = true;
-  let ok = true;
-  let offset = 0;
-  let eat = 1;
-  while (true) {
-    let c = input.peek(offset);
-    if (c === -1) break;
-    if (start) {
-      start = false;
-      eat = isIdentifierStartChar(input, offset);
-      if (eat === 0) {
-        break;
-      }
-    } else {
-      if (
-        (c >= CHAR_A && c <= CHAR_Z) ||
-        (c >= CHAR_a && c <= CHAR_z) ||
-        (c >= CHAR_0 && c <= CHAR_9) ||
-        c == CHAR_UNDERSCORE ||
-        c == CHAR_EXCLAMATION
-      ) {
-        // accept
-      } else if (c < 0xa1 || c > 0x10ffff) {
-        break;
-      } else {
-        let s = combineSurrogates(input, offset);
-        eat = s.length;
-        if (isIdentifierStartCharExtra(s, c)) {
-          // accept
-        } else if (
-          CAT_Mn.test(s) ||
-          CAT_Mc.test(s) ||
-          CAT_Nd.test(s) ||
-          CAT_Pc.test(s) ||
-          CAT_Sk.test(s) ||
-          CAT_Me.test(s) ||
-          CAT_No.test(s) ||
-          // primes (single, double, triple, their reverses, and quadruple)
-          (c >= 0x2032 && c <= 0x2037) ||
-          c == 0x2057
-        ) {
-          // accept
-        } else {
+const makeIdentifierThing = (term) => {
+  return new ExternalTokenizer((input, stack) => {
+    let start = true;
+    let ok = true;
+    let offset = 0;
+    let eat = 1;
+    while (true) {
+      let c = input.peek(offset);
+      if (c === -1) break;
+      if (start) {
+        start = false;
+        eat = isIdentifierStartChar(input, offset);
+        if (eat === 0) {
           break;
         }
+      } else {
+        if (
+          (c >= CHAR_A && c <= CHAR_Z) ||
+          (c >= CHAR_a && c <= CHAR_z) ||
+          (c >= CHAR_0 && c <= CHAR_9) ||
+          c == CHAR_UNDERSCORE ||
+          c == CHAR_EXCLAMATION
+        ) {
+          // accept
+        } else if (c < 0xa1 || c > 0x10ffff) {
+          break;
+        } else {
+          let s = combineSurrogates(input, offset);
+          eat = s.length;
+          if (isIdentifierStartCharExtra(s, c)) {
+            // accept
+          } else if (
+            CAT_Mn.test(s) ||
+            CAT_Mc.test(s) ||
+            CAT_Nd.test(s) ||
+            CAT_Pc.test(s) ||
+            CAT_Sk.test(s) ||
+            CAT_Me.test(s) ||
+            CAT_No.test(s) ||
+            // primes (single, double, triple, their reverses, and quadruple)
+            (c >= 0x2032 && c <= 0x2037) ||
+            c == 0x2057
+          ) {
+            // accept
+          } else {
+            break;
+          }
+        }
       }
+      offset = offset + eat;
+      eat = 1;
     }
-    offset = offset + eat;
-    eat = 1;
-  }
-  if (offset !== 0) {
-    input.acceptToken(terms.Identifier, offset);
-  }
-});
+    if (offset !== 0) {
+      input.acceptToken(term, offset);
+    }
+  });
+};
+export const Identifier = makeIdentifierThing(terms.Identifier);
+export const word = makeIdentifierThing(terms.word);
 
 // STRING TOKENIZERS
 

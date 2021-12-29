@@ -245,7 +245,7 @@ SourceFile(
   ImportStatement(import,
     SelectedImport(
       ScopedIdentifier(Identifier),
-      MacroIdentifier(Identifier)
+      MacroIdentifier(MacroName)
     )
   ),
   ImportStatement(using,
@@ -273,7 +273,7 @@ SourceFile(
     SelectedImport(Identifier,RenamedImport(Operator,as,Operator)),
   ),
   ImportStatement(using,
-    SelectedImport(Identifier,RenamedImport(MacroIdentifier(Identifier),as,MacroIdentifier(Identifier)))
+    SelectedImport(Identifier,RenamedImport(MacroIdentifier(MacroName),as,MacroIdentifier(MacroName)))
   )
 )
 

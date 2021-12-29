@@ -36,6 +36,7 @@ SourceFile(
   ),
 )
 
+
 # Macro with @ at the beginning
 
 @Test.test 1 == 1
@@ -44,7 +45,47 @@ SourceFile(
 
 SourceFile(
   MacroExpression(
-    MacroFieldExpression(MacroIdentifier(Identifier),Identifier),
+    MacroFieldExpression(MacroIdentifier(MacroName),MacroFieldName),
     MacroArgumentList(BinaryExpression(Number,Number))
   )
 )
+
+
+# Symbol with operator
+
+:if
+
+==>
+
+SourceFile(Symbol(SymbolName))
+
+
+# Keyword as fieldname
+
+object.if
+
+==>
+
+SourceFile(FieldExpression(Identifier,FieldName))
+
+
+# Multiple assignments
+
+const x = a, b
+
+==>
+
+SourceFile()
+
+# IDK
+
+begin
+	function under_root(x)
+		ret = 2exp(+x+2) + 1
+	end
+end
+
+==>
+
+SourceFile()
+

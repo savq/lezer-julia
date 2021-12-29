@@ -215,7 +215,7 @@ function Base.union!() end
 SourceFile(
   FunctionDefinition(
     function,
-    FieldExpression(Identifier,Identifier),
+    FieldExpression(Identifier,FieldName),
     ArgumentList,
     end
   )
@@ -231,7 +231,7 @@ SourceFile(
   FunctionDefinition(
     function,
     Identifier,
-    ArgumentList(TypedExpression(Identifier,FieldExpression(Identifier,Identifier))),
+    ArgumentList(TypedExpression(Identifier,FieldExpression(Identifier,FieldName))),
     end
   )
 )
@@ -401,7 +401,7 @@ macro Base.union() end
 SourceFile(
   MacroDefinition(
     macro,
-    FieldExpression(Identifier,Identifier),
+    FieldExpression(Identifier,FieldName),
     ArgumentList,
     end
   )
@@ -466,7 +466,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  Symbol(Identifier),
+  Symbol(SymbolName),
 )
 
 # QuoteExpression_2
@@ -506,8 +506,8 @@ SourceFile(
 
 SourceFile(
   BinaryExpression(
-    Symbol(Identifier),
-    Symbol(Identifier),
+    Symbol(SymbolName),
+    Symbol(SymbolName),
   )
 )
 
@@ -535,8 +535,8 @@ SourceFile(
 ==>
 
 SourceFile(
-  MacroExpression(MacroIdentifier(Identifier),MacroArgumentList(Identifier)),
-  MacroExpression(MacroIdentifier(Identifier),MacroArgumentList(Identifier,Identifier)),
+  MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(Identifier)),
+  MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(Identifier,Identifier)),
 )
 
 # MacroExpression_ok_2
@@ -546,7 +546,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  MacroExpression(MacroIdentifier(Identifier),ArgumentList(Number,Number))
+  MacroExpression(MacroIdentifier(MacroName),ArgumentList(Number,Number))
 )
 
 # BinaryExpression_bitshift_ok
@@ -582,7 +582,7 @@ SourceFile(BinaryExpression(Number,Number))
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(BinaryExpression(Identifier,Number))
   )
 )
@@ -597,7 +597,7 @@ end
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(Identifier,CompoundExpression(begin,Identifier,end))
   )
 )
@@ -610,7 +610,7 @@ Base.@name
 
 SourceFile(
   MacroExpression(
-    MacroFieldExpression(Identifier,MacroIdentifier(Identifier))
+    MacroFieldExpression(Identifier,MacroIdentifier(MacroName))
   )
 )
 
@@ -622,7 +622,7 @@ SourceFile(
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(AssignmentExpression(Identifier,Number))
   )
 )
