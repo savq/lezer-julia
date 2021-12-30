@@ -312,7 +312,7 @@ pe {
   CallExpression<e, pe> |
   Identifier ~id ~variabledeclaration |
   Character |
-  Number |
+  Number ~afternumber |
   String |
   TripleString |
   CommandString |
@@ -390,7 +390,7 @@ s_pe {
   CallExpression<s_e, s_pe> |
   Identifier ~id |
   Character |
-  Number |
+  Number ~afternumber |
   String |
   TripleString |
   CommandString |
@@ -440,8 +440,23 @@ QuoteExpression[@dynamicPrecedence=2]<pe> {
   ":" !interp pe
 }
 
+CallExpressionCoeffecient<e, pe> {
+  Identifier
+  !call immediateParen
+  !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+}
+coeffecientable {
+  CallExpressionCoeffecient<e, pe> |
+  Identifier |
+  InterpolationExpression<pe> |
+  PrefixedString |
+  ParenthesizedExpression<e>
+}
 CoefficientExpression[@dynamicPrecedence=1]<e> {
-  Number !coeff (ParenthesizedExpression<e> | Identifier)
+  // I thought I could use `nowhitespace` here between `Number` and `expression`
+  // But for some reason it never calls nowhitespace when I put it here... 
+  // Now just using anything, even if it has a space.. it's not as bad as it not parsing it 🤷‍♀️
+  Number ~afternumber !coeff coeffecientable
 }
 
 CompoundExpression[closedBy="end"] {

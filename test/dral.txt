@@ -110,5 +110,59 @@ end
 
 ==>
 
+SourceFile(
+  CompoundExpression(
+    begin,
+    FunctionDefinition(
+      function,
+      Identifier,
+      ArgumentList(Identifier),
+      AssignmentExpression(
+        Identifier,
+        BinaryExpression(
+          CoefficientExpression(
+            Number,
+            CallExpressionCoeffecient(
+              Identifier,
+              ArgumentList(BinaryExpression(UnaryExpression(Identifier),Number)),
+            ),
+          ),
+          Number,
+        ),
+      ),
+      end
+    ),
+    end,
+  )
+)
+
+# IDK2
+
+2xxx()
+
+==>
+
+SourceFile(
+  CoefficientExpression(
+    Number,
+    CallExpressionCoeffecient(Identifier,ArgumentList),
+  ),
+)
+
+
+# Macro do call
+@test() do x
+
+end
+
+==>
+
+SourceFile(
+  MacroExpression(
+    MacroIdentifier(MacroName),
+    ArgumentList,
+    DoClause(do,Identifier,end),
+  )
+)
 SourceFile()
 
