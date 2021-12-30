@@ -182,11 +182,11 @@ if true x else y end
 ==>
 
 SourceFile(
-  IfStatement(if,Identifier,end),
-  IfStatement(if,Identifier,end),
-  IfStatement(if,Identifier,Identifier,end),
-  IfStatement(if,Identifier,Identifier,ElseClause(else),end),
-  IfStatement(if,Identifier,Identifier,ElseClause(else,Identifier),end),
+  IfStatement(IfClause(if,Identifier),end),
+  IfStatement(IfClause(if,Identifier),end),
+  IfStatement(IfClause(if,Identifier),Identifier,end),
+  IfStatement(IfClause(if,Identifier),Identifier,ElseClause(else),end),
+  IfStatement(IfClause(if,Identifier),Identifier,ElseClause(else,Identifier),end),
 )
 
 

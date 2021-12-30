@@ -749,7 +749,7 @@ while call(); end
 SourceFile(
   WhileStatement(
     while,
-    CallExpression(Identifier,ArgumentList),
+    WhileBinding(CallExpression(Identifier,ArgumentList)),
     end
   )
 )

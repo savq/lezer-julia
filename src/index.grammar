@@ -99,7 +99,7 @@ statement {
 }
 
 IfStatement[closedBy="end else elseif"] {
-  kw<"if"> e
+  IfClause { kw<"if"> e }
     expressionList<e, pe>
   ElseifClause*
   ElseClause?
@@ -107,7 +107,7 @@ IfStatement[closedBy="end else elseif"] {
 }
 
 ElseifClause[closedBy="end else elseif"] {
-  kw<"elseif"> e
+  IfClause { kw<"elseif"> e }
     expressionList<e, pe>
 }
 
@@ -125,7 +125,7 @@ TryStatement[closedBy="end catch finally"] {
 }
 
 CatchClause[closedBy="end finally"] {
-  kw<"catch"> Identifier? !regular1
+  kw<"catch"> CatchBinding { Identifier ~id }? !regular1
     expressionList<e, pe>
 }
 
@@ -141,7 +141,9 @@ ForStatement[closedBy="end"] {
 }
 
 WhileStatement[closedBy="end"] {
-  !regular0 kw<"while"> !regular0 e !regular0 expressionList<e, pe> end
+  !regular0 kw<"while"> !regular0 WhileBinding { e } !regular0
+    expressionList<e, pe>
+  end
 }
 
 BreakStatement {
@@ -157,7 +159,9 @@ ReturnStatement {
 }
 
 LetStatement[closedBy="end"] {
-  kw<"let"> VariableDeclaration? ("," VariableDeclaration)* terminator expressionList<e, pe> end
+  kw<"let"> LetBinding { VariableDeclaration ("," VariableDeclaration)* }? terminator
+    expressionList<e, pe>
+  end
 }
 
 ConstStatement {
@@ -185,7 +189,9 @@ VariableDeclaration {
 }
 
 QuoteStatement[closedBy="end"] {
-  kw<"quote"> !right-2 expressionList<e, pe> end
+  kw<"quote"> !right-2
+    expressionList<e, pe>
+  end
 }
 
 ImportStatement {
@@ -259,7 +265,9 @@ AbstractDefinition[closedBy="end"] {
 }
 
 StructDefinition[closedBy="end"] {
-  kw<"mutable">? kw<"struct"> pe !regular0 expressionList<e, pe> end
+  kw<"mutable">? kw<"struct"> pe !regular0
+    expressionList<e, pe>
+  end
 }
 
 ModuleDefinition[closedBy="end"] {
@@ -320,6 +328,7 @@ pe {
   QuoteExpression<pe> |
   CallExpression<e, pe> |
   Identifier ~id ~variabledeclaration |
+  boolean |
   Character |
   Number ~afternumber |
   String |
@@ -398,6 +407,7 @@ s_pe {
   QuoteExpression<s_pe> |
   CallExpression<s_e, s_pe> |
   Identifier ~id |
+  boolean |
   Character |
   Number ~afternumber |
   String |
@@ -442,7 +452,7 @@ InterpolationExpression[@dynamicPrecedence=2]<pe> {
 }
 
 Symbol[@dynamicPrecedence=10] {
-  ":" !immediate SymbolName { word }
+  ":" !interp SymbolName { word }
 }
 
 QuoteExpression[@dynamicPrecedence=2]<pe> {
@@ -454,6 +464,9 @@ CallExpressionCoeffecient<e, pe> {
   !call immediateParen
   !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
 }
+
+// I guess there might be more thing "coeffecientable",
+// but for now this is the list
 coeffecientable {
   CallExpressionCoeffecient<e, pe> |
   Identifier |
@@ -466,7 +479,9 @@ CoefficientExpression[@dynamicPrecedence=5]<e> {
 }
 
 CompoundExpression[closedBy="end"] {
-  kw<"begin"> expressionList<e, pe> end
+  kw<"begin">
+    expressionList<e, pe>
+  end
 }
 
 CallExpression<e, pe> {
@@ -678,6 +693,7 @@ plusOperator {
 
 end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
+boolean { @specialize[@name=BooleanLiteral]<identifier, "true" | "false"> }
 
 @external tokens layoutExtra from "./index.tokens.js" {
   immediateParen,
