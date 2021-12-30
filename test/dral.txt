@@ -151,7 +151,7 @@ SourceFile(
 
 
 # Macro do call
-@test() do x
+@test() do x, y
 
 end
 
@@ -161,8 +161,19 @@ SourceFile(
   MacroExpression(
     MacroIdentifier(MacroName),
     ArgumentList,
-    DoClause(do,Identifier,end),
+    DoClause(
+      do,
+      DoClauseArguments(BareTupleExpression(Identifier,Identifier)),
+      end
+    ),
   )
 )
+
+
+# Macro call everywhere!
+struct @x end
+
+==>
+
 SourceFile()
 

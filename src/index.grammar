@@ -303,6 +303,12 @@ e {
   pe
 }
 
+meta_programming<e, pe> {
+  PrefixedString |
+  MacroExpression<e, pe> |
+  InterpolationExpression<pe>
+}
+
 pe {
   InterpolationExpression<pe> ~variabledeclaration |
   FieldExpression<pe> |
@@ -452,11 +458,11 @@ coeffecientable {
   PrefixedString |
   ParenthesizedExpression<e>
 }
-CoefficientExpression[@dynamicPrecedence=1]<e> {
+CoefficientExpression[@dynamicPrecedence=5]<e> {
   // I thought I could use `nowhitespace` here between `Number` and `expression`
   // But for some reason it never calls nowhitespace when I put it here... 
   // Now just using anything, even if it has a space.. it's not as bad as it not parsing it 🤷‍♀️
-  Number ~afternumber !coeff coeffecientable
+  Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace coeffecientable
 }
 
 CompoundExpression[closedBy="end"] {
@@ -465,13 +471,19 @@ CompoundExpression[closedBy="end"] {
 
 CallExpression<e, pe> {
   pe
-  !call immediateParen
+  !call immediateParen ~nowhitespace
   !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
   DoClause?
 }
 
 DoClause[closedBy="end"] {
-  kw<"do"> expressionList<e, pe> end
+  kw<"do"> 
+  DoClauseArguments {
+    (Identifier ~id | BareTupleExpression<e> | ArgumentList<e, pe>)
+  }?
+  terminator
+  expressionList<e, pe>?
+  end
 }
 
 ArgumentList[closedBy=")"]<e, pe> {
@@ -664,17 +676,6 @@ plusOperator {
 end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
 
-@external tokens terminator from "./index.tokens.js" { terminator }
-@external tokens word from "./index.tokens.js" { word }
-@external tokens Identifier from "./index.tokens.js" { Identifier }
-@external tokens BlockComment from "./index.tokens.js" { BlockComment }
-@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
-@external tokens stringContent from "./index.tokens.js" { stringContent }
-@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
-@external tokens tripleStringContentWithoutInterpolation from "./index.tokens.js" { tripleStringContentWithoutInterpolation }
-@external tokens stringContentWithoutInterpolation from "./index.tokens.js" { stringContentWithoutInterpolation }
-@external tokens commandStringContentWithoutInterpolation from "./index.tokens.js" { commandStringContentWithoutInterpolation }
-
 @external tokens layoutExtra from "./index.tokens.js" {
   immediateParen,
   immediateColon,
@@ -685,6 +686,17 @@ kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
   immediateDot,
   nowhitespace
 }
+
+@external tokens terminator from "./index.tokens.js" { terminator }
+@external tokens word from "./index.tokens.js" { word }
+@external tokens Identifier from "./index.tokens.js" { Identifier }
+@external tokens BlockComment from "./index.tokens.js" { BlockComment }
+@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
+@external tokens stringContent from "./index.tokens.js" { stringContent }
+@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
+@external tokens tripleStringContentWithoutInterpolation from "./index.tokens.js" { tripleStringContentWithoutInterpolation }
+@external tokens stringContentWithoutInterpolation from "./index.tokens.js" { stringContentWithoutInterpolation }
+@external tokens commandStringContentWithoutInterpolation from "./index.tokens.js" { commandStringContentWithoutInterpolation }
 
 @tokens {
   whitespace {
