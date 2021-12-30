@@ -170,10 +170,23 @@ SourceFile(
 )
 
 
-# Macro call everywhere!
-struct @x end
+# Proper terminator
+
+if true end
+if true
+end
+if true x end
+if true x else end
+if true x else y end
 
 ==>
 
-SourceFile()
+SourceFile(
+  IfStatement(if,Identifier,end),
+  IfStatement(if,Identifier,end),
+  IfStatement(if,Identifier,Identifier,end),
+  IfStatement(if,Identifier,Identifier,ElseClause(else),end),
+  IfStatement(if,Identifier,Identifier,ElseClause(else,Identifier),end),
+)
+
 

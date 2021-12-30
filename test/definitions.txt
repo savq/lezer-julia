@@ -4,7 +4,6 @@ module A
 
 module B
 end
-
 module C
 end
 

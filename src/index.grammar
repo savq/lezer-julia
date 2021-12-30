@@ -42,10 +42,13 @@
 // TOP LEVEL
 
 expressionList<e, pe> {
-  (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)
-  (!regular0 terminator
-    (!regular0 e | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression))*
-  terminator?
+  !right0
+  terminator* ~possibly_more_expressions
+  !right0 
+  (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)?
+  (!right0 terminator+ ~possibly_more_expressions
+    (!right0 e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression))*
+  terminator* ~possibly_more_expressions
 }
 
 BareTupleExpression<e> {
@@ -96,49 +99,49 @@ statement {
 }
 
 IfStatement[closedBy="end else elseif"] {
-  kw<"if"> e terminator
-    expressionList<e, pe>?
+  kw<"if"> e
+    expressionList<e, pe>
   ElseifClause*
   ElseClause?
   end
 }
 
 ElseifClause[closedBy="end else elseif"] {
-  kw<"elseif"> e terminator
-    expressionList<e, pe>?
+  kw<"elseif"> e
+    expressionList<e, pe>
 }
 
 ElseClause[closedBy="end"] {
   kw<"else">
-    expressionList<e, pe>?
+    expressionList<e, pe>
 }
 
 TryStatement[closedBy="end catch finally"] {
-  kw<"try"> terminator
-    expressionList<e, pe>?
+  kw<"try">
+    expressionList<e, pe>
   CatchClause?
   FinallyClause?
   end
 }
 
 CatchClause[closedBy="end finally"] {
-  kw<"catch"> Identifier? !regular1 terminator
-    expressionList<e, pe>?
+  kw<"catch"> Identifier? !regular1
+    expressionList<e, pe>
 }
 
 FinallyClause[closedBy="end"] {
-  kw<"finally"> terminator
-    expressionList<e, pe>?
+  kw<"finally">
+    expressionList<e, pe>
 }
 
 ForStatement[closedBy="end"] {
-  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)* terminator
-    expressionList<e, pe>?
+  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)*
+    expressionList<e, pe>
   end
 }
 
 WhileStatement[closedBy="end"] {
-  !regular0 kw<"while"> !regular0 e !regular0 terminator? !regular0 expressionList<e, pe>? end
+  !regular0 kw<"while"> !regular0 e !regular0 expressionList<e, pe> end
 }
 
 BreakStatement {
@@ -154,7 +157,7 @@ ReturnStatement {
 }
 
 LetStatement[closedBy="end"] {
-  kw<"let"> VariableDeclaration? ("," VariableDeclaration)* terminator expressionList<e, pe>? end
+  kw<"let"> VariableDeclaration? ("," VariableDeclaration)* terminator expressionList<e, pe> end
 }
 
 ConstStatement {
@@ -182,7 +185,7 @@ VariableDeclaration {
 }
 
 QuoteStatement[closedBy="end"] {
-  kw<"quote"> expressionList<e, pe>? end
+  kw<"quote"> !right-2 expressionList<e, pe> end
 }
 
 ImportStatement {
@@ -237,13 +240,13 @@ FunctionDefinition[closedBy="end"] {
         !typeascription "::" pe
       }?
     }?
-    expressionList<e, pe>? 
+    expressionList<e, pe>
   end
 }
 
 MacroDefinition[closedBy="end"] {
   kw<"macro"> definitionHead immediateParen ArgumentList<e, pe>
-    expressionList<e, pe>?
+    expressionList<e, pe>
   end
 }
 
@@ -256,18 +259,18 @@ AbstractDefinition[closedBy="end"] {
 }
 
 StructDefinition[closedBy="end"] {
-  kw<"mutable">? kw<"struct"> pe !regular0 expressionList<e, pe>? end
+  kw<"mutable">? kw<"struct"> pe !regular0 expressionList<e, pe> end
 }
 
 ModuleDefinition[closedBy="end"] {
   kw<"module"> Identifier
-    expressionList<e, pe>? 
+    expressionList<e, pe>
   end
 }
 
 BareModuleDefinition[closedBy="end"] {
   kw<"baremodule"> Identifier
-    expressionList<e, pe>?
+    expressionList<e, pe>
   end
 }
 
@@ -459,9 +462,6 @@ coeffecientable {
   ParenthesizedExpression<e>
 }
 CoefficientExpression[@dynamicPrecedence=5]<e> {
-  // I thought I could use `nowhitespace` here between `Number` and `expression`
-  // But for some reason it never calls nowhitespace when I put it here... 
-  // Now just using anything, even if it has a space.. it's not as bad as it not parsing it 🤷‍♀️
   Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace coeffecientable
 }
 
@@ -480,9 +480,12 @@ DoClause[closedBy="end"] {
   kw<"do"> 
   DoClauseArguments {
     (Identifier ~id | BareTupleExpression<e> | ArgumentList<e, pe>)
+    expressionList<e, pe>
   }?
+  ~possibly_more_expressions
+  !regular1
   terminator
-  expressionList<e, pe>?
+  expressionList<e, pe>
   end
 }
 
@@ -491,7 +494,7 @@ ArgumentList[closedBy=")"]<e, pe> {
   (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
   (";" arg<e, pe> ("," arg<e, pe>)*)?
   ","?
-  ")"
+  ")" ~afterclosingparen
 }
 
 arg<e, pe> {
@@ -508,7 +511,7 @@ TupleExpression[closedBy=")"]<e, pe> {
     (tupleelem<e, pe> ~id !regular0 ",") |
     (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?)
     )?
-  ")"
+  ")" ~afterclosingparen
 }
 
 tupleelem<e, pe> {
@@ -529,7 +532,7 @@ MacroFieldExpression<pe> {
 }
 
 verboseFunctionExpression {
-  kw<"function"> ArgumentList<e, pe> expressionList<e, pe>? end
+  kw<"function"> ArgumentList<e, pe> expressionList<e, pe> end
 }
 
 FunctionExpression<e, pe> {
@@ -615,7 +618,7 @@ IfClause<e, pe> {
 }
 
 ForClause<e, pe> {
-  kw<"for"> ForBinding<e, pe> (!regular0 "," ForBinding<e, pe>)*
+  !immediate kw<"for"> ForBinding<e, pe> (!regular0 "," ForBinding<e, pe>)*
 }
 
 ForBinding<e, pe> {
