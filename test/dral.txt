@@ -182,11 +182,23 @@ if true x else y end
 ==>
 
 SourceFile(
-  IfStatement(IfClause(if,Identifier),end),
-  IfStatement(IfClause(if,Identifier),end),
-  IfStatement(IfClause(if,Identifier),Identifier,end),
-  IfStatement(IfClause(if,Identifier),Identifier,ElseClause(else),end),
-  IfStatement(IfClause(if,Identifier),Identifier,ElseClause(else,Identifier),end),
+  IfStatement(IfClause(if,BooleanLiteral()),end),
+  IfStatement(IfClause(if,BooleanLiteral()),end),
+  IfStatement(IfClause(if,BooleanLiteral()),Identifier,end),
+  IfStatement(IfClause(if,BooleanLiteral()),Identifier,ElseClause(else),end),
+  IfStatement(IfClause(if,BooleanLiteral()),Identifier,ElseClause(else,Identifier),end),
+)
+
+# Boolean
+
+true
+false
+
+==>
+
+SourceFile(
+  BooleanLiteral,
+  BooleanLiteral,
 )
 
 

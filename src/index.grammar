@@ -693,7 +693,7 @@ plusOperator {
 
 end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
-boolean { @specialize[@name=BooleanLiteral]<identifier, "true" | "false"> }
+boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
 
 @external tokens layoutExtra from "./index.tokens.js" {
   immediateParen,
