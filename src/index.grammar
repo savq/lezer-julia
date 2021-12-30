@@ -526,7 +526,7 @@ FunctionExpression<e, pe> {
 
 MacroExpression<e, pe> {
   (MacroIdentifier | MacroFieldExpression<pe>) (!right0
-    immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+    immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause?
     | MacroArgumentList<e>
   )?
 }
