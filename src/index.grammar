@@ -22,6 +22,7 @@
   bor @right
   ternary @right
   pair @right
+  forbinding
   baretuple
   assign @right
   assignstatement
@@ -367,7 +368,8 @@ FieldExpression<pe> {
 SubscriptExpression[closedBy="]"]<pe> {
   pe !immediate immediateBracket "["
     (
-      GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
+      ListCompherension<s_e, s_pe> |
+      // GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
       (s_e |
        AssignmentExpression {
          s_e !assign (assignOperator | "=") s_e
@@ -384,7 +386,7 @@ SubscriptExpression[closedBy="]"]<pe> {
 s_e {
   statement |
   definition |
-  CompoundExpression |
+  // CompoundExpression |
   PairExpression<s_e> |
   MacroExpression<s_e, s_pe> |
   UnaryExpression<s_e> |
@@ -423,6 +425,7 @@ s_pe {
   TypedExpression<s_pe> |
   ParameterizedIdentifier<s_e, s_pe> |
   Operator ~op |
+  kw<"begin"> |
   kw<"end">
 }
 
@@ -504,11 +507,16 @@ DoClause[closedBy="end"] {
   end
 }
 
+ListCompherension<e, pe> {
+  e ~id comprehensionClause<e, pe> ~generator
+}
+
 ArgumentList[closedBy=")"]<e, pe> {
   "("
   (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
-  (";" arg<e, pe> ("," arg<e, pe>)*)?
-  ","?
+  ListCompherension<e, pe>?
+  (";" arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
+  ","?  
   ")" ~afterclosingparen
 }
 
@@ -523,8 +531,8 @@ ParenthesizedExpression[closedBy=")"]<e> {
 TupleExpression[closedBy=")"]<e, pe> {
   "("
     (
-    (tupleelem<e, pe> ~id !regular0 ",") |
-    (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?)
+      (tupleelem<e, pe> ~id !regular0 ",") ListCompherension<e, pe>? |
+      (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?) ListCompherension<e, pe>?
     )?
   ")" ~afterclosingparen
 }
@@ -621,7 +629,7 @@ ArrayComprehensionExpression[closedBy="]"]<e, pe> {
 }
 
 GeneratorExpression[closedBy=")"]<e, pe> {
-  "(" e comprehensionClause<e, pe> ")"
+  "(" ListCompherension<e, pe> ")" ~afterclosingparen
 }
 
 comprehensionClause<e, pe> {
@@ -633,11 +641,11 @@ IfClause<e, pe> {
 }
 
 ForClause<e, pe> {
-  !immediate kw<"for"> ForBinding<e, pe> (!regular0 "," ForBinding<e, pe>)*
+    kw<"for"> ForBinding<e, pe> (!forbinding "," ForBinding<e, pe>)*
 }
 
 ForBinding<e, pe> {
-  (Identifier | TupleExpression<e, pe>) (kw<"in"> | "=" | "∈") e
+  (Identifier ~id | TupleExpression<e, pe>) (kw<"in"> | "=" | "∈") e
 }
 
 ScopedIdentifier {

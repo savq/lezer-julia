@@ -86,6 +86,58 @@ SourceFile(
 )
 
 
+# Generator in sum
+
+sum(x for x in g)
+
+==>
+
+SourceFile(
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      ListCompherension(Identifier,ForClause(for,ForBinding(Identifier,in,Identifier))),
+    ),
+  ),
+)
+
+
+# Multiple bindings in sum
+
+sum(x for x in g, y in z)
+sum(c for c in d, e = 5)
+
+==>
+
+SourceFile(
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      ListCompherension(
+        Identifier,
+        ForClause(
+          for,
+          ForBinding(Identifier,in,Identifier),
+          ForBinding(Identifier,in,Identifier),
+        ),
+      ),
+    ),
+  ),
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      ListCompherension(
+        Identifier,
+        ForClause(
+          for,
+          ForBinding(Identifier,in,Identifier),
+          ForBinding(Identifier,Number),
+        ),
+      ),
+    ),
+  ),
+)
+
 # Transpose
 
 A'B:C'D

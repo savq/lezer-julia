@@ -559,6 +559,8 @@ SourceFile(
 
 # Generator expressions
 
+(b(c, e) for c in d if e)
+(b(c, e) for c in d, e = 5)
 (b(c, e) for c in d, e = 5 if e)
 [b(c, e) for c in d for e in f]
 
@@ -566,16 +568,45 @@ SourceFile(
 
 SourceFile(
   GeneratorExpression(
-    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-    ForClause(for,
-      ForBinding(Identifier,in,Identifier),
-      ForBinding(Identifier,Number)
+    ListCompherension(
+      CallExpression(
+        Identifier,
+        ArgumentList(Identifier,Identifier),
+      ),
+      ForClause(for,ForBinding(Identifier,in,Identifier)),
+      IfClause(if,Identifier),
     ),
-    IfClause(if,Identifier)
+  ),
+  GeneratorExpression(
+    ListCompherension(
+      CallExpression(
+        Identifier,
+        ArgumentList(Identifier,Identifier),
+      ),
+      ForClause(
+        for,
+        ForBinding(Identifier,in,Identifier),
+        ForBinding(Identifier,Number),
+      ),
+    ),
+  ),
+  GeneratorExpression(
+    ListCompherension(
+      CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+      ForClause(
+        for,
+        ForBinding(Identifier,in,Identifier),
+        ForBinding(Identifier,Number),
+      ),
+      IfClause(if,Identifier),
+    ),
   ),
   ArrayComprehensionExpression(
     CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-    ForClause(for,ForBinding(Identifier,in,Identifier)),
+    ForClause(
+      for,
+      ForBinding(Identifier,in,Identifier),
+    ),
     ForClause(for,ForBinding(Identifier,in,Identifier))
-  )
+  ),
 )

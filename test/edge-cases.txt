@@ -771,14 +771,20 @@ SourceFile(
 
 Bc[end]
 Bc[end + 1]
-Bc[end:end]
+Bc[begin+1:end-1]
 
 ==>
 
 SourceFile(
   SubscriptExpression(Identifier,end),
   SubscriptExpression(Identifier,BinaryExpression(end, Number)),
-  SubscriptExpression(Identifier,RangeExpression(end, end)),
+  SubscriptExpression(
+    Identifier,
+    RangeExpression(
+      BinaryExpression(begin, Number),
+      BinaryExpression(end, Number),
+    ),
+  ),
 )
 
 # SubscriptExpression_assignment_ok
@@ -803,12 +809,13 @@ arr[x for x in xs]
 SourceFile(
   SubscriptExpression(
     Identifier,
-    GeneratorExpression(
+    ListCompherension(
       Identifier,
       ForClause(for,ForBinding(Identifier,in,Identifier))
-    )
-  )
+    ),
+  ),
 )
+
 
 # GlobalStatement_ok
 
