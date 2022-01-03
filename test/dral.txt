@@ -1,3 +1,11 @@
+# Hai hai
+
+1(x, y)
+
+==>
+
+SourceFile()
+
 # Let statements without declarations
 
 let
@@ -174,9 +182,11 @@ SourceFile(
         BinaryExpression(
           CoefficientExpression(
             Number,
-            CallExpressionCoeffecient(
-              Identifier,
-              ArgumentList(BinaryExpression(UnaryExpression(Identifier),Number)),
+            Coefficient(
+              CallExpression(
+                Identifier,
+                ArgumentList(BinaryExpression(UnaryExpression(Identifier),Number)),
+              ),
             ),
           ),
           Number,
@@ -197,7 +207,9 @@ SourceFile(
 SourceFile(
   CoefficientExpression(
     Number,
-    CallExpressionCoeffecient(Identifier,ArgumentList),
+    Coefficient(
+      CallExpression(Identifier,ArgumentList),
+    ),
   ),
 )
 

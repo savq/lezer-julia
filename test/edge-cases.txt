@@ -520,10 +520,10 @@ SourceFile(
 ==>
 
 SourceFile(
-  CoefficientExpression(Number,Identifier),
+  CoefficientExpression(Number, Coefficient(Identifier)),
   CoefficientExpression(
     Number,
-    ParenthesizedExpression(BinaryExpression(Identifier,Number)),
+    Coefficient(ParenthesizedExpression(BinaryExpression(Identifier,Number))),
   )
 )
 

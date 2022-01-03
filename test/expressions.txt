@@ -398,41 +398,41 @@ SourceFile(
   BinaryExpression(
     BinaryExpression(
       BinaryExpression(
-        CoefficientExpression(Number,Identifier),
+        CoefficientExpression(Number, Coefficient(Identifier)),
         Number
       ),
-      CoefficientExpression(Number,Identifier)
+      CoefficientExpression(Number, Coefficient(Identifier))
     ),
     Number
   ),
   BinaryExpression(
     BinaryExpression(
       BinaryExpression(
-        CoefficientExpression(Number,Identifier),
+        CoefficientExpression(Number, Coefficient(Identifier)),
         Number
       ),
-      CoefficientExpression(Number,Identifier)
+      CoefficientExpression(Number, Coefficient(Identifier))
     ),
     Number
   ),
   BinaryExpression(
     Number,
-    CoefficientExpression(Number,Identifier)
+    CoefficientExpression(Number, Coefficient(Identifier))
   ),
   BinaryExpression(
     BinaryExpression(
       BinaryExpression(
         CoefficientExpression(
           Number,
-          ParenthesizedExpression(BinaryExpression(Identifier,Number))
+          Coefficient(ParenthesizedExpression(BinaryExpression(Identifier,Number)))
         ),
         Number
       ),
       CoefficientExpression(
         Number,
-        ParenthesizedExpression(
+        Coefficient(ParenthesizedExpression(
           BinaryExpression(Identifier,Number)
-        )
+        ))
       )
     ),
     Number
@@ -539,7 +539,7 @@ SourceFile(
     ArgumentList(Identifier,Identifier,Identifier),
     BinaryExpression(
       BinaryExpression(
-        CoefficientExpression(Number,Identifier),
+        CoefficientExpression(Number,Coefficient(Identifier)),
         Identifier
       ),
       Identifier

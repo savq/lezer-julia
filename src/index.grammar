@@ -462,23 +462,21 @@ QuoteExpression[@dynamicPrecedence=2]<pe> {
   ":" !interp pe
 }
 
-CallExpressionCoeffecient<e, pe> {
-  Identifier
-  !call immediateParen
-  !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
-}
-
 // I guess there might be more thing "coeffecientable",
 // but for now this is the list
-coeffecientable {
-  CallExpressionCoeffecient<e, pe> |
+Coefficient {
+  CallExpression {
+    Identifier
+    !call immediateParen
+    !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+  } |
   Identifier |
   InterpolationExpression<pe> |
   PrefixedString |
   ParenthesizedExpression<e>
 }
 CoefficientExpression[@dynamicPrecedence=5]<e> {
-  Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace coeffecientable
+  Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace Coefficient
 }
 
 CompoundExpression[closedBy="end"] {
