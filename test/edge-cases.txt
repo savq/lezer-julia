@@ -182,8 +182,8 @@ SourceFile(
     function,
     Identifier,
     ArgumentList(
-      TypedExpression(Identifier,Identifier),
-      TypedExpression(Identifier)
+      TypedExpression(Identifier,Type(Identifier)),
+      TypedExpression(Type(Identifier))
     ),
     Identifier,
     end
@@ -201,7 +201,7 @@ SourceFile(
     function,
     Identifier,
     ArgumentList,
-    TypedExpression(Identifier),
+    TypedExpression(Type(Identifier)),
     end
   )
 )
@@ -215,7 +215,7 @@ function Base.union!() end
 SourceFile(
   FunctionDefinition(
     function,
-    FieldExpression(Identifier,Identifier),
+    FieldExpression(Identifier,FieldName),
     ArgumentList,
     end
   )
@@ -231,7 +231,7 @@ SourceFile(
   FunctionDefinition(
     function,
     Identifier,
-    ArgumentList(TypedExpression(Identifier,FieldExpression(Identifier,Identifier))),
+    ArgumentList(TypedExpression(Identifier,Type(FieldExpression(Identifier,FieldName)))),
     end
   )
 )
@@ -258,7 +258,7 @@ SourceFile(
     abstract,type,
     TypedExpression(
       ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))
-      Identifier
+      Type(Identifier)
     ),
     end
   ),
@@ -282,10 +282,10 @@ SourceFile(
   AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier)),end),
   AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
   AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier)),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Identifier))),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Identifier))),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Identifier))),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Identifier))),end))
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Type(Identifier)))),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Type(Identifier)))),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Type(Identifier)))),end),
+  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Type(Identifier)))),end))
 
 # PrimitiveDefinition
 
@@ -310,7 +310,7 @@ SourceFile(
     primitive,type,
     TypedExpression(
       ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
-      Identifier
+      Type(Identifier)
     ),
     Number,
     end
@@ -341,7 +341,7 @@ SourceFile(
   StructDefinition(struct,Identifier,end),
   StructDefinition(struct,Identifier,end),
   StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
-  StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),TypedExpression(Identifier),end),
+  StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),TypedExpression(Type(Identifier)),end),
   StructDefinition(struct,Identifier,Identifier,end),
   StructDefinition(struct,Identifier,Identifier,Identifier,end),
   StructDefinition(mutable,struct,Identifier,end),
@@ -401,7 +401,7 @@ macro Base.union() end
 SourceFile(
   MacroDefinition(
     macro,
-    FieldExpression(Identifier,Identifier),
+    FieldExpression(Identifier,FieldName),
     ArgumentList,
     end
   )
@@ -440,7 +440,7 @@ name(a::T) where {T} = a
 SourceFile(
   FunctionAssignmentExpression(
     Identifier,
-    ArgumentList(TypedExpression(Identifier,Identifier)),
+    ArgumentList(TypedExpression(Identifier,Type(Identifier))),
     where,TypeArgumentList(Identifier),
     Identifier
   )
@@ -466,7 +466,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  Symbol(Identifier),
+  Symbol(SymbolName),
 )
 
 # QuoteExpression_2
@@ -506,8 +506,8 @@ SourceFile(
 
 SourceFile(
   BinaryExpression(
-    Symbol(Identifier),
-    Symbol(Identifier),
+    Symbol(SymbolName),
+    Symbol(SymbolName),
   )
 )
 
@@ -520,10 +520,10 @@ SourceFile(
 ==>
 
 SourceFile(
-  CoefficientExpression(Number,Identifier),
+  CoefficientExpression(Number, Coefficient(Identifier)),
   CoefficientExpression(
     Number,
-    ParenthesizedExpression(BinaryExpression(Identifier,Number)),
+    Coefficient(ParenthesizedExpression(BinaryExpression(Identifier,Number))),
   )
 )
 
@@ -535,8 +535,8 @@ SourceFile(
 ==>
 
 SourceFile(
-  MacroExpression(MacroIdentifier(Identifier),MacroArgumentList(Identifier)),
-  MacroExpression(MacroIdentifier(Identifier),MacroArgumentList(Identifier,Identifier)),
+  MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(Identifier)),
+  MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(Identifier,Identifier)),
 )
 
 # MacroExpression_ok_2
@@ -546,7 +546,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  MacroExpression(MacroIdentifier(Identifier),ArgumentList(Number,Number))
+  MacroExpression(MacroIdentifier(MacroName),ArgumentList(Number,Number))
 )
 
 # BinaryExpression_bitshift_ok
@@ -582,7 +582,7 @@ SourceFile(BinaryExpression(Number,Number))
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(BinaryExpression(Identifier,Number))
   )
 )
@@ -597,7 +597,7 @@ end
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(Identifier,CompoundExpression(begin,Identifier,end))
   )
 )
@@ -610,7 +610,7 @@ Base.@name
 
 SourceFile(
   MacroExpression(
-    MacroFieldExpression(Identifier,MacroIdentifier(Identifier))
+    MacroFieldExpression(Identifier,MacroIdentifier(MacroName))
   )
 )
 
@@ -622,7 +622,7 @@ SourceFile(
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(AssignmentExpression(Identifier,Number))
   )
 )
@@ -749,7 +749,7 @@ while call(); end
 SourceFile(
   WhileStatement(
     while,
-    CallExpression(Identifier,ArgumentList),
+    WhileBinding(CallExpression(Identifier,ArgumentList)),
     end
   )
 )
@@ -771,14 +771,20 @@ SourceFile(
 
 Bc[end]
 Bc[end + 1]
-Bc[end:end]
+Bc[begin+1:end-1]
 
 ==>
 
 SourceFile(
   SubscriptExpression(Identifier,end),
   SubscriptExpression(Identifier,BinaryExpression(end, Number)),
-  SubscriptExpression(Identifier,RangeExpression(end, end)),
+  SubscriptExpression(
+    Identifier,
+    RangeExpression(
+      BinaryExpression(begin, Number),
+      BinaryExpression(end, Number),
+    ),
+  ),
 )
 
 # SubscriptExpression_assignment_ok
@@ -803,21 +809,24 @@ arr[x for x in xs]
 SourceFile(
   SubscriptExpression(
     Identifier,
-    GeneratorExpression(
+    ListCompherension(
       Identifier,
       ForClause(for,ForBinding(Identifier,in,Identifier))
-    )
-  )
+    ),
+  ),
 )
+
 
 # GlobalStatement_ok
 
 global x
+global x = 1
 
 ==>
 
 SourceFile(
-  GlobalStatement(global,VariableDeclaration(Identifier))
+  GlobalStatement(global,Identifier),
+  GlobalStatement(global,AssignmentExpression(Identifier, Number))
 )
 
 # LocalStatement_ok
@@ -827,7 +836,7 @@ local x = 1
 ==>
 
 SourceFile(
-  LocalStatement(local,VariableDeclaration(Identifier,Number))
+  LocalStatement(local,AssignmentExpression(Identifier,Number))
 )
 
 # LocalStatement_InterpolationExpression_ok
@@ -840,11 +849,11 @@ local $(x) = 1
 SourceFile(
   LocalStatement(
     local,
-    VariableDeclaration(InterpolationExpression(Identifier),Number)
+    AssignmentExpression(InterpolationExpression(Identifier),Number)
   ),
   LocalStatement(
     local,
-    VariableDeclaration(InterpolationExpression(ParenthesizedExpression(Identifier)),Number)
+    AssignmentExpression(InterpolationExpression(ParenthesizedExpression(Identifier)),Number)
   )
 )
 

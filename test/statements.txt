@@ -19,10 +19,10 @@ end
 
 SourceFile(
   IfStatement(
-    if,Identifier,
+    IfClause(if,Identifier),
     CallExpression(Identifier,ArgumentList),
     ElseifClause(
-      elseif,Identifier,
+      IfClause(elseif,Identifier),
       CallExpression(Identifier,ArgumentList),
       CallExpression(Identifier,ArgumentList)
     ),
@@ -34,8 +34,8 @@ SourceFile(
   ),
   Comment,
   IfStatement(
-    if,Identifier,
-    ElseifClause(elseif,Identifier),
+    IfClause(if,Identifier),
+    ElseifClause(IfClause(elseif,Identifier)),
     ElseClause(else),
     end
   )
@@ -90,7 +90,7 @@ while a() b(); end
 SourceFile(
   WhileStatement(
     while,
-    BinaryExpression(Identifier,Number),
+    WhileBinding(BinaryExpression(Identifier,Number)),
     CallExpression(Identifier,ArgumentList(Identifier)),
     ContinueStatement(continue),
     BreakStatement(break),
@@ -98,13 +98,13 @@ SourceFile(
   ),
   WhileStatement(
     while,
-    CallExpression(Identifier,ArgumentList),
+    WhileBinding(CallExpression(Identifier,ArgumentList)),
     CallExpression(Identifier,ArgumentList),
     end
   ),
   WhileStatement(
     while,
-    CallExpression(Identifier,ArgumentList),
+    WhileBinding(CallExpression(Identifier,ArgumentList)),
     CallExpression(Identifier,ArgumentList),
     end
   )
@@ -139,9 +139,11 @@ end
 
 SourceFile(
   LetStatement(let,
-    VariableDeclaration(Identifier,Identifier),
-    VariableDeclaration(Identifier),
-    VariableDeclaration(Identifier,Identifier),
+    LetBinding(
+      VariableDeclaration(Identifier,Identifier),
+      VariableDeclaration(Identifier),
+      VariableDeclaration(Identifier,Identifier),
+    ),
     Identifier,
     end
   )
@@ -154,11 +156,15 @@ const x, y = 5
 ==>
 
 SourceFile(
-  ConstStatement(const,
-    VariableDeclaration(Identifier),
-    VariableDeclaration(Identifier,Number)
-  )
+  ConstStatement(
+    const,
+    AssignmentExpression(
+      BareTupleExpression(Identifier,Identifier),
+      Number,
+    ),
+  ),
 )
+
 
 # Quote statements
 
@@ -245,7 +251,7 @@ SourceFile(
   ImportStatement(import,
     SelectedImport(
       ScopedIdentifier(Identifier),
-      MacroIdentifier(Identifier)
+      MacroIdentifier(MacroName)
     )
   ),
   ImportStatement(using,
@@ -273,7 +279,7 @@ SourceFile(
     SelectedImport(Identifier,RenamedImport(Operator,as,Operator)),
   ),
   ImportStatement(using,
-    SelectedImport(Identifier,RenamedImport(MacroIdentifier(Identifier),as,MacroIdentifier(Identifier)))
+    SelectedImport(Identifier,RenamedImport(MacroIdentifier(MacroName),as,MacroIdentifier(MacroName)))
   )
 )
 

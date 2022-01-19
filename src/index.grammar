@@ -12,6 +12,7 @@
   bitshift @left
   times @left
   plus @left
+  transpose @left
   range @left
   pipe @left
   pipeback @right
@@ -21,7 +22,10 @@
   bor @right
   ternary @right
   pair @right
+  forbinding
+  baretuple
   assign @right
+  assignstatement
   regular1
   right0 @right
   regular0
@@ -39,14 +43,17 @@
 // TOP LEVEL
 
 expressionList<e, pe> {
-  (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)
-  (!regular0 terminator
-    (!regular0 e | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression))*
-  terminator?
+  !right0
+  terminator* ~possibly_more_expressions
+  !right0 
+  (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)?
+  (!right0 terminator+ ~possibly_more_expressions
+    (!right0 e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression))*
+  terminator* ~possibly_more_expressions
 }
 
 BareTupleExpression<e> {
-  e (!regular-1 "," e)+
+  e (!baretuple "," e)+
 }
 
 AssignmentExpression<e> {
@@ -93,49 +100,51 @@ statement {
 }
 
 IfStatement[closedBy="end else elseif"] {
-  kw<"if"> e terminator?
-    expressionList<e, pe>?
+  IfClause { kw<"if"> e }
+    expressionList<e, pe>
   ElseifClause*
   ElseClause?
   end
 }
 
 ElseifClause[closedBy="end else elseif"] {
-  kw<"elseif"> e terminator?
-    expressionList<e, pe>?
+  IfClause { kw<"elseif"> e }
+    expressionList<e, pe>
 }
 
 ElseClause[closedBy="end"] {
   kw<"else">
-    expressionList<e, pe>?
+    expressionList<e, pe>
 }
 
 TryStatement[closedBy="end catch finally"] {
   kw<"try">
-    expressionList<e, pe>?
+    expressionList<e, pe>
   CatchClause?
   FinallyClause?
   end
 }
 
 CatchClause[closedBy="end finally"] {
-  kw<"catch"> Identifier? !regular1 terminator?
-    expressionList<e, pe>?
+  kw<"catch"> CatchBinding { Identifier ~id }? !regular1
+    expressionList<e, pe>
 }
 
 FinallyClause[closedBy="end"] {
-  kw<"finally"> terminator?
-    expressionList<e, pe>?
+  kw<"finally">
+    expressionList<e, pe>
 }
 
 ForStatement[closedBy="end"] {
-  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)* terminator?
-    expressionList<e, pe>?
+  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)*
+    expressionList<e, pe>
   end
 }
 
 WhileStatement[closedBy="end"] {
-  !regular0 kw<"while"> !regular0 e !regular0 terminator? !regular0 expressionList<e, pe>? end
+  !regular0 kw<"while"> !regular0 WhileBinding { e } !regular0
+    expressionList<e, pe>
+  end
 }
 
 BreakStatement {
@@ -151,19 +160,29 @@ ReturnStatement {
 }
 
 LetStatement[closedBy="end"] {
-  kw<"let"> VariableDeclaration ("," VariableDeclaration)* terminator? expressionList<e, pe>? end
+  kw<"let"> LetBinding { VariableDeclaration ("," VariableDeclaration)* }? terminator
+    expressionList<e, pe>
+  end
 }
 
 ConstStatement {
-  kw<"const"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"const"> AssignmentExpression<e>
 }
 
 GlobalStatement {
-  kw<"global"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"global"> (
+    global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
+    Identifier ~variabledeclaration |
+    InterpolationExpression<pe> ~variabledeclaration
+  )
 }
 
 LocalStatement {
-  kw<"local"> (VariableDeclaration (!right0 "," VariableDeclaration)*)
+  kw<"local"> (
+    global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
+    Identifier ~variabledeclaration |
+    InterpolationExpression<pe> ~variabledeclaration
+  )
 }
 
 VariableDeclaration {
@@ -171,7 +190,9 @@ VariableDeclaration {
 }
 
 QuoteStatement[closedBy="end"] {
-  kw<"quote"> expressionList<e, pe>? end
+  kw<"quote"> !right-2
+    expressionList<e, pe>
+  end
 }
 
 ImportStatement {
@@ -202,7 +223,7 @@ RenamedImport {
 }
 
 ExportStatement {
-  kw<"export"> Identifier (!right0 "," Identifier)*
+  kw<"export"> (Identifier | MacroIdentifier) (!right0 "," (Identifier | MacroIdentifier))*
 }
 
 // DEFINITIONS
@@ -226,13 +247,13 @@ FunctionDefinition[closedBy="end"] {
         !typeascription "::" pe
       }?
     }?
-    expressionList<e, pe>? 
+    expressionList<e, pe>
   end
 }
 
 MacroDefinition[closedBy="end"] {
   kw<"macro"> definitionHead immediateParen ArgumentList<e, pe>
-    expressionList<e, pe>?
+    expressionList<e, pe>
   end
 }
 
@@ -245,18 +266,20 @@ AbstractDefinition[closedBy="end"] {
 }
 
 StructDefinition[closedBy="end"] {
-  kw<"mutable">? kw<"struct"> pe !regular0 expressionList<e, pe>? end
+  kw<"mutable">? kw<"struct"> pe !regular0
+    expressionList<e, pe>
+  end
 }
 
 ModuleDefinition[closedBy="end"] {
   kw<"module"> Identifier
-    expressionList<e, pe>? 
+    expressionList<e, pe>
   end
 }
 
 BareModuleDefinition[closedBy="end"] {
   kw<"baremodule"> Identifier
-    expressionList<e, pe>?
+    expressionList<e, pe>
   end
 }
 
@@ -286,21 +309,29 @@ e {
   FunctionExpression[closedBy="end"] { verboseFunctionExpression } |
   CoefficientExpression<e> |
   RangeExpression<e> |
+  TransposeExpression<e> |
   SpreadExpression<e> |
   Operator[group="operator"] { ":" ~op } |
   pe
 }
 
+meta_programming<e, pe> {
+  PrefixedString |
+  MacroExpression<e, pe> |
+  InterpolationExpression<pe>
+}
+
 pe {
-  InterpolationExpression<pe> |
+  InterpolationExpression<pe> ~variabledeclaration |
   FieldExpression<pe> |
   SubscriptExpression<pe> |
+  Symbol |
   QuoteExpression<pe> |
   CallExpression<e, pe> |
-  Identifier ~id |
+  Identifier ~id ~variabledeclaration |
+  boolean |
   Character |
-  Number |
-  Symbol |
+  Number ~afternumber |
   String |
   TripleString |
   CommandString |
@@ -326,16 +357,19 @@ TypeArgumentList[closedBy="}"]<e> {
   "{" e ("," e)* ","? "}"
 }
 
+FieldName { word }
+
 FieldExpression<pe> {
   pe
   !immediate immediateDot !dot "." !dot
-  (Identifier | QuoteExpression<pe> | InterpolationExpression<pe>)
+  (FieldName | QuoteExpression<pe> | InterpolationExpression<pe>)
 }
 
 SubscriptExpression[closedBy="]"]<pe> {
   pe !immediate immediateBracket "["
     (
-      GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
+      ListCompherension<s_e, s_pe> |
+      // GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
       (s_e |
        AssignmentExpression {
          s_e !assign (assignOperator | "=") s_e
@@ -352,7 +386,7 @@ SubscriptExpression[closedBy="]"]<pe> {
 s_e {
   statement |
   definition |
-  CompoundExpression |
+  // CompoundExpression |
   PairExpression<s_e> |
   MacroExpression<s_e, s_pe> |
   UnaryExpression<s_e> |
@@ -361,6 +395,7 @@ s_e {
   FunctionExpression<s_e, s_pe> |
   CoefficientExpression<s_e> |
   RangeExpression<s_e> |
+  TransposeExpression<s_e> |
   SpreadExpression<s_e> |
   Operator[group="operator"] { ":" ~op } |
   s_pe
@@ -370,12 +405,13 @@ s_pe {
   InterpolationExpression<s_pe> |
   FieldExpression<s_pe> |
   SubscriptExpression<s_pe> |
+  Symbol |
   QuoteExpression<s_pe> |
   CallExpression<s_e, s_pe> |
   Identifier ~id |
+  boolean |
   Character |
-  Number |
-  Symbol |
+  Number ~afternumber |
   String |
   TripleString |
   CommandString |
@@ -389,6 +425,7 @@ s_pe {
   TypedExpression<s_pe> |
   ParameterizedIdentifier<s_e, s_pe> |
   Operator ~op |
+  kw<"begin"> |
   kw<"end">
 }
 
@@ -408,48 +445,79 @@ TernaryExpression<e> {
   e
 }
 
+TypePart[@name="Type"] { pe }
 TypedExpression<pe> {
-  pe !typeascription ("::" | "<:") !typeascription pe |
-  ("::" | "<:") !typeonlyascription pe
+  pe !typeascription (operator<"::"> | operator<"<:">) !typeascription TypePart |
+  (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
 }
 
 InterpolationExpression[@dynamicPrecedence=2]<pe> {
   "$" !interp pe
 }
 
-Symbol {
-  ":" !interp Identifier
+Symbol[@dynamicPrecedence=10] {
+  ":" !interp SymbolName { word }
 }
 
 QuoteExpression[@dynamicPrecedence=2]<pe> {
   ":" !interp pe
 }
 
-CoefficientExpression[@dynamicPrecedence=1]<e> {
-  Number !coeff (ParenthesizedExpression<e> | Identifier)
+// I guess there might be more thing "coeffecientable",
+// but for now this is the list
+Coefficient {
+  CallExpression {
+    Identifier
+    !call immediateParen
+    !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+  } |
+  Identifier |
+  InterpolationExpression<pe> |
+  PrefixedString |
+  ParenthesizedExpression<e> |
+  TupleExpression<e, pe>
+}
+CoefficientExpression[@dynamicPrecedence=5]<e> {
+  Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace Coefficient
 }
 
 CompoundExpression[closedBy="end"] {
-  kw<"begin"> expressionList<e, pe> end
+  kw<"begin">
+    expressionList<e, pe>
+  end
 }
 
 CallExpression<e, pe> {
   pe
-  !call immediateParen
+  !call immediateParen ~nowhitespace
   !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
   DoClause?
 }
 
 DoClause[closedBy="end"] {
-  kw<"do"> expressionList<e, pe> end
+  kw<"do"> 
+  DoClauseArguments {
+    (Identifier ~id | BareTupleExpression<e> | ArgumentList<e, pe>)
+    expressionList<e, pe>
+  }?
+  ~possibly_more_expressions
+  !regular1
+  terminator
+  expressionList<e, pe>
+  end
+}
+
+ListCompherension<e, pe> {
+  e ~id comprehensionClause<e, pe> ~generator
 }
 
 ArgumentList[closedBy=")"]<e, pe> {
   "("
   (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
-  (";" arg<e, pe> ("," arg<e, pe>)*)?
-  ","?
-  ")"
+  ListCompherension<e, pe>?
+  (";" arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
+  ","?  
+  ")" ~afterclosingparen
 }
 
 arg<e, pe> {
@@ -463,10 +531,10 @@ ParenthesizedExpression[closedBy=")"]<e> {
 TupleExpression[closedBy=")"]<e, pe> {
   "("
     (
-    (tupleelem<e, pe> ~id !regular0 ",") |
-    (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?)
+      (tupleelem<e, pe> ~id !regular0 ",") ListCompherension<e, pe>? |
+      (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?) ListCompherension<e, pe>?
     )?
-  ")"
+  ")" ~afterclosingparen
 }
 
 tupleelem<e, pe> {
@@ -478,17 +546,16 @@ NamedField<e, pe> {
 }
 
 MacroIdentifier {
-  !regular0 "@" (Identifier | Operator | Operator[group="operator"] { "." })
+  !regular0 "@" MacroName { word | Operator | Operator[group="operator"] { "." } }
 }
 
 MacroFieldExpression<pe> {
-  pe
-  !immediate immediateDot !dot "." !dot
-  MacroIdentifier
+  pe !immediate immediateDot !dot "." !dot MacroIdentifier |
+  MacroIdentifier !immediate immediateDot !dot "." !dot MacroFieldName { word }
 }
 
 verboseFunctionExpression {
-  kw<"function"> ArgumentList<e, pe> expressionList<e, pe>? end
+  kw<"function"> ArgumentList<e, pe> expressionList<e, pe> end
 }
 
 FunctionExpression<e, pe> {
@@ -497,7 +564,7 @@ FunctionExpression<e, pe> {
 
 MacroExpression<e, pe> {
   (MacroIdentifier | MacroFieldExpression<pe>) (!right0
-    immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+    immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause?
     | MacroArgumentList<e>
   )?
 }
@@ -562,7 +629,7 @@ ArrayComprehensionExpression[closedBy="]"]<e, pe> {
 }
 
 GeneratorExpression[closedBy=")"]<e, pe> {
-  "(" e comprehensionClause<e, pe> ")"
+  "(" ListCompherension<e, pe> ")" ~afterclosingparen
 }
 
 comprehensionClause<e, pe> {
@@ -574,11 +641,11 @@ IfClause<e, pe> {
 }
 
 ForClause<e, pe> {
-  kw<"for"> ForBinding<e, pe> (!regular0 "," ForBinding<e, pe>)*
+    kw<"for"> ForBinding<e, pe> (!forbinding "," ForBinding<e, pe>)*
 }
 
 ForBinding<e, pe> {
-  (Identifier | TupleExpression<e, pe>) (kw<"in"> | "=" | "∈") e
+  (Identifier ~id | TupleExpression<e, pe>) (kw<"in"> | operator<"="> | operator<"∈">) e
 }
 
 ScopedIdentifier {
@@ -588,6 +655,10 @@ ScopedIdentifier {
 
 RangeExpression<e> {
   e !range ":" !range e
+}
+
+TransposeExpression<e> {
+  e !transpose "'" !transpose e
 }
 
 @skip {} {
@@ -600,6 +671,16 @@ RangeExpression<e> {
   CommandString {
     "`" (commandStringContent | stringInterpolation)* "`"
   }
+
+  StringWithoutInterpolation {
+    '"' stringContentWithoutInterpolation '"'
+  }
+  TripleStringWithoutInterpolation {
+    '"""' tripleStringContentWithoutInterpolation '"""'
+  }
+  CommandStringWithoutInterpolation {
+    "`" commandStringContentWithoutInterpolation "`"
+  }
 }
 
 stringInterpolation {
@@ -608,9 +689,9 @@ stringInterpolation {
 }
 
 PrefixedString {
-  Identifier !immediate immediateDoubleQuote String |
-  Identifier !immediate immediateDoubleQuote TripleString |
-  Identifier !immediate immediateBackquote CommandString
+  Identifier !immediate immediateDoubleQuote StringWithoutInterpolation |
+  Identifier !immediate immediateDoubleQuote TripleStringWithoutInterpolation |
+  Identifier !immediate immediateBackquote CommandStringWithoutInterpolation
 }
 
 plusOperator {
@@ -618,15 +699,12 @@ plusOperator {
   (plusOperatorExtra | plusminus)
 }
 
+operator<term> { [@name={term},group="operator"]{ term } } 
+
 end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
+boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
 
-@external tokens terminator from "./index.tokens.js" { terminator }
-@external tokens Identifier from "./index.tokens.js" { Identifier }
-@external tokens BlockComment from "./index.tokens.js" { BlockComment }
-@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
-@external tokens stringContent from "./index.tokens.js" { stringContent }
-@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
 @external tokens layoutExtra from "./index.tokens.js" {
   immediateParen,
   immediateColon,
@@ -637,6 +715,17 @@ kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
   immediateDot,
   nowhitespace
 }
+
+@external tokens terminator from "./index.tokens.js" { terminator }
+@external tokens word from "./index.tokens.js" { word }
+@external tokens Identifier from "./index.tokens.js" { Identifier }
+@external tokens BlockComment from "./index.tokens.js" { BlockComment }
+@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
+@external tokens stringContent from "./index.tokens.js" { stringContent }
+@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
+@external tokens tripleStringContentWithoutInterpolation from "./index.tokens.js" { tripleStringContentWithoutInterpolation }
+@external tokens stringContentWithoutInterpolation from "./index.tokens.js" { stringContentWithoutInterpolation }
+@external tokens commandStringContentWithoutInterpolation from "./index.tokens.js" { commandStringContentWithoutInterpolation }
 
 @tokens {
   whitespace {

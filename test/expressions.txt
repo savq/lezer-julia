@@ -28,6 +28,7 @@ SourceFile(
 "
 f \$name"
 "fo\"o"
+"\\"
 
 ==>
 
@@ -35,6 +36,7 @@ SourceFile(
   String,
   String(Identifier),
   String(BinaryExpression(Identifier,Identifier)),
+  String,
   String,
   String,
 )
@@ -78,17 +80,22 @@ SourceFile(
 
 x = r"foo"
 y = v"1.0"
+z = md"-- $(x) --"
 
 ==>
 
 SourceFile(
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,String)
+    PrefixedString(Identifier,StringWithoutInterpolation)
   ),
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,String),
+    PrefixedString(Identifier,StringWithoutInterpolation),
+  ),
+  AssignmentExpression(
+    Identifier,
+    PrefixedString(Identifier,StringWithoutInterpolation),
   ),
 )
 
@@ -216,14 +223,14 @@ SourceFile(
         CallExpression(
           FieldExpression(
             SubscriptExpression(Identifier,Number),
-            Identifier
+            FieldName
           ),
           ArgumentList
         ),
-        Identifier
+        FieldName
       )
     ),
-    Identifier
+    FieldName
   )
 )
 
@@ -242,23 +249,23 @@ end
 
 SourceFile(
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(
       BinaryExpression(Identifier,Identifier))
   ),
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(
       BinaryExpression(Identifier,Identifier),
       String
     )
   ),
   MacroExpression(
-    MacroIdentifier(Operator),
+    MacroIdentifier(MacroName(Operator)),
     MacroArgumentList(Identifier)
   ),
   MacroExpression(
-    MacroIdentifier(Identifier),
+    MacroIdentifier(MacroName),
     MacroArgumentList(
       String,
       CompoundExpression(
@@ -391,41 +398,41 @@ SourceFile(
   BinaryExpression(
     BinaryExpression(
       BinaryExpression(
-        CoefficientExpression(Number,Identifier),
+        CoefficientExpression(Number, Coefficient(Identifier)),
         Number
       ),
-      CoefficientExpression(Number,Identifier)
+      CoefficientExpression(Number, Coefficient(Identifier))
     ),
     Number
   ),
   BinaryExpression(
     BinaryExpression(
       BinaryExpression(
-        CoefficientExpression(Number,Identifier),
+        CoefficientExpression(Number, Coefficient(Identifier)),
         Number
       ),
-      CoefficientExpression(Number,Identifier)
+      CoefficientExpression(Number, Coefficient(Identifier))
     ),
     Number
   ),
   BinaryExpression(
     Number,
-    CoefficientExpression(Number,Identifier)
+    CoefficientExpression(Number, Coefficient(Identifier))
   ),
   BinaryExpression(
     BinaryExpression(
       BinaryExpression(
         CoefficientExpression(
           Number,
-          ParenthesizedExpression(BinaryExpression(Identifier,Number))
+          Coefficient(ParenthesizedExpression(BinaryExpression(Identifier,Number)))
         ),
         Number
       ),
       CoefficientExpression(
         Number,
-        ParenthesizedExpression(
+        Coefficient(ParenthesizedExpression(
           BinaryExpression(Identifier,Number)
-        )
+        ))
       )
     ),
     Number
@@ -532,7 +539,7 @@ SourceFile(
     ArgumentList(Identifier,Identifier,Identifier),
     BinaryExpression(
       BinaryExpression(
-        CoefficientExpression(Number,Identifier),
+        CoefficientExpression(Number,Coefficient(Identifier)),
         Identifier
       ),
       Identifier
@@ -552,6 +559,8 @@ SourceFile(
 
 # Generator expressions
 
+(b(c, e) for c in d if e)
+(b(c, e) for c in d, e = 5)
 (b(c, e) for c in d, e = 5 if e)
 [b(c, e) for c in d for e in f]
 
@@ -559,16 +568,45 @@ SourceFile(
 
 SourceFile(
   GeneratorExpression(
-    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-    ForClause(for,
-      ForBinding(Identifier,in,Identifier),
-      ForBinding(Identifier,Number)
+    ListCompherension(
+      CallExpression(
+        Identifier,
+        ArgumentList(Identifier,Identifier),
+      ),
+      ForClause(for,ForBinding(Identifier,in,Identifier)),
+      IfClause(if,Identifier),
     ),
-    IfClause(if,Identifier)
+  ),
+  GeneratorExpression(
+    ListCompherension(
+      CallExpression(
+        Identifier,
+        ArgumentList(Identifier,Identifier),
+      ),
+      ForClause(
+        for,
+        ForBinding(Identifier,in,Identifier),
+        ForBinding(Identifier,Number),
+      ),
+    ),
+  ),
+  GeneratorExpression(
+    ListCompherension(
+      CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+      ForClause(
+        for,
+        ForBinding(Identifier,in,Identifier),
+        ForBinding(Identifier,Number),
+      ),
+      IfClause(if,Identifier),
+    ),
   ),
   ArrayComprehensionExpression(
     CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-    ForClause(for,ForBinding(Identifier,in,Identifier)),
+    ForClause(
+      for,
+      ForBinding(Identifier,in,Identifier),
+    ),
     ForClause(for,ForBinding(Identifier,in,Identifier))
-  )
+  ),
 )
