@@ -1,10 +1,37 @@
-# Hai hai
+# Macro in export
+
+export @macroname
+export somename, @andamacroname, andsomethingelse
+
+==>
+
+SourceFile(
+  ExportStatement(export,MacroIdentifier(MacroName)),
+  ExportStatement(export,Identifier,MacroIdentifier(MacroName),Identifier),
+)
+
+
+# number with tuple coeffecient
 
 1(x, y)
 
 ==>
 
-SourceFile()
+SourceFile(CoefficientExpression(Number,Coefficient(TupleExpression(Identifier,Identifier))))
+
+
+# Interpolation in hcat
+:([x $y])
+==> 
+SourceFile(
+  QuoteExpression(ParenthesizedExpression(
+    MatrixExpression(MatrixRow(
+      Identifier,
+      InterpolationExpression(Identifier),
+    )),
+  )),
+)
+
 
 # Let statements without declarations
 

@@ -223,7 +223,7 @@ RenamedImport {
 }
 
 ExportStatement {
-  kw<"export"> Identifier (!right0 "," Identifier)*
+  kw<"export"> (Identifier | MacroIdentifier) (!right0 "," (Identifier | MacroIdentifier))*
 }
 
 // DEFINITIONS
@@ -445,9 +445,10 @@ TernaryExpression<e> {
   e
 }
 
+TypePart[@name="Type"] { pe }
 TypedExpression<pe> {
-  pe !typeascription ("::" | "<:") !typeascription pe |
-  ("::" | "<:") !typeonlyascription pe
+  pe !typeascription (operator<"::"> | operator<"<:">) !typeascription TypePart |
+  (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
 }
 
 InterpolationExpression[@dynamicPrecedence=2]<pe> {
@@ -473,7 +474,8 @@ Coefficient {
   Identifier |
   InterpolationExpression<pe> |
   PrefixedString |
-  ParenthesizedExpression<e>
+  ParenthesizedExpression<e> |
+  TupleExpression<e, pe>
 }
 CoefficientExpression[@dynamicPrecedence=5]<e> {
   Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace Coefficient
@@ -643,7 +645,7 @@ ForClause<e, pe> {
 }
 
 ForBinding<e, pe> {
-  (Identifier ~id | TupleExpression<e, pe>) (kw<"in"> | "=" | "∈") e
+  (Identifier ~id | TupleExpression<e, pe>) (kw<"in"> | operator<"="> | operator<"∈">) e
 }
 
 ScopedIdentifier {
@@ -696,6 +698,8 @@ plusOperator {
   "." !immediate nowhitespace (plusOperatorExtra | plusminus) |
   (plusOperatorExtra | plusminus)
 }
+
+operator<term> { [@name={term},group="operator"]{ term } } 
 
 end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
