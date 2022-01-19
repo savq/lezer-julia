@@ -1,7 +1,6 @@
 {
   "name": "@plutojl/lezer-julia",
   "version": "0.3.0",
-  "private": false,
   "description": "lezer-based Julia grammar",
   "main": "dist/index.cjs",
   "module": "dist/index.es.js",
@@ -26,6 +25,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/andreypopp/lezer-julia.git"
+    "url": "https://github.com/JuliaPluto/lezer-julia.git"
   }
 }
