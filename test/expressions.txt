@@ -143,7 +143,7 @@ end
 SourceFile(
   FunctionDefinition(
     function,
-    Identifier,
+    Definition(Identifier),
     ArgumentList(Identifier,Identifier),
     end
   )

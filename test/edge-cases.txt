@@ -119,7 +119,7 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,ArgumentList,String,end)
+  FunctionDefinition(function,Definition(Identifier),ArgumentList,String,end)
 )
 
 # FunctionDefinition_2
@@ -129,7 +129,7 @@ function some() "hello" end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,ArgumentList,String,end),
+  FunctionDefinition(function,Definition(Identifier),ArgumentList,String,end),
 )
 
 # FunctionDefinition_3
@@ -142,8 +142,8 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,ArgumentList,end),
-  FunctionDefinition(function,Identifier,ArgumentList,end),
+  FunctionDefinition(function,Definition(Identifier),ArgumentList,end),
+  FunctionDefinition(function,Definition(Identifier),ArgumentList,end),
 )
 
 # FunctionDefinition_anonymous
@@ -166,7 +166,7 @@ function name end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Identifier,end)
+  FunctionDefinition(function,Definition(Identifier),end)
 )
 
 # FunctionDefinition_only_type_ok
@@ -180,7 +180,7 @@ end
 SourceFile(
   FunctionDefinition(
     function,
-    Identifier,
+    Definition(Identifier),
     ArgumentList(
       TypedExpression(Identifier,Type(Identifier)),
       TypedExpression(Type(Identifier))
@@ -199,7 +199,7 @@ function name()::T end
 SourceFile(
   FunctionDefinition(
     function,
-    Identifier,
+    Definition(Identifier),
     ArgumentList,
     TypedExpression(Type(Identifier)),
     end
@@ -215,7 +215,7 @@ function Base.union!() end
 SourceFile(
   FunctionDefinition(
     function,
-    FieldExpression(Identifier,FieldName),
+    Definition(FieldExpression(Identifier,FieldName)),
     ArgumentList,
     end
   )
@@ -230,7 +230,7 @@ function name(param::Type.Some) end
 SourceFile(
   FunctionDefinition(
     function,
-    Identifier,
+    Definition(Identifier),
     ArgumentList(TypedExpression(Identifier,Type(FieldExpression(Identifier,FieldName)))),
     end
   )
@@ -247,19 +247,19 @@ abstract type name{param} <: supertype end
 ==>
 
 SourceFile(
-  AbstractDefinition(abstract,type,Identifier,end),
-  AbstractDefinition(abstract,type,Identifier,end),
+  AbstractDefinition(abstract,type,Definition(Identifier),end),
+  AbstractDefinition(abstract,type,Definition(Identifier),end),
   AbstractDefinition(
     abstract,type,
-    ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
+    Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),
     end
   ),
   AbstractDefinition(
     abstract,type,
-    TypedExpression(
+    Definition(TypedExpression(
       ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))
       Type(Identifier)
-    ),
+    )),
     end
   ),
 )
@@ -278,14 +278,14 @@ abstract type name{a, a<:b,} end
 ==>
 
 SourceFile(
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier)),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier)),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Type(Identifier)))),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Type(Identifier)))),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Type(Identifier)))),end),
-  AbstractDefinition(abstract,type,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Type(Identifier)))),end))
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Type(Identifier))))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(TypedExpression(Identifier,Type(Identifier))))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Type(Identifier))))),end),
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,TypedExpression(Identifier,Type(Identifier))))),end))
 
 # PrimitiveDefinition
 
@@ -299,19 +299,19 @@ primitive type name{param} <: supertype 42 end
 ==>
 
 SourceFile(
-  PrimitiveDefinition(primitive,type,Identifier,Number,end),
-  PrimitiveDefinition(primitive,type,Identifier,Number,end),
+  PrimitiveDefinition(primitive,type,Definition(Identifier),Number,end),
+  PrimitiveDefinition(primitive,type,Definition(Identifier),Number,end),
   PrimitiveDefinition(
     primitive,type,
-    ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
+    Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),
     Number,end
   ),
   PrimitiveDefinition(
     primitive,type,
-    TypedExpression(
+    Definition(TypedExpression(
       ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
       Type(Identifier)
-    ),
+    )),
     Number,
     end
   )
@@ -338,13 +338,13 @@ mutable struct name end
 ==>
 
 SourceFile(
-  StructDefinition(struct,Identifier,end),
-  StructDefinition(struct,Identifier,end),
-  StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),end),
-  StructDefinition(struct,ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),TypedExpression(Type(Identifier)),end),
-  StructDefinition(struct,Identifier,Identifier,end),
-  StructDefinition(struct,Identifier,Identifier,Identifier,end),
-  StructDefinition(mutable,struct,Identifier,end),
+  StructDefinition(struct,Definition(Identifier),end),
+  StructDefinition(struct,Definition(Identifier),end),
+  StructDefinition(struct,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),end),
+  StructDefinition(struct,Definition(TypedExpression(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),Type(Identifier))),end),
+  StructDefinition(struct,Definition(Identifier),Identifier,end),
+  StructDefinition(struct,Definition(Identifier),Identifier,Identifier,end),
+  StructDefinition(mutable,struct,Definition(Identifier),end),
 )
 
 # ModuleDefinition
@@ -357,8 +357,8 @@ end
 ==>
 
 SourceFile(
-  ModuleDefinition(module,Identifier,end),
-  ModuleDefinition(module,Identifier,Identifier,end)
+  ModuleDefinition(module,Definition(Identifier),end),
+  ModuleDefinition(module,Definition(Identifier),Identifier,end)
 )
 
 # BareModuleDefinition
@@ -371,8 +371,8 @@ end
 ==>
 
 SourceFile(
-  BareModuleDefinition(baremodule,Identifier,end),
-  BareModuleDefinition(baremodule,Identifier,Identifier,end)
+  BareModuleDefinition(baremodule,Definition(Identifier),end),
+  BareModuleDefinition(baremodule,Definition(Identifier),Identifier,end)
 )
 
 # MacroDefinition_ok
@@ -387,9 +387,9 @@ end
 ==>
 
 SourceFile(
-  MacroDefinition(macro,Identifier,ArgumentList,end),
-  MacroDefinition(macro,Identifier,ArgumentList,end),
-  MacroDefinition(macro,Identifier,ArgumentList,Identifier,end),
+  MacroDefinition(macro,Definition(Identifier),ArgumentList,end),
+  MacroDefinition(macro,Definition(Identifier),ArgumentList,end),
+  MacroDefinition(macro,Definition(Identifier),ArgumentList,Identifier,end),
 )
 
 # MacroDefinition_complexHead_ok
@@ -401,7 +401,7 @@ macro Base.union() end
 SourceFile(
   MacroDefinition(
     macro,
-    FieldExpression(Identifier,FieldName),
+    Definition(FieldExpression(Identifier,FieldName)),
     ArgumentList,
     end
   )

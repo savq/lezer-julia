@@ -11,6 +11,16 @@ SourceFile(
 )
 
 
+# Function with return type
+function f()::Int
+
+end
+
+==>
+
+SourceFile(FunctionDefinition(function,Definition(Identifier),ArgumentList,ReturnType("::",Type(Identifier)),end))
+
+
 # number with tuple coeffecient
 
 1(x, y)
@@ -18,6 +28,12 @@ SourceFile(
 ==>
 
 SourceFile(CoefficientExpression(Number,Coefficient(TupleExpression(Identifier,Identifier))))
+
+
+# FieldExpression in PrefixedString
+module.macro"aaa"
+==>
+SourceFile()
 
 
 # Interpolation in hcat
@@ -202,7 +218,7 @@ SourceFile(
     begin,
     FunctionDefinition(
       function,
-      Identifier,
+      Definition(Identifier),
       ArgumentList(Identifier),
       AssignmentExpression(
         Identifier,

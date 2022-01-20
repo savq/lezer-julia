@@ -13,9 +13,9 @@ end
 ==>
 
 SourceFile(
-  ModuleDefinition(module,Identifier,
-    ModuleDefinition(module,Identifier,end),
-    ModuleDefinition(module,Identifier,end),
+  ModuleDefinition(module,Definition(Identifier),
+    ModuleDefinition(module,Definition(Identifier),end),
+    ModuleDefinition(module,Definition(Identifier),end),
     end
   )
 )
@@ -61,85 +61,89 @@ end
 
 ==>
 
+
 SourceFile(
   Comment,
   PrimitiveDefinition(
     primitive,type,
-    Identifier,
+    Definition(Identifier),
     Number,
     end),
   PrimitiveDefinition(
     primitive,type,
-    TypedExpression(Identifier, Type(Identifier)),
+    Definition(TypedExpression(Identifier, Type(Identifier))),
     Number,
     end),
   PrimitiveDefinition(
     primitive,type,
-    ParameterizedIdentifier(
+    Definition(ParameterizedIdentifier(
       Identifier,
       TypeArgumentList(Identifier),
-    ),
+    )),
     Number,
     end),
   Comment,
   AbstractDefinition(
     abstract,type,
-    Identifier,
+    Definition(Identifier),
     end),
   AbstractDefinition(
     abstract,type,
-    TypedExpression(Identifier,Type(Identifier)),
+    Definition(TypedExpression(Identifier,Type(Identifier))),
     end),
   AbstractDefinition(
     abstract,type,
-    TypedExpression(
+    Definition(TypedExpression(
       ParameterizedIdentifier(
         Identifier,
         TypeArgumentList(Identifier),
       ),
       Type(Identifier),
-    )
+    )),
     end),
   Comment,
   StructDefinition(
     struct,
-    Identifier,
+    Definition(Identifier),
     end),
   Comment,
   StructDefinition(
     mutable,struct,
-    Identifier,
+    Definition(Identifier),
     Identifier,
     TypedExpression(Identifier,Type(Identifier)),
     end),
   Comment,
   StructDefinition(
     struct,
-    ParameterizedIdentifier(
+    Definition(ParameterizedIdentifier(
       Identifier,
       TypeArgumentList(Identifier),
-    ),
+    )),
     TypedExpression(Identifier,Type(Identifier)),
     TypedExpression(Identifier,Type(Identifier)),
     end),
   Comment,
   StructDefinition(
     struct,
-    ParameterizedIdentifier(
-      Identifier,
-      TypeArgumentList(TypedExpression(Identifier,Type(Identifier))),
-    ),
-    TypedExpression(Type(Identifier)),
-    TypedExpression(Identifier,Type(Identifier)),
-    TypedExpression(Identifier,Type(Identifier)),
+    Definition(TypedExpression(
+      ParameterizedIdentifier(
+        Identifier,
+        TypeArgumentList(TypedExpression(Identifier,"<:",Type(Identifier)))
+      ),
+      "<:",
+      Type(Identifier)
+    )),
+    TypedExpression(Identifier,"::",Type(Identifier)),
+    TypedExpression(Identifier,"::",Type(Identifier)),
     end),
   Comment,
   StructDefinition(
     mutable,struct,
-    Identifier,
-    TypedExpression(
+    Definition(TypedExpression(
+      Identifier,
       Type(Identifier),
-    ),
+    )),
     TypedExpression(
       Identifier,
       Type(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)))
@@ -159,16 +163,16 @@ end
 
 SourceFile(
   FunctionDefinition(
-    function,Identifier,
+    function,Definition(Identifier),
     ArgumentList(TypedExpression(Identifier,Type(Identifier))),
     end
   ),
   FunctionDefinition(
     function,
-    ParameterizedIdentifier(
+    Definition(ParameterizedIdentifier(
       Identifier,
       TypeArgumentList(Identifier),
-    ),
+    )),
     ArgumentList(TypedExpression(Identifier,Type(Identifier))),
     end
   ),
@@ -183,7 +187,8 @@ end
 
 SourceFile(
   FunctionDefinition(
-    function,Identifier,
+    function,
+    Definition(Identifier),
     ArgumentList(
       NamedArgument(NamedField(TypedExpression(Identifier,Type(Identifier)),Number)),
       Identifier,
@@ -204,7 +209,8 @@ end
 
 SourceFile(
   MacroDefinition(
-    macro,Identifier,
+    macro,
+    Definition(Identifier),
     ArgumentList(Identifier,NamedArgument(NamedField(Identifier,Identifier))),
     AssignmentExpression(
       Identifier,

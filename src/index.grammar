@@ -240,7 +240,7 @@ definition {
 
 FunctionDefinition[closedBy="end"] {
   !regular0 kw<"function">
-    definitionHead
+    Definition { definitionHead }
     params[@dynamicPrecedence=1] {
       !immediate immediateParen !immediate ArgumentList<e, pe>
       ReturnType {
@@ -252,33 +252,33 @@ FunctionDefinition[closedBy="end"] {
 }
 
 MacroDefinition[closedBy="end"] {
-  kw<"macro"> definitionHead immediateParen ArgumentList<e, pe>
+  kw<"macro"> Definition { definitionHead } immediateParen ArgumentList<e, pe>
     expressionList<e, pe>
   end
 }
 
 PrimitiveDefinition[closedBy="end"] {
-  kw<"primitive"> kw<"type"> pe Number end
+  kw<"primitive"> kw<"type"> Definition { pe } Number end
 }
 
 AbstractDefinition[closedBy="end"] {
-  kw<"abstract"> kw<"type"> pe end
+  kw<"abstract"> kw<"type"> Definition { pe } end
 }
 
 StructDefinition[closedBy="end"] {
-  kw<"mutable">? kw<"struct"> pe !regular0
+  kw<"mutable">? kw<"struct"> Definition { pe } !regular0
     expressionList<e, pe>
   end
 }
 
 ModuleDefinition[closedBy="end"] {
-  kw<"module"> Identifier
+  kw<"module"> Definition { Identifier }
     expressionList<e, pe>
   end
 }
 
 BareModuleDefinition[closedBy="end"] {
-  kw<"baremodule"> Identifier
+  kw<"baremodule"> Definition { Identifier }
     expressionList<e, pe>
   end
 }
