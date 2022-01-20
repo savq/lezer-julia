@@ -87,15 +87,15 @@ z = md"-- $(x) --"
 SourceFile(
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,StringWithoutInterpolation)
+    PrefixedString(Prefix(Identifier),StringWithoutInterpolation)
   ),
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,StringWithoutInterpolation),
+    PrefixedString(Prefix(Identifier),StringWithoutInterpolation),
   ),
   AssignmentExpression(
     Identifier,
-    PrefixedString(Identifier,StringWithoutInterpolation),
+    PrefixedString(Prefix(Identifier),StringWithoutInterpolation),
   ),
 )
 
