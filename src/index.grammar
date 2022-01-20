@@ -242,10 +242,11 @@ FunctionDefinition[closedBy="end"] {
   !regular0 kw<"function">
     Definition { definitionHead }
     params[@dynamicPrecedence=1] {
-      !immediate immediateParen !immediate ArgumentList<e, pe>
+      !immediate immediateParen !immediate ArgumentList<e, pe> !typeascription
       ReturnType {
-        !typeascription "::" pe
+        !typeascription operator<"::"> TypePart
       }?
+      (kw<"where"> TypeParameters { Identifier | TypeArgumentList<e> } )?
     }?
     expressionList<e, pe>
   end
@@ -447,8 +448,7 @@ TernaryExpression<e> {
 
 TypePart[@name="Type"] { pe }
 TypedExpression<pe> {
-  pe !typeascription (operator<"::"> | operator<"<:">) !typeascription TypePart |
-  (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
+  pe !typeascription (operator<"::"> | operator<"<:">) !typeascription TypePart
 }
 
 InterpolationExpression[@dynamicPrecedence=2]<pe> {
@@ -472,6 +472,7 @@ Coefficient {
     !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
   } |
   Identifier |
+  FieldExpression<Identifier> |
   InterpolationExpression<pe> |
   PrefixedString |
   ParenthesizedExpression<e> |
@@ -520,8 +521,12 @@ ArgumentList[closedBy=")"]<e, pe> {
   ")" ~afterclosingparen
 }
 
+LonelyType {
+  (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
+}
+
 arg<e, pe> {
-  (e | NamedArgument { NamedField<e, pe>  }) ~id
+  (e | LonelyType | NamedArgument { NamedField<e, pe>  }) ~id
 }
 
 ParenthesizedExpression[closedBy=")"]<e> {
@@ -684,14 +689,22 @@ TransposeExpression<e> {
 }
 
 stringInterpolation {
-  "$" Identifier |
-  "$" immediateParen "(" !regular1 e !regular1 ")"
+  operator<"$"> Identifier |
+  operator<"$"> immediateParen operator<"("> !regular1 e !regular1 operator<")">
 }
 
+PrefixFieldExpression[@name=FieldEpxression] {
+  PrefixFieldExpression
+  !immediate immediateDot !dot "." !dot
+  FieldName
+}
 PrefixedString {
-  Identifier !immediate immediateDoubleQuote StringWithoutInterpolation |
-  Identifier !immediate immediateDoubleQuote TripleStringWithoutInterpolation |
-  Identifier !immediate immediateBackquote CommandStringWithoutInterpolation
+  Prefix { Identifier | PrefixFieldExpression }
+  !immediate
+  
+  (immediateDoubleQuote StringWithoutInterpolation |
+  immediateDoubleQuote TripleStringWithoutInterpolation |
+  immediateBackquote CommandStringWithoutInterpolation)
 }
 
 plusOperator {

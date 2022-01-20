@@ -1,10 +1,7 @@
 # Macro in export
-
 export @macroname
 export somename, @andamacroname, andsomethingelse
-
 ==>
-
 SourceFile(
   ExportStatement(export,MacroIdentifier(MacroName)),
   ExportStatement(export,Identifier,MacroIdentifier(MacroName),Identifier),
@@ -13,13 +10,26 @@ SourceFile(
 
 # Function with return type
 function f()::Int
-
 end
-
 ==>
+SourceFile(FunctionDefinition(function,Definition(Identifier),ArgumentList,ReturnType(Type(Identifier)),end))
 
-SourceFile(FunctionDefinition(function,Definition(Identifier),ArgumentList,ReturnType("::",Type(Identifier)),end))
 
+# Function with where T
+function f()::T where T
+end
+==>
+SourceFile(
+  FunctionDefinition(
+    function,
+    Definition(Identifier),
+    ArgumentList,
+    ReturnType("::",Type(Identifier)),
+    where,
+    TypeParameters(Identifier),
+    end
+  )
+)
 
 # number with tuple coeffecient
 
@@ -34,6 +44,12 @@ SourceFile(CoefficientExpression(Number,Coefficient(TupleExpression(Identifier,I
 module.macro"aaa"
 ==>
 SourceFile()
+
+
+# FieldExpression in Coefficient
+10x.a
+==>
+SourceFile(CoefficientExpression(Number,Coefficient(FieldExpression(Identifier,FieldName))))
 
 
 # Interpolation in hcat
@@ -76,15 +92,12 @@ SourceFile(String, Comment)
 
 # Prefixed strings
 
-z = md"$(x)"
+md"$(x)"
 
 ==>
 
 SourceFile(
-  AssignmentExpression(
-    Identifier,
-    PrefixedString(Identifier,StringWithoutInterpolation),
-  ),
+  PrefixedString(Prefix(Identifier),StringWithoutInterpolation),
 )
 
 

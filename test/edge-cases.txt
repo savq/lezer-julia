@@ -183,7 +183,7 @@ SourceFile(
     Definition(Identifier),
     ArgumentList(
       TypedExpression(Identifier,Type(Identifier)),
-      TypedExpression(Type(Identifier))
+      LonelyType(Type(Identifier))
     ),
     Identifier,
     end
@@ -201,7 +201,7 @@ SourceFile(
     function,
     Definition(Identifier),
     ArgumentList,
-    TypedExpression(Type(Identifier)),
+    ReturnType(Type(Identifier)),
     end
   )
 )
@@ -441,7 +441,7 @@ SourceFile(
   FunctionAssignmentExpression(
     Identifier,
     ArgumentList(TypedExpression(Identifier,Type(Identifier))),
-    where,TypeArgumentList(Identifier),
+    where,TypeParameters(TypeArgumentList(Identifier)),
     Identifier
   )
 )
@@ -796,7 +796,7 @@ arr[s += 1]
 SourceFile(
   SubscriptExpression(
     Identifier,
-    AssignmentExpression(Identifier,Number)
+    AssignmentExpression(Definition(Identifier),Number)
   )
 )
 
@@ -826,7 +826,7 @@ global x = 1
 
 SourceFile(
   GlobalStatement(global,Identifier),
-  GlobalStatement(global,AssignmentExpression(Identifier, Number))
+  GlobalStatement(global,AssignmentExpression(Definition(Identifier), Number))
 )
 
 # LocalStatement_ok
@@ -836,7 +836,7 @@ local x = 1
 ==>
 
 SourceFile(
-  LocalStatement(local,AssignmentExpression(Identifier,Number))
+  LocalStatement(local,AssignmentExpression(Definition(Identifier),Number))
 )
 
 # LocalStatement_InterpolationExpression_ok
