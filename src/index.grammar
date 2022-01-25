@@ -159,6 +159,10 @@ ReturnStatement {
   kw<"return"> (!right-2 (e | BareTupleExpression<e>))?
 }
 
+VariableDeclaration {
+  (Identifier | InterpolationExpression<pe>) (!right0 "=" e)?
+}
+
 LetStatement[closedBy="end"] {
   kw<"let"> LetBinding { VariableDeclaration ("," VariableDeclaration)* }? terminator
     expressionList<e, pe>
@@ -183,10 +187,6 @@ LocalStatement {
     Identifier ~variabledeclaration |
     InterpolationExpression<pe> ~variabledeclaration
   )
-}
-
-VariableDeclaration {
-  (Identifier | InterpolationExpression<pe>) (!right0 "=" e)?
 }
 
 QuoteStatement[closedBy="end"] {
@@ -479,7 +479,7 @@ Coefficient {
   TupleExpression<e, pe>
 }
 CoefficientExpression[@dynamicPrecedence=5]<e> {
-  Number ~afternumber !coeff (nowhitespace | immediateParen) ~nowhitespace Coefficient
+  Number ~afternumber !coeff (nowhitespace | immediateParen) ~paren_after_expression Coefficient
 }
 
 CompoundExpression[closedBy="end"] {
@@ -490,7 +490,7 @@ CompoundExpression[closedBy="end"] {
 
 CallExpression<e, pe> {
   pe
-  !call immediateParen ~nowhitespace
+  !call BroadcastDot { immediateDot "." }? immediateParen ~paren_after_expression
   !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
   DoClause?
 }
@@ -499,6 +499,7 @@ DoClause[closedBy="end"] {
   kw<"do"> 
   DoClauseArguments {
     (Identifier ~id | BareTupleExpression<e> | ArgumentList<e, pe>)
+    // TODO Why is this expressionList here? - dral
     expressionList<e, pe>
   }?
   ~possibly_more_expressions

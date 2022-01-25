@@ -8,6 +8,12 @@ SourceFile(
 )
 
 
+# Broadcast call
+zip.(xs)
+==>
+SourceFile(CallExpression(Identifier,BroadcastDot,ArgumentList(Identifier)))
+
+
 # Function with return type
 function f()::Int
 end
