@@ -14,6 +14,24 @@ zip.(xs)
 SourceFile(CallExpression(Identifier,BroadcastDot,ArgumentList(Identifier)))
 
 
+# Typed do
+f() do x::Int; end
+==>
+SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(TypedExpression(Identifier,"::",Type(Identifier))),end)))
+
+
+# No argument do
+f() do; end
+==>
+SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,end)))
+
+
+# One argument do
+f() do x x end
+==>
+SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(Identifier),Identifier,end)))
+
+
 # Function with return type
 function f()::Int
 end
@@ -280,20 +298,8 @@ SourceFile(
 @test() do x, y
 
 end
-
 ==>
-
-SourceFile(
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    ArgumentList,
-    DoClause(
-      do,
-      DoClauseArguments(BareTupleExpression(Identifier,Identifier)),
-      end
-    ),
-  )
-)
+SourceFile(MacroExpression(MacroIdentifier(MacroName),ArgumentList,DoClause(do,DoClauseArguments(Identifier,Identifier),end)))
 
 
 # Proper terminator

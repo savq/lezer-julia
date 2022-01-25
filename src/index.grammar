@@ -497,17 +497,16 @@ CallExpression<e, pe> {
 
 DoClause[closedBy="end"] {
   kw<"do"> 
-  DoClauseArguments {
-    (Identifier ~id | BareTupleExpression<e> | ArgumentList<e, pe>)
-    // TODO Why is this expressionList here? - dral
-    expressionList<e, pe>
-  }?
+  (
+    DoClauseArguments { doArg<e, pe> ~id ("," doArg<e, pe> ~id)* } |
+    terminator
+  )
   ~possibly_more_expressions
-  !regular1
-  terminator
   expressionList<e, pe>
   end
 }
+
+doArg<e,pe> { e ~id | LonelyType }
 
 ListCompherension<e, pe> {
   e ~id comprehensionClause<e, pe> ~generator
