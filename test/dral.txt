@@ -14,6 +14,12 @@ zip.(xs)
 SourceFile(CallExpression(Identifier,BroadcastDot,ArgumentList(Identifier)))
 
 
+# Ternary inside function expression
+y -> y ? x : 10
+==>
+SourceFile(FunctionExpression(Identifier,TernaryExpression(Identifier,Identifier,Number)))
+
+
 # Typed do
 f() do x::Int; end
 ==>
@@ -23,13 +29,13 @@ SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(
 # FunctionExpression with assignment
 foreach(c -> c.queued = true)
 ==>
-SourceFile()
+SourceFile(CallExpression(Identifier,ArgumentList(FunctionExpression(Identifier,AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral)))))
 
 
-# FunctionExpression with assignment
+# BROKEN: FunctionExpression with assignment and another argument (Broken but it is okay-ish)
 foreach(c -> c.queued = true, cells)
 ==>
-SourceFile()
+SourceFile(CallExpression(Identifier,ArgumentList(FunctionExpression(Identifier,AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral), Identifier))))
 
 
 # No argument do
@@ -68,15 +74,12 @@ SourceFile(
 )
 
 # number with tuple coeffecient
-
 1(x, y)
-
 ==>
-
 SourceFile(CoefficientExpression(Number,Coefficient(TupleExpression(Identifier,Identifier))))
 
 
-# FieldExpression in PrefixedString
+# BROKEN: FieldExpression in PrefixedString
 module.macro"aaa"
 ==>
 SourceFile()
@@ -88,7 +91,7 @@ SourceFile()
 SourceFile(CoefficientExpression(Number,Coefficient(FieldExpression(Identifier,FieldName))))
 
 
-# Interpolation in hcat
+# BROKEN: Interpolation in hcat
 :([x $y])
 ==> 
 SourceFile(
@@ -102,13 +105,10 @@ SourceFile(
 
 
 # Let statements without declarations
-
 let
     code
 end
-
 ==>
-
 SourceFile(
   LetStatement(let,
     Identifier,
@@ -118,31 +118,20 @@ SourceFile(
 
 
 # Escaped backslash
-
 "\\" # i am a comment "
-
 ==>
-
 SourceFile(String, Comment)
 
 
 # Prefixed strings
-
 md"$(x)"
-
 ==>
-
-SourceFile(
-  PrefixedString(Prefix(Identifier),StringWithoutInterpolation),
-)
+SourceFile(PrefixedString(Prefix(Identifier),StringWithoutInterpolation))
 
 
 # Macro with @ at the beginning
-
 @Test.test 1 == 1
-
 ==>
-
 SourceFile(
   MacroExpression(
     MacroFieldExpression(MacroIdentifier(MacroName),MacroFieldName),
@@ -152,29 +141,20 @@ SourceFile(
 
 
 # Symbol with operator
-
 :if
-
 ==>
-
 SourceFile(Symbol(SymbolName))
 
 
 # Keyword as fieldname
-
 object.if
-
 ==>
-
 SourceFile(FieldExpression(Identifier,FieldName))
 
 
 # Multiple assignments
-
 const x = a, b
-
 ==>
-
 SourceFile(
   ConstStatement(
     const,
@@ -187,11 +167,8 @@ SourceFile(
 
 
 # Generator in sum
-
 sum(x for x in g)
-
 ==>
-
 SourceFile(
   CallExpression(
     Identifier,
@@ -203,12 +180,9 @@ SourceFile(
 
 
 # Multiple bindings in sum
-
 sum(x for x in g, y in z)
 sum(c for c in d, e = 5)
-
 ==>
-
 SourceFile(
   CallExpression(
     Identifier,

@@ -17,7 +17,6 @@
   pipe @left
   pipeback @right
   contains @left
-  arrow @right
   band @right
   bor @right
   ternary @right
@@ -26,6 +25,7 @@
   baretuple
   assign @right
   assignstatement
+  arrow @right
   regular1
   right0 @right
   regular0
