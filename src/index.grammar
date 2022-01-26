@@ -526,7 +526,7 @@ LonelyType {
 }
 
 arg<e, pe> {
-  (e | LonelyType | NamedArgument { NamedField<e, pe>  }) ~id
+  (e | LonelyType | NamedField<e, pe>) ~id
 }
 
 ParenthesizedExpression[closedBy=")"]<e> {

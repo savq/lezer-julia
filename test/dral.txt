@@ -20,6 +20,18 @@ f() do x::Int; end
 SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(TypedExpression(Identifier,"::",Type(Identifier))),end)))
 
 
+# FunctionExpression with assignment
+foreach(c -> c.queued = true)
+==>
+SourceFile()
+
+
+# FunctionExpression with assignment
+foreach(c -> c.queued = true, cells)
+==>
+SourceFile()
+
+
 # No argument do
 f() do; end
 ==>

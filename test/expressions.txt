@@ -176,7 +176,7 @@ SourceFile(
     Identifier,
     ArgumentList(
       Identifier,
-      NamedArgument(NamedField(Identifier,Identifier))
+      NamedField(Identifier,Identifier)
     )
   ),
   CallExpression(

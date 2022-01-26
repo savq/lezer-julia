@@ -190,9 +190,9 @@ SourceFile(
     function,
     Definition(Identifier),
     ArgumentList(
-      NamedArgument(NamedField(TypedExpression(Identifier,Type(Identifier)),Number)),
+      NamedField(TypedExpression(Identifier,Type(Identifier)),Number),
       Identifier,
-      NamedArgument(NamedField(TypedExpression(Identifier,Type(Identifier)),Number))
+      NamedField(TypedExpression(Identifier,Type(Identifier)),Number)
     ),
     end
   )
@@ -211,7 +211,7 @@ SourceFile(
   MacroDefinition(
     macro,
     Definition(Identifier),
-    ArgumentList(Identifier,NamedArgument(NamedField(Identifier,Identifier))),
+    ArgumentList(Identifier,NamedField(Identifier,Identifier)),
     AssignmentExpression(
       Identifier,
       ArrayExpression(
