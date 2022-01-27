@@ -239,16 +239,11 @@ definition {
 }
 
 FunctionDefinition[closedBy="end"] {
-  !regular0 kw<"function">
-    Definition { definitionHead }
-    params[@dynamicPrecedence=1] {
-      !immediate immediateParen !immediate ArgumentList<e, pe> !typeascription
-      ReturnType {
-        !typeascription operator<"::"> TypePart
-      }?
-      (kw<"where"> TypeParameters { Identifier | TypeArgumentList<e> } )?
-    }?
-    expressionList<e, pe>
+  !regular0
+  kw<"function">
+  Definition { TypedExpression<CallExpression<e, pe>> | CallExpression<e, pe> | ParenthesizedExpression<pe> | TupleExpression<e, pe> | Identifier ~id }
+  (kw<"where"> TypeParameters { Identifier | TypeArgumentList<e> } )?
+  expressionList<e, pe>
   end
 }
 
@@ -307,7 +302,6 @@ e {
   BinaryExpression<e> |
   TernaryExpression<e> |
   FunctionExpression<e, pe> |
-  FunctionExpression[closedBy="end"] { verboseFunctionExpression } |
   CoefficientExpression<e> |
   RangeExpression<e> |
   TransposeExpression<e> |
@@ -557,10 +551,6 @@ MacroIdentifier {
 MacroFieldExpression<pe> {
   pe !immediate immediateDot !dot "." !dot MacroIdentifier |
   MacroIdentifier !immediate immediateDot !dot "." !dot MacroFieldName { word }
-}
-
-verboseFunctionExpression {
-  kw<"function"> ArgumentList<e, pe> expressionList<e, pe> end
 }
 
 FunctionExpression<e, pe> {
