@@ -244,7 +244,7 @@ FunctionDefinition[closedBy="end"] {
   kw<"function">
   Definition {
     TypedExpression<CallExpression<e, pe>> |
-    CallExpressionDefinition {
+    CallExpression {
       pe
       !call immediateParen
       !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
@@ -516,7 +516,7 @@ ListCompherension<e, pe> {
   e ~id comprehensionClause<e, pe> ~generator
 }
 
-ArgumentList[closedBy=")", @dynamicPrecedence=10]<e, pe> {
+ArgumentList[closedBy=")"]<e, pe> {
   "("
   (arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
   ListCompherension<e, pe>?

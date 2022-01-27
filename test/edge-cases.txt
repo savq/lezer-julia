@@ -155,8 +155,8 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Definition(TupleExpression),end),
-  FunctionDefinition(function,Definition(TupleExpression),end),
+  FunctionDefinition(function,Definition(ArgumentList),end),
+  FunctionDefinition(function,Definition(ArgumentList),end),
 )
 
 # FunctionDefinition_no_parens_ok

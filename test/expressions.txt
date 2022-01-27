@@ -545,7 +545,7 @@ SourceFile(
     )
   ),
   FunctionExpression(ArgumentList,Number),
-  FunctionDefinition(function,Definition(TupleExpression),Number,end),
+  FunctionDefinition(function,Definition(ArgumentList),Number,end),
   FunctionExpression(
     ArgumentList,
     ParenthesizedExpression(
