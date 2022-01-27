@@ -8,6 +8,12 @@ SourceFile(
 )
 
 
+# BROKEN: Tuple parameters
+function (x; y) end
+==>
+SourceFile()
+
+
 # Broadcast call
 zip.(xs)
 ==>
@@ -32,10 +38,31 @@ foreach(c -> c.queued = true)
 SourceFile(CallExpression(Identifier,ArgumentList(FunctionExpression(Identifier,AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral)))))
 
 
-# BROKEN: FunctionExpression with assignment and another argument (Broken but it is okay-ish)
+# FunctionExpression with assignment and another argument (Broken but it is okay-ish)
 foreach(c -> c.queued = true, cells)
 ==>
-SourceFile(CallExpression(Identifier,ArgumentList(FunctionExpression(Identifier,AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral), Identifier))))
+SourceFile(CallExpression(
+  Identifier,
+  ArgumentList(
+    FunctionExpression(
+      Identifier,
+      AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral)
+    ),
+    Identifier,
+  )
+))
+
+
+# FunctionExpression with another argument
+foreach(c -> c.queued, cells)
+==>
+SourceFile(CallExpression(
+  Identifier,
+  ArgumentList(
+    FunctionExpression(Identifier,FieldExpression(Identifier,FieldName)),
+    Identifier,
+  ),
+))
 
 
 # No argument do

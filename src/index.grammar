@@ -24,8 +24,9 @@
   forbinding
   baretuple
   assign @right
-  assignstatement
   arrow @right
+  // TODO `arguments` is not needed at all I think
+  arguments
   regular1
   right0 @right
   regular0
@@ -508,10 +509,10 @@ ListCompherension<e, pe> {
 
 ArgumentList[closedBy=")"]<e, pe> {
   "("
-  (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
+  (arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
   ListCompherension<e, pe>?
-  (";" arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
-  ","?  
+  (";" arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
+  ","?
   ")" ~afterclosingparen
 }
 
@@ -553,8 +554,19 @@ MacroFieldExpression<pe> {
   MacroIdentifier !immediate immediateDot !dot "." !dot MacroFieldName { word }
 }
 
+function_expression_assignment[@name="AssignmentExpression"]<e> {
+  e
+  !assign (assignOperator | "=")
+  (e | function_expression_assignment<e>)
+}
+
 FunctionExpression<e, pe> {
-  (Identifier ~id | ArgumentList<e, pe>) !arrow "->" (e | AssignmentExpression<e>)
+  (Identifier ~id | ArgumentList<e, pe>)
+  !arrow "->"
+  (
+    e |
+    function_expression_assignment<e>
+  )
 }
 
 MacroExpression<e, pe> {
