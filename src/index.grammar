@@ -737,9 +737,17 @@ boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
   nowhitespace
 }
 
-@external tokens terminator from "./index.tokens.js" { terminator }
+terminator { newline | ";" }
+
+@external tokens newline from "./index.tokens.js" { newline }
+
+// So this is a tricky one... to have `word` for fieldnames and symbols
+// but `Identifier` for Identifiers *and keywords*, I now have two tokens that are generated the same way...
+// The trick is having `word` earlier in this list, so when it has to chose between `word` or `Identifier`,
+// it will always take the `word` first.
 @external tokens word from "./index.tokens.js" { word }
 @external tokens Identifier from "./index.tokens.js" { Identifier }
+
 @external tokens BlockComment from "./index.tokens.js" { BlockComment }
 @external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
 @external tokens stringContent from "./index.tokens.js" { stringContent }

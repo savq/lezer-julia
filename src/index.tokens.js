@@ -46,11 +46,11 @@ const CAT_Emoji = /^\p{Emoji}/u;
 
 // TERMINATOR
 
-export const terminator = new ExternalTokenizer((input, stack) => {
+export const newline = new ExternalTokenizer((input, stack) => {
   let c = input.peek(0);
-  if (c === CHAR_NEWLINE || c === CHAR_SEMICOLON) {
-    if (stack.canShift(terms.terminator)) {
-      input.acceptToken(terms.terminator, 1);
+  if (c === CHAR_NEWLINE) {
+    if (stack.canShift(terms.newline)) {
+      input.acceptToken(terms.newline, 1);
       return;
     }
   }
