@@ -54,7 +54,16 @@ SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(
 function f()::Int
 end
 ==>
-SourceFile(FunctionDefinition(function,Definition(Identifier),ArgumentList,ReturnType(Type(Identifier)),end))
+SourceFile(FunctionDefinition(
+  function,
+  Definition(
+    TypedExpression(
+      CallExpression(Identifier,ArgumentList),
+      Type(Identifier),
+    ),
+  ),
+  end
+))
 
 
 # Function with where T
@@ -64,9 +73,12 @@ end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(Identifier),
-    ArgumentList,
-    ReturnType("::",Type(Identifier)),
+    Definition(
+      TypedExpression(
+        CallExpression(Identifier, ArgumentList),
+        Type(Identifier),
+      )
+    ),
     where,
     TypeParameters(Identifier),
     end
@@ -241,8 +253,10 @@ SourceFile(
     begin,
     FunctionDefinition(
       function,
-      Definition(Identifier),
-      ArgumentList(Identifier),
+      Definition(CallExpression(
+        Identifier,
+        ArgumentList(Identifier),
+      )),
       AssignmentExpression(
         Identifier,
         BinaryExpression(

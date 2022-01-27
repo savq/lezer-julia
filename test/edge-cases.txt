@@ -119,7 +119,7 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Definition(Identifier),ArgumentList,String,end)
+  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),String,end)
 )
 
 # FunctionDefinition_2
@@ -129,7 +129,7 @@ function some() "hello" end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Definition(Identifier),ArgumentList,String,end),
+  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),String,end),
 )
 
 # FunctionDefinition_3
@@ -142,8 +142,8 @@ end
 ==>
 
 SourceFile(
-  FunctionDefinition(function,Definition(Identifier),ArgumentList,end),
-  FunctionDefinition(function,Definition(Identifier),ArgumentList,end),
+  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),end),
+  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),end),
 )
 
 # FunctionDefinition_anonymous
@@ -155,8 +155,8 @@ end
 ==>
 
 SourceFile(
-  FunctionExpression(function,ArgumentList,end),
-  FunctionExpression(function,ArgumentList,end),
+  FunctionDefinition(function,Definition(TupleExpression),end),
+  FunctionDefinition(function,Definition(TupleExpression),end),
 )
 
 # FunctionDefinition_no_parens_ok
@@ -180,10 +180,14 @@ end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(Identifier),
-    ArgumentList(
-      TypedExpression(Identifier,Type(Identifier)),
-      LonelyType(Type(Identifier))
+    Definition(
+      CallExpression(
+        Identifier,
+        ArgumentList(
+          TypedExpression(Identifier,Type(Identifier)),
+          LonelyType(Type(Identifier))
+        ),
+      ),
     ),
     Identifier,
     end
@@ -199,9 +203,15 @@ function name()::T end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(Identifier),
-    ArgumentList,
-    ReturnType(Type(Identifier)),
+    Definition(
+      TypedExpression(
+        CallExpression(
+          Identifier,
+          ArgumentList,
+        ),
+        Type(Identifier),
+      ),
+    )
     end
   )
 )
@@ -215,8 +225,12 @@ function Base.union!() end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(FieldExpression(Identifier,FieldName)),
-    ArgumentList,
+    Definition(
+      CallExpression(
+        FieldExpression(Identifier,FieldName),
+        ArgumentList,
+      ),
+    ),
     end
   )
 )
@@ -230,8 +244,12 @@ function name(param::Type.Some) end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(Identifier),
-    ArgumentList(TypedExpression(Identifier,Type(FieldExpression(Identifier,FieldName)))),
+    Definition(
+      CallExpression(
+        Identifier,
+        ArgumentList(TypedExpression(Identifier,Type(FieldExpression(Identifier,FieldName)))),
+      )
+    ),
     end
   )
 )

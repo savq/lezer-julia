@@ -143,8 +143,7 @@ end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(Identifier),
-    ArgumentList(Identifier,Identifier),
+    Definition(CallExpression(Identifier, ArgumentList(Identifier,Identifier))),
     end
   )
 )
@@ -546,7 +545,7 @@ SourceFile(
     )
   ),
   FunctionExpression(ArgumentList,Number),
-  FunctionExpression(function,ArgumentList,Number,end),
+  FunctionDefinition(function,Definition(TupleExpression),Number,end),
   FunctionExpression(
     ArgumentList,
     ParenthesizedExpression(

@@ -163,17 +163,21 @@ end
 
 SourceFile(
   FunctionDefinition(
-    function,Definition(Identifier),
-    ArgumentList(TypedExpression(Identifier,Type(Identifier))),
+    function,
+    Definition(CallExpression(Identifier, ArgumentList(TypedExpression(Identifier,Type(Identifier))))),
     end
   ),
   FunctionDefinition(
     function,
-    Definition(ParameterizedIdentifier(
-      Identifier,
-      TypeArgumentList(Identifier),
-    )),
-    ArgumentList(TypedExpression(Identifier,Type(Identifier))),
+    Definition(
+      CallExpression(
+        ParameterizedIdentifier(
+          Identifier,
+          TypeArgumentList(Identifier),
+        )
+        ArgumentList(TypedExpression(Identifier,Type(Identifier))),
+      ),
+    ),
     end
   ),
 )
@@ -188,12 +192,14 @@ end
 SourceFile(
   FunctionDefinition(
     function,
-    Definition(Identifier),
-    ArgumentList(
-      NamedField(TypedExpression(Identifier,Type(Identifier)),Number),
+    Definition(CallExpression(
       Identifier,
-      NamedField(TypedExpression(Identifier,Type(Identifier)),Number)
-    ),
+      ArgumentList(
+        NamedField(TypedExpression(Identifier,Type(Identifier)),Number),
+        Identifier,
+        NamedField(TypedExpression(Identifier,Type(Identifier)),Number)
+      ),
+    )),
     end
   )
 )
