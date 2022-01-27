@@ -11,7 +11,7 @@ SourceFile(
 # BROKEN: Tuple parameters
 function (x; y) end
 ==>
-SourceFile(FunctionDefinition(function,Definition(ArgumentList(Identifier,Identifier)),end))
+SourceFile(FunctionDefinition(function,Definition(ArgumentList(Identifier,Parameters(Identifier))),end))
 
 
 # Broadcast call

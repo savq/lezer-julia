@@ -175,7 +175,9 @@ SourceFile(
     Identifier,
     ArgumentList(
       Identifier,
-      NamedField(Identifier,Identifier)
+      Parameters(
+        AssignmentExpression(Identifier,Identifier)
+      )
     )
   ),
   CallExpression(
@@ -469,11 +471,11 @@ SourceFile(
     AssignmentExpression(Identifier,Number)
   ),
   TupleExpression(
-    NamedField(Identifier,Number)
+    AssignmentExpression(Identifier,Number)
   ),
   TupleExpression(
-    NamedField(Identifier,Number),
-    NamedField(Identifier,Number)
+    AssignmentExpression(Identifier,Number),
+    AssignmentExpression(Identifier,Number)
   )
 )
 

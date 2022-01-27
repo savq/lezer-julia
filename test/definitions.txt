@@ -195,9 +195,11 @@ SourceFile(
     Definition(CallExpression(
       Identifier,
       ArgumentList(
-        NamedField(TypedExpression(Identifier,Type(Identifier)),Number),
-        Identifier,
-        NamedField(TypedExpression(Identifier,Type(Identifier)),Number)
+        AssignmentExpression(TypedExpression(Identifier,Type(Identifier)),Number),
+        Parameters(
+          Identifier,
+          AssignmentExpression(TypedExpression(Identifier,Type(Identifier)),Number)
+        )
       ),
     )),
     end
@@ -217,7 +219,7 @@ SourceFile(
   MacroDefinition(
     macro,
     Definition(Identifier),
-    ArgumentList(Identifier,NamedField(Identifier,Identifier)),
+    ArgumentList(Identifier,AssignmentExpression(Identifier,Identifier)),
     AssignmentExpression(
       Identifier,
       ArrayExpression(

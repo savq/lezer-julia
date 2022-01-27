@@ -696,7 +696,7 @@ SourceFile(
 ==>
 
 SourceFile(
-  TupleExpression(NamedField(Identifier,Number)),
+  TupleExpression(AssignmentExpression(Identifier,Number)),
 )
 
 # Tuple_NamedField_many_ok
@@ -707,8 +707,8 @@ SourceFile(
 
 SourceFile(
   TupleExpression(
-    NamedField(Identifier,Number),
-    NamedField(Identifier,Number)
+    AssignmentExpression(Identifier,Number),
+    AssignmentExpression(Identifier,Number)
   ),
 )
 
@@ -720,8 +720,8 @@ SourceFile(
 
 SourceFile(
   TupleExpression(
-    NamedField(Identifier,Number),
-    NamedField(Identifier,Number)
+    AssignmentExpression(Identifier,Number),
+    AssignmentExpression(Identifier,Number)
   ),
 )
 
