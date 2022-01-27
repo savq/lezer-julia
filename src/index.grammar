@@ -244,9 +244,12 @@ FunctionDefinition[closedBy="end"] {
   kw<"function">
   Definition {
     TypedExpression<CallExpression<e, pe>> |
-    CallExpression<e, pe> |
-    ParenthesizedExpression<pe> |
-    TupleExpression<e, pe> |
+    CallExpressionDefinition {
+      pe
+      !call immediateParen
+      !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+    } |
+    [@dynamicPrecedence=10] { ArgumentList<e, pe> } |
     Identifier ~id
   }
   (kw<"where"> TypeParameters { Identifier | TypeArgumentList<e> } )?
@@ -513,7 +516,7 @@ ListCompherension<e, pe> {
   e ~id comprehensionClause<e, pe> ~generator
 }
 
-ArgumentList[closedBy=")"]<e, pe> {
+ArgumentList[closedBy=")", @dynamicPrecedence=10]<e, pe> {
   "("
   (arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
   ListCompherension<e, pe>?
@@ -763,6 +766,7 @@ terminator { newline | ";" }
   Comment {
     "#" ![\n]*
   }
+  Thing { word }
   Number {
     (
       "0" $[xX] $[0-9a-fA-F] $[0-9a-fA-F_]* |
