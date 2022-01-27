@@ -242,7 +242,13 @@ definition {
 FunctionDefinition[closedBy="end"] {
   !regular0
   kw<"function">
-  Definition { TypedExpression<CallExpression<e, pe>> | CallExpression<e, pe> | ParenthesizedExpression<pe> | TupleExpression<e, pe> | Identifier ~id }
+  Definition {
+    TypedExpression<CallExpression<e, pe>> |
+    CallExpression<e, pe> |
+    ParenthesizedExpression<pe> |
+    TupleExpression<e, pe> |
+    Identifier ~id
+  }
   (kw<"where"> TypeParameters { Identifier | TypeArgumentList<e> } )?
   expressionList<e, pe>
   end
