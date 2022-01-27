@@ -63,17 +63,6 @@ AssignmentExpression<e> {
   (e | AssignmentExpression<e> | BareTupleExpression<e>))
 }
 
-simpleAssignmentExpression<e> {
-  e ~id !assign (assignOperator | "=") !assign e
-}
-
-simpleExpressionList<e> {
-  (e ~id | AssignmentExpression { simpleAssignmentExpression<e> })
-  (!regular0 ";"
-    (!regular0 e | AssignmentExpression { simpleAssignmentExpression<e> }))*
-  ";"?
-}
-
 FunctionAssignmentExpression[@dynamicPrecedence=2] {
   Identifier ~id immediateParen !call ArgumentList<e, pe> ~id
   (kw<"where"> TypeArgumentList<e>)?
@@ -516,14 +505,6 @@ ListCompherension<e, pe> {
   e ~id comprehensionClause<e, pe> ~generator
 }
 
-ArgumentList[closedBy=")"]<e, pe> {
-  "("
-  (arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
-  ListCompherension<e, pe>?
-  (";" arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
-  ","?
-  ")" ~afterclosingparen
-}
 
 LonelyType {
   (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
@@ -533,8 +514,19 @@ arg<e, pe> {
   (e | LonelyType | NamedField<e, pe>) ~id
 }
 
+ArgumentList[closedBy=")"]<e, pe> {
+  "("
+  (arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
+  ListCompherension<e, pe>?
+  (";" arg<e, pe> ~id (!arguments "," arg<e, pe> ~id)*)?
+  ","?
+  ")" ~afterclosingparen
+}
+
 ParenthesizedExpression[closedBy=")"]<e> {
-  "(" !regular1 simpleExpressionList<e> !regular1 ")"
+  "("
+  list_expression<e> (~inline-block-or-tuple ";" list_expression<e>)+ ";"?
+  ")"
 }
 
 TupleExpression[closedBy=")"]<e, pe> {
@@ -544,6 +536,11 @@ TupleExpression[closedBy=")"]<e, pe> {
       (tupleelem<e, pe> ~id (!regular0 "," tupleelem<e, pe> ~id)+ ","?) ListCompherension<e, pe>?
     )?
   ")" ~afterclosingparen
+}
+list_expression<e> { e | AssignmentExpression_without_bare_tuple<e> }
+
+AssignmentExpression_without_bare_tuple[@name=AssignmentExpression]<e> {
+  e ~id !assign (assignOperator | "=") !assign e
 }
 
 tupleelem<e, pe> {
