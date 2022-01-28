@@ -278,6 +278,8 @@ BareModuleDefinition[closedBy="end"] {
   end
 }
 
+// TODO Get rid of this? Only used in MacroDefinition, and not
+// .... sure if it is even useful to have there (lots of things are technically allowed in macro names)
 definitionHead {
   InterpolationExpression |
   FieldExpression<definitionHead> |
@@ -296,14 +298,21 @@ e {
   definition |
   CompoundExpression |
   PairExpression<e> |
+  // TODO Move this to pe?
   MacroExpression<e, pe> |
+  // TODO Move this to pe?
   UnaryExpression<e> |
+  // TODO Move this to pe?
   BinaryExpression<e> |
   TernaryExpression<e> |
   FunctionExpression<e, pe> |
+  // TODO Move this to pe?
   CoefficientExpression<e> |
+  // TODO Move this to pe?
   RangeExpression<e> |
+  // TODO Move this to pe?
   TransposeExpression<e> |
+  // TODO Move this to pe?
   SpreadExpression<e> |
   Operator[group="operator"] { ":" ~op } |
   pe
@@ -618,6 +627,7 @@ UnaryExpression<e> {
   e !postfix ("'" | ".'")
 }
 
+// TODO Add `!` and `=>`
 Operator[group="operator"] {
   !regular0 (
     "$" |
