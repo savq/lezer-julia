@@ -516,7 +516,7 @@ LonelyType {
 ////////////
 ArgumentList[closedBy=")"]<e, pe> {
   "("
-  (tuple_section<e,pe> ~args_or_tuple Parameters<e,pe>*)?
+  (tuple_section<e,pe>? ~args_or_tuple Parameters<e,pe>*)?
   ")" ~afterclosingparen
 }
 
@@ -528,7 +528,7 @@ ParenthesizedExpression[closedBy=")"]<e> {
 
 TupleExpression<e, pe> {
   "("
-  (tuple_section_with_comma<e,pe> ~args_or_tuple Parameters<e,pe>*)?
+  (tuple_section_with_comma<e,pe>? ~args_or_tuple Parameters<e,pe>*)?
   ")"
 }
 

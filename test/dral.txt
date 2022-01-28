@@ -8,10 +8,32 @@ SourceFile(
 )
 
 
-# BROKEN: Tuple parameters
+# Tuple parameters
 function (x; y) end
 ==>
 SourceFile(FunctionDefinition(function,Definition(ArgumentList(Identifier,Parameters(Identifier))),end))
+
+
+# Named tuple with `;`
+(;x,y)
+==>
+SourceFile(TupleExpression(Parameters(Identifier,Identifier)))
+
+
+# Function call with named arguments
+a(;x,y)
+==>
+SourceFile(CallExpression(Identifier,ArgumentList(Parameters(Identifier,Identifier))))
+
+
+# Function definition with named arguments
+function a(;x,y) end
+==>
+SourceFile(FunctionDefinition(
+  function,
+  Definition(CallExpression(Identifier,ArgumentList(Parameters(Identifier,Identifier)))),
+  end
+))
 
 
 # Broadcast call
