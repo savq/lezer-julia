@@ -543,7 +543,7 @@ tuple_section<e> {
     list_expression<e> ~inline-block-or-tuple ("," list_expression<e>)* ","?
 }
 
-list_expression<e> { e | AssignmentExpression_without_bare_tuple<e> }
+list_expression<e> { e | AssignmentExpression_without_bare_tuple<e> | LonelyType }
 
 AssignmentExpression_without_bare_tuple[@name=AssignmentExpression]<e> {
   e ~id !assign (assignOperator | "=") !assign e
