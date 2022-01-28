@@ -15,6 +15,7 @@ const CHAR_LBRACKET = "[".codePointAt(0);
 const CHAR_SEMICOLON = ";".codePointAt(0);
 const CHAR_COLON = ":".codePointAt(0);
 const CHAR_DQUOTE = '"'.codePointAt(0);
+const CHAR_SINGLE_QUOTE = "'".codePointAt(0);
 const CHAR_NEWLINE = "\n".codePointAt(0);
 const CHAR_A = "A".codePointAt(0);
 const CHAR_Z = "Z".codePointAt(0);
@@ -416,7 +417,16 @@ export const layoutExtra = new ExternalTokenizer(
       input.acceptToken(terms.immediateBracket, 0);
       return;
     }
-    // immediateDoubleQuote
+    // immediateSingleQuote (for transpose `a'`)
+    if (
+      input.peek(0) === CHAR_SINGLE_QUOTE &&
+      !isWhitespace(input, -1) &&
+      stack.canShift(terms.immediateSingleQuote)
+    ) {
+      input.acceptToken(terms.immediateSingleQuote, 0);
+      return;
+    }
+    // immediateDoubleQuote (for prefixed strings)
     if (
       input.peek(0) === CHAR_DQUOTE &&
       !isWhitespace(input, -1) &&
@@ -425,7 +435,7 @@ export const layoutExtra = new ExternalTokenizer(
       input.acceptToken(terms.immediateDoubleQuote, 0);
       return;
     }
-    // immediateBackquote
+    // immediateBackquote (for prefixed strings)
     if (
       input.peek(0) === CHAR_BACKQUOTE &&
       !isWhitespace(input, -1) &&
@@ -434,7 +444,7 @@ export const layoutExtra = new ExternalTokenizer(
       input.acceptToken(terms.immediateBackquote, 0);
       return;
     }
-    // immediateDot
+    // immediateDot (for fieldexpression `a.b` and broadcasting `a.()`)
     if (
       input.peek(0) === CHAR_DOT &&
       !isWhitespace(input, -1) &&

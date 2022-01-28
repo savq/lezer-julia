@@ -4,6 +4,7 @@
   prefix
   postfix
   interp @left
+  transpose
   typeonlyascription @left
   typeascription @left
   coeff
@@ -12,7 +13,6 @@
   bitshift @left
   times @left
   plus @left
-  transpose @left
   colon @left
   pipe @left
   pipeback @right
@@ -46,9 +46,12 @@ expressionList<e, pe> {
   !right0
   terminator* ~possibly_more_expressions
   !right0 
+  // TODO Get rid of FunctionAssignmentExpression
   (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)?
-  (!right0 terminator+ ~possibly_more_expressions
-    (!right0 e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression))*
+  (
+    !right0 terminator+ ~possibly_more_expressions
+    (!right0 e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)
+  )*
   terminator* ~possibly_more_expressions
 }
 
@@ -457,7 +460,9 @@ Coefficient {
   TupleExpression<e, pe>
 }
 CoefficientExpression[@dynamicPrecedence=5]<e> {
-  Number ~afternumber !coeff (nowhitespace | immediateParen) ~paren_after_expression Coefficient
+  (Number ~afternumber | TransposeExpression<e>)
+  !coeff
+  (nowhitespace | immediateParen) ~paren_after_expression Coefficient
 }
 
 CompoundExpression[closedBy="end"] {
@@ -615,8 +620,7 @@ BinaryExpression<e> {
 }
 
 UnaryExpression<e> {
-  Operator { unaryOperatorExtra | plusminus } ~op !prefix e |
-  e !postfix Operator { "'" | ".'" }
+  Operator { unaryOperatorExtra | plusminus } ~op !prefix e
 }
 
 Operator[group="operator"] {
@@ -695,10 +699,10 @@ ScopedIdentifier {
 //   e !range ":" !range e
 // }
 
-// TODO Either make this work with `nowhitespace` (as it now parses invalid syntax correctly)
+// TODO Either make this work with `nowhitespace` (as it now parses invalid syntax as if correct)
 // .... OR make this a normal operator.
 TransposeExpression<e> {
-  e !transpose "'" !transpose e
+  e !transpose immediateSingleQuote "'"
 }
 
 @skip {} {
@@ -712,13 +716,13 @@ TransposeExpression<e> {
     "`" (commandStringContent | stringInterpolation)* "`"
   }
 
-  StringWithoutInterpolation {
+  StringWithoutInterpolation[@name="String"] {
     '"' stringContentWithoutInterpolation '"'
   }
-  TripleStringWithoutInterpolation {
+  TripleStringWithoutInterpolation[@name="TripleString"] {
     '"""' tripleStringContentWithoutInterpolation '"""'
   }
-  CommandStringWithoutInterpolation {
+  CommandStringWithoutInterpolation[@name="CommandString"] {
     "`" commandStringContentWithoutInterpolation "`"
   }
 }
@@ -758,6 +762,7 @@ boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
   immediateColon,
   immediateBrace,
   immediateBracket,
+  immediateSingleQuote,
   immediateDoubleQuote,
   immediateBackquote,
   immediateDot,

@@ -279,12 +279,16 @@ A'B:C'D
 
 ==>
 
-SourceFile(
-  BinaryExpression(
-    TransposeExpression(Identifier,Identifier),
-    TransposeExpression(Identifier,Identifier),
+SourceFile(BinaryExpression(
+  CoefficientExpression(
+    TransposeExpression(Identifier),
+    Coefficient(Identifier),
   ),
-)
+  CoefficientExpression(
+    TransposeExpression(Identifier),
+    Coefficient(Identifier),
+  ),
+))
 
 
 # IDK

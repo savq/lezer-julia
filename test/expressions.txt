@@ -327,7 +327,7 @@ SourceFile(
   UnaryExpression(Operator, Identifier),
   UnaryExpression(Operator, Identifier),
   UnaryExpression(Operator, Number),
-  UnaryExpression(ArrayExpression(Identifier), Operator),
+  TransposeExpression(ArrayExpression(Identifier)),
   CallExpression(Operator, ArgumentList(BinaryExpression(Identifier,Identifier))),
 )
 
