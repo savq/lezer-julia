@@ -70,7 +70,7 @@ SourceFile(MacroExpression(
   )
 ))
 
-# BROKEN: Why though
+# Why though (Not sure why this was fixed but it was...????)
 function pumas_be(
     data::AbstractDataFrame;
 	  method::B = :AUC,
@@ -82,7 +82,15 @@ function pumas_be(
     a
 end
 ==>
-SourceFile()
+SourceFile(FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList(
+  TypedExpression(Identifier,"::",Type(Identifier)),
+  Parameters(
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(Identifier)),Symbol(SymbolName)),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(Identifier)),Identifier),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)))),Identifier),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)))),Identifier),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(Identifier)),Identifier))
+))),Identifier,end))
 
 # TransposeStuff
 Bread' * Meat * Bread

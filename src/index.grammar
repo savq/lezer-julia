@@ -505,15 +505,15 @@ LonelyType {
 //////////
 
 InterpolationExpression[@dynamicPrecedence=2] {
-  "$" !interp pe
+  "$" !interp (nowhitespace | immediateParen) pe
 }
 
 Symbol[@dynamicPrecedence=10] {
-  ":" !interp SymbolName { word }
+  ":" !interp (nowhitespace | immediateParen) SymbolName { word }
 }
 
 QuoteExpression[@dynamicPrecedence=2] {
-  ":" !interp pe
+  ":" !interp (nowhitespace | immediateParen) pe
 }
 
 
