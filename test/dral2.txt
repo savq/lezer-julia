@@ -24,3 +24,33 @@ SourceFile(MacroExpression(
 Type{<:Hi, ::Wow}
 ==>
 SourceFile(ParameterizedIdentifier(Identifier,TypeArgumentList(LonelyType("<:",Type(Identifier)),LonelyType("::",Type(Identifier)))))
+
+# Broadcast-dot-operator-call
+.!(true, true, false)
+==>
+SourceFile(CallExpression(Operator,ArgumentList(BooleanLiteral,BooleanLiteral,BooleanLiteral)))
+
+# Broadcast-dot-operator
+.!isnan.([1,2,3])
+==>
+SourceFile(UnaryExpression(Operator,CallExpression(Identifier,BroadcastDot,ArgumentList(ArrayExpression(Number,Number,Number)))))
+
+# Just operators hanging out
+!
+.!
+.<:
+.>:
+==>
+SourceFile(Operator,Operator,Operator,Operator)
+
+# Huh? Bitwise operators weren't in here?
+1 | x
+==>
+SourceFile(BinaryExpression(Number,Identifier))
+
+# I mean com'on this is easy operator stuff
+a .=> x
+a .<| b
+a |> b .<| c
+==>
+SourceFile(BinaryExpression(Number,Identifier))
