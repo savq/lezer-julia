@@ -559,8 +559,12 @@ AssignmentExpression_without_bare_tuple[@name=AssignmentExpression]<e> {
 // Macros!
 /////////////
 
-MacroIdentifier {
-  !regular0 "@" MacroName { word | Operator | Operator[group="operator"] { "." } }
+MacroExpression<e, pe> {
+  (MacroIdentifier | MacroFieldExpression<pe>)
+  (
+    !right0 immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause? |
+    MacroArgumentList<e>
+  )?
 }
 
 MacroFieldExpression<pe> {
@@ -568,6 +572,17 @@ MacroFieldExpression<pe> {
   MacroIdentifier !immediate immediateDot !dot "." !dot MacroFieldName { word }
 }
 
+MacroIdentifier {
+  !regular0 "@" MacroName { word | Operator | Operator[group="operator"] { "." } }
+}
+
+MacroArgumentList<e> {
+  // TODO Add BareTupleExpression
+  (!regular-2 (e | AssignmentExpression<e>))+
+}
+
+
+// TODO Rename to and merge with `AssignmentExpression_without_bare_tuple`
 function_expression_assignment[@name="AssignmentExpression"]<e> {
   e
   !assign (assignOperator | "=")
@@ -577,22 +592,9 @@ function_expression_assignment[@name="AssignmentExpression"]<e> {
 FunctionExpression<e, pe> {
   (Identifier ~id | ArgumentList<e, pe>)
   !arrow "->"
-  (
-    e |
-    function_expression_assignment<e>
-  )
+  (e | function_expression_assignment<e>)
 }
 
-MacroExpression<e, pe> {
-  (MacroIdentifier | MacroFieldExpression<pe>) (!right0
-    immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause?
-    | MacroArgumentList<e>
-  )?
-}
-
-MacroArgumentList<e> {
-  (!regular-2 (e | AssignmentExpression<e>))+
-}
 
 BinaryExpression<e> {
   e !power powerOperator !power e |
@@ -627,18 +629,20 @@ Operator[group="operator"] {
 ArrayExpression[closedBy="]"]<e> {
   !regular0 "[" "]" |
   !regular0 "["
-    !regular0 e
-    ("," e)*?
-    (!regular0 ",")?
-    !regular0 "]"
+  !regular0 e
+  ("," e)*?
+  (!regular0 ",")?
+  !regular0 "]"
 }
 
 MatrixExpression[closedBy="]"]<e> {
   "["
-    !regular-1 MatrixRow<e>
-    (";" MatrixRow<e>)* 
-    (!regular-1 ";")?
-    !regular-1 "]"
+  !regular-1
+  MatrixRow<e>
+  (";" MatrixRow<e>)* 
+  (!regular-1 ";")?
+  !regular-1
+  "]"
 }
 
 MatrixRow<e> {
