@@ -150,7 +150,7 @@ ReturnStatement {
 }
 
 VariableDeclaration {
-  (Identifier | InterpolationExpression<pe>) (!right0 "=" e)?
+  (Identifier | InterpolationExpression) (!right0 "=" e)?
 }
 
 LetStatement[closedBy="end"] {
@@ -167,7 +167,7 @@ GlobalStatement {
   kw<"global"> (
     global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
     Identifier ~variabledeclaration |
-    InterpolationExpression<pe> ~variabledeclaration
+    InterpolationExpression ~variabledeclaration
   )
 }
 
@@ -175,7 +175,7 @@ LocalStatement {
   kw<"local"> (
     global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
     Identifier ~variabledeclaration |
-    InterpolationExpression<pe> ~variabledeclaration
+    InterpolationExpression ~variabledeclaration
   )
 }
 
@@ -279,10 +279,10 @@ BareModuleDefinition[closedBy="end"] {
 }
 
 definitionHead {
-  InterpolationExpression<definitionHead> |
+  InterpolationExpression |
   FieldExpression<definitionHead> |
   SubscriptExpression<definitionHead> |
-  QuoteExpression<definitionHead> |
+  QuoteExpression |
   ParameterizedIdentifier<e, definitionHead> |
   Identifier ~id |
   ParenthesizedExpression<definitionHead> |
@@ -312,15 +312,15 @@ e {
 meta_programming<e, pe> {
   PrefixedString |
   MacroExpression<e, pe> |
-  InterpolationExpression<pe>
+  InterpolationExpression
 }
 
 pe {
-  InterpolationExpression<pe> ~variabledeclaration |
+  InterpolationExpression ~variabledeclaration |
   FieldExpression<pe> |
   SubscriptExpression<pe> |
   Symbol |
-  QuoteExpression<pe> |
+  QuoteExpression |
   CallExpression<e, pe> |
   Identifier ~id ~variabledeclaration |
   boolean |
@@ -356,7 +356,7 @@ FieldName { word }
 FieldExpression<pe> {
   pe
   !immediate immediateDot !dot "." !dot
-  (FieldName | QuoteExpression<pe> | InterpolationExpression<pe>)
+  (FieldName | QuoteExpression | InterpolationExpression)
 }
 
 SubscriptExpression[closedBy="]"]<pe> {
@@ -396,11 +396,11 @@ s_e {
 }
 
 s_pe {
-  InterpolationExpression<s_pe> |
+  InterpolationExpression |
   FieldExpression<s_pe> |
   SubscriptExpression<s_pe> |
   Symbol |
-  QuoteExpression<s_pe> |
+  QuoteExpression |
   CallExpression<s_e, s_pe> |
   Identifier ~id |
   boolean |
@@ -444,18 +444,6 @@ TypedExpression<pe> {
   pe !typeascription (operator<"::"> | operator<"<:">) !typeascription TypePart
 }
 
-InterpolationExpression[@dynamicPrecedence=2]<pe> {
-  "$" !interp pe
-}
-
-Symbol[@dynamicPrecedence=10] {
-  ":" !interp SymbolName { word }
-}
-
-QuoteExpression[@dynamicPrecedence=2]<pe> {
-  ":" !interp pe
-}
-
 // I guess there might be more thing "coeffecientable",
 // but for now this is the list
 Coefficient {
@@ -466,7 +454,7 @@ Coefficient {
   } |
   Identifier |
   FieldExpression<Identifier> |
-  InterpolationExpression<pe> |
+  InterpolationExpression |
   PrefixedString |
   ParenthesizedExpression<e> |
   TupleExpression<e, pe>
@@ -508,6 +496,22 @@ ListCompherension<e, pe> {
 
 LonelyType {
   (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
+}
+
+//////////
+// Quoting and interpolation
+//////////
+
+InterpolationExpression[@dynamicPrecedence=2] {
+  "$" !interp pe
+}
+
+Symbol[@dynamicPrecedence=10] {
+  ":" !interp SymbolName { word }
+}
+
+QuoteExpression[@dynamicPrecedence=2] {
+  ":" !interp pe
 }
 
 
