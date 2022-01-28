@@ -25,7 +25,6 @@
   baretuple
   assign @right
   arrow @right
-  // TODO `arguments` is not needed at all I think
   regular1
   right0 @right
   regular0
@@ -473,7 +472,8 @@ CompoundExpression[closedBy="end"] {
 
 CallExpression<e, pe> {
   pe
-  !call BroadcastDot { immediateDot "." }? immediateParen ~paren_after_expression
+  !call BroadcastDot { immediateDot "." }?
+  (nowhitespace | immediateParen) ~paren_after_expression
   !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
   DoClause?
 }
@@ -694,13 +694,9 @@ ScopedIdentifier {
   (Identifier | ScopedIdentifier)? !dot "." !dot Identifier
 }
 
-// TODO Get rid of RangeExpression and make ":" a normal operator
-// RangeExpression<e> {
-//   e !range ":" !range e
-// }
-
-// TODO Either make this work with `nowhitespace` (as it now parses invalid syntax as if correct)
-// .... OR make this a normal operator.
+// Even though it is technically "just an unary expression",
+// I'm keeping this separate because it needs immediateSingleQuote
+// and because I don't feel like rewriting tests
 TransposeExpression<e> {
   e !transpose immediateSingleQuote "'"
 }

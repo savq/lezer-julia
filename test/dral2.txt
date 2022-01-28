@@ -88,3 +88,8 @@ SourceFile()
 Bread' * Meat * Bread
 ==>
 SourceFile(BinaryExpression(BinaryExpression(TransposeExpression(Identifier),Identifier),Identifier))
+
+# TransposeStuff2
+a'
+==>
+SourceFile(TransposeExpression(Identifier))
