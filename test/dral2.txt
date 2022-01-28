@@ -1,0 +1,26 @@
+# More operators as standalone
+(!)
+@>:
+==>
+SourceFile(ParenthesizedExpression(Operator),MacroExpression(MacroIdentifier(MacroName(Operator))))
+
+# Nested assignment in macro call
+@macro x = x = x
+==>
+SourceFile(MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(AssignmentExpression(Identifier,AssignmentExpression(Identifier,Identifier)))))
+
+# Bare tuple in macro call
+@macro x, y, z x, y, z
+==>
+SourceFile(MacroExpression(
+  MacroIdentifier(MacroName),
+  MacroArgumentList(
+    BareTupleExpression(Identifier,Identifier,Identifier),
+    BareTupleExpression(Identifier,Identifier,Identifier),
+  )
+))
+
+# Weird typed argument
+Type{<:Hi, ::Wow}
+==>
+SourceFile(ParameterizedIdentifier(Identifier,TypeArgumentList(LonelyType("<:",Type(Identifier)),LonelyType("::",Type(Identifier)))))

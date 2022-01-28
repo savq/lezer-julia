@@ -26,7 +26,6 @@
   assign @right
   arrow @right
   // TODO `arguments` is not needed at all I think
-  arguments
   regular1
   right0 @right
   regular0
@@ -357,7 +356,7 @@ ParameterizedIdentifier<e, pe> {
 }
 
 TypeArgumentList[closedBy="}"]<e> {
-  "{" e ("," e)* ","? "}"
+  "{" (e | LonelyType) ("," (e | LonelyType))* ","? "}"
 }
 
 FieldName { word }
@@ -591,7 +590,7 @@ MacroIdentifier {
 
 MacroArgumentList<e> {
   // TODO Add BareTupleExpression
-  (!regular-2 (e | AssignmentExpression<e>))+
+  (!regular-2 (e | AssignmentExpression<e> | BareTupleExpression<e>))+
 }
 
 
@@ -623,15 +622,16 @@ BinaryExpression<e> {
 }
 
 UnaryExpression<e> {
-  (unaryOperatorExtra | plusminus) ~op !prefix e |
+  Operator { unaryOperatorExtra | plusminus } ~op !prefix e |
   e !postfix ("'" | ".'")
 }
 
-// TODO Add `!` and `=>`
 Operator[group="operator"] {
   !regular0 (
     "$" |
     "=" |
+    "=>" |
+    unaryOperatorExtra |
     assignOperator |
     plusOperator |
     timesOperator |

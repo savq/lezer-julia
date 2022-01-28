@@ -314,7 +314,7 @@ SourceFile(
             Coefficient(
               CallExpression(
                 Identifier,
-                ArgumentList(BinaryExpression(UnaryExpression(Identifier),Number)),
+                ArgumentList(BinaryExpression(UnaryExpression(Operator, Identifier),Number)),
               ),
             ),
           ),

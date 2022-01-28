@@ -324,11 +324,11 @@ SourceFile(
 ==>
 
 SourceFile(
-  UnaryExpression(Identifier),
-  UnaryExpression(Identifier),
-  UnaryExpression(Number),
+  UnaryExpression(Operator, Identifier),
+  UnaryExpression(Operator, Identifier),
+  UnaryExpression(Operator, Number),
   UnaryExpression(ArrayExpression(Identifier)),
-  UnaryExpression(ParenthesizedExpression(BinaryExpression(Identifier,Identifier))),
+  CallExpression(Operator, ArgumentList(BinaryExpression(Identifier,Identifier))),
 )
 
 # The ternary operator
