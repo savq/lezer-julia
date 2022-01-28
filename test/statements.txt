@@ -57,7 +57,8 @@ SourceFile(
   ForStatement(
     for,
     ForBinding(
-      Identifier,in,
+      Identifier,
+      AssignOperator(in),
       ArrayExpression(Number,Number,Number)
     ),
     CallExpression(Identifier,ArgumentList(Identifier)),
@@ -66,7 +67,8 @@ SourceFile(
   ForStatement(
     for,
     ForBinding(
-      TupleExpression(Identifier,Identifier),in,
+      TupleExpression(Identifier,Identifier),
+      AssignOperator(in),
       Identifier
     ),
     CallExpression(Identifier,ArgumentList(Identifier,Identifier)),

@@ -574,7 +574,7 @@ SourceFile(
         Identifier,
         ArgumentList(Identifier,Identifier),
       ),
-      ForClause(for,ForBinding(Identifier,in,Identifier)),
+      ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier)),
       IfClause(if,Identifier),
     ),
   ),
@@ -586,8 +586,8 @@ SourceFile(
       ),
       ForClause(
         for,
-        ForBinding(Identifier,in,Identifier),
-        ForBinding(Identifier,Number),
+        ForBinding(Identifier,AssignOperator(in),Identifier),
+        ForBinding(Identifier,AssignOperator("="),Number),
       ),
     ),
   ),
@@ -596,8 +596,8 @@ SourceFile(
       CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
       ForClause(
         for,
-        ForBinding(Identifier,in,Identifier),
-        ForBinding(Identifier,Number),
+        ForBinding(Identifier,AssignOperator(in),Identifier),
+        ForBinding(Identifier,AssignOperator("="),Number),
       ),
       IfClause(if,Identifier),
     ),
@@ -606,8 +606,8 @@ SourceFile(
     CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
     ForClause(
       for,
-      ForBinding(Identifier,in,Identifier),
+      ForBinding(Identifier,AssignOperator(in),Identifier),
     ),
-    ForClause(for,ForBinding(Identifier,in,Identifier))
+    ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier))
   ),
 )

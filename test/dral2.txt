@@ -53,4 +53,13 @@ a .=> x
 a .<| b
 a |> b .<| c
 ==>
+SourceFile(
+  BinaryExpression(Identifier,Identifier),
+  BinaryExpression(Identifier,"pipe<",Identifier),
+  BinaryExpression(BinaryExpression(Identifier,"pipe>",Identifier),"pipe<",Identifier)
+)
+
+# Oh boy
+@NamedTuple{a::Float64, b::String}
+==>
 SourceFile(BinaryExpression(Number,Identifier))

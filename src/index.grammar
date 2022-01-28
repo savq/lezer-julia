@@ -13,7 +13,7 @@
   times @left
   plus @left
   transpose @left
-  range @left
+  colon @left
   pipe @left
   pipeback @right
   contains @left
@@ -307,12 +307,9 @@ e {
   // TODO Move this to pe?
   CoefficientExpression<e> |
   // TODO Move this to pe?
-  RangeExpression<e> |
-  // TODO Move this to pe?
   TransposeExpression<e> |
   // TODO Move this to pe?
   SpreadExpression<e> |
-  Operator[group="operator"] { ":" ~op } |
   pe
 }
 
@@ -394,10 +391,8 @@ s_e {
   TernaryExpression<s_e> |
   FunctionExpression<s_e, s_pe> |
   CoefficientExpression<s_e> |
-  RangeExpression<s_e> |
   TransposeExpression<s_e> |
   SpreadExpression<s_e> |
-  Operator[group="operator"] { ":" ~op } |
   s_pe
 }
 
@@ -602,16 +597,18 @@ FunctionExpression<e, pe> {
 }
 
 contains_operator { kw<"in"> | kw<"isa"> }
+colon_operator { ":" }
 
 BinaryExpression<e> {
   e !power powerOperator !power e |
   e !bitshift bitshiftOperator !bitshift e |
   e !pair pairOperator !pair e |
+  e !colon colon_operator !colon e |
   e !times timesOperator !times e |
   e !plus ("$" | plusOperator) !plus e |
   e !arrow arrowOperator e |
-  e !pipeback pipe-ltr e |
-  e !pipe pipe-rtl e |
+  e !pipeback pipe_ltr e |
+  e !pipe pipe_rtl e |
   e !contains (contains_operator | comparisonOperator) !contains e |
   e !bor "||" e |
   e !band "&&" e
@@ -635,8 +632,9 @@ Operator[group="operator"] {
     comparisonOperator |
     arrowOperator |
     contains_operator |
-    pipe-ltr |
-    pipe-rtl
+    pipe_ltr |
+    pipe_rtl |
+    colon_operator
   )
 }
 
@@ -684,7 +682,7 @@ ForClause<e, pe> {
 }
 
 ForBinding<e, pe> {
-  (Identifier ~id | TupleExpression<e, pe>) (kw<"in"> | operator<"="> | operator<"∈">) e
+  (Identifier ~id | TupleExpression<e, pe>) AssignOperator { kw<"in"> | operator<"="> | operator<"∈"> } e
 }
 
 ScopedIdentifier {
@@ -692,10 +690,13 @@ ScopedIdentifier {
   (Identifier | ScopedIdentifier)? !dot "." !dot Identifier
 }
 
-RangeExpression<e> {
-  e !range ":" !range e
-}
+// TODO Get rid of RangeExpression and make ":" a normal operator
+// RangeExpression<e> {
+//   e !range ":" !range e
+// }
 
+// TODO Either make this work with `nowhitespace` (as it now parses invalid syntax correctly)
+// .... OR make this a normal operator.
 TransposeExpression<e> {
   e !transpose "'" !transpose e
 }
@@ -748,7 +749,7 @@ plusOperator {
 
 operator<term> { [@name={term},group="operator"]{ term } } 
 
-end { @specialize[@name=end,group="keyword"]<Identifier, "end"> }
+end { kw<"end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
 boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
 
@@ -831,8 +832,8 @@ terminator { newline | ";" }
     "'" ("\\" !['] | ![']) "'"
   }
 
-  pipe-ltr[@name="pipe<"] { "<|" | ".<|" }
-  pipe-rtl[@name="pipe>"] { "|>" | ".|>" }
+  pipe_ltr[@name="pipe<"] { "<|" | ".<|" }
+  pipe_rtl[@name="pipe>"] { "|>" | ".|>" }
 
   ternary1 {
     whitespace+ "?" whitespace+
@@ -842,8 +843,8 @@ terminator { newline | ";" }
   }
   @precedence {
     Number,
-    pipe-ltr,
-    pipe-rtl,
+    pipe_ltr,
+    pipe_rtl,
     // <: and < will fight over two should be chosen,
     // and if possible it should always be <: (not gonna have a range expression with `<` sadly)
     "<:",

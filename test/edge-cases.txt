@@ -743,7 +743,7 @@ a:b
 
 ==>
 
-SourceFile(RangeExpression(Identifier,Identifier))
+SourceFile(BinaryExpression(Identifier,Identifier))
 
 # InterpolationExpression_call
 
@@ -798,7 +798,7 @@ SourceFile(
   SubscriptExpression(Identifier,BinaryExpression(end, Number)),
   SubscriptExpression(
     Identifier,
-    RangeExpression(
+    BinaryExpression(
       BinaryExpression(begin, Number),
       BinaryExpression(end, Number),
     ),
@@ -829,7 +829,7 @@ SourceFile(
     Identifier,
     ListCompherension(
       Identifier,
-      ForClause(for,ForBinding(Identifier,in,Identifier))
+      ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier))
     ),
   ),
 )

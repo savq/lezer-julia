@@ -234,7 +234,7 @@ SourceFile(
   CallExpression(
     Identifier,
     ArgumentList(
-      ListCompherension(Identifier,ForClause(for,ForBinding(Identifier,in,Identifier))),
+      ListCompherension(Identifier,ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier))),
     ),
   ),
 )
@@ -252,8 +252,8 @@ SourceFile(
         Identifier,
         ForClause(
           for,
-          ForBinding(Identifier,in,Identifier),
-          ForBinding(Identifier,in,Identifier),
+          ForBinding(Identifier,AssignOperator(in),Identifier),
+          ForBinding(Identifier,AssignOperator(in),Identifier),
         ),
       ),
     ),
@@ -265,8 +265,8 @@ SourceFile(
         Identifier,
         ForClause(
           for,
-          ForBinding(Identifier,in,Identifier),
-          ForBinding(Identifier,Number),
+          ForBinding(Identifier,AssignOperator(in),Identifier),
+          ForBinding(Identifier,AssignOperator("="),Number),
         ),
       ),
     ),
@@ -280,7 +280,7 @@ A'B:C'D
 ==>
 
 SourceFile(
-  RangeExpression(
+  BinaryExpression(
     TransposeExpression(Identifier,Identifier),
     TransposeExpression(Identifier,Identifier),
   ),
