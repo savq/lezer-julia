@@ -516,7 +516,7 @@ LonelyType {
 ////////////
 ArgumentList[closedBy=")"]<e, pe> {
   "("
-  (tuple_section<e> ~args_or_tuple Parameters<e>*)?
+  (tuple_section<e,pe> ~args_or_tuple Parameters<e,pe>*)?
   ")" ~afterclosingparen
 }
 
@@ -528,19 +528,23 @@ ParenthesizedExpression[closedBy=")"]<e> {
 
 TupleExpression<e, pe> {
   "("
-  (tuple_section_with_comma<e> ~args_or_tuple Parameters<e>*)?
+  (tuple_section_with_comma<e,pe> ~args_or_tuple Parameters<e,pe>*)?
   ")"
 }
 
-Parameters<e> {
-  ";" tuple_section<e>?
+Parameters<e,pe> {
+  ";" tuple_section<e,pe>?
 }
-tuple_section_with_comma<e> {
-    list_expression<e> "," |
-    list_expression<e> ("," list_expression<e>)+ ","?
+tuple_section_with_comma<e,pe> {
+    list_expression<e> "," ListCompherension<e,pe>? |
+    list_expression<e> ("," list_expression<e>)+ ("," ListCompherension<e,pe>?)?
 }
-tuple_section<e> {
-    list_expression<e> ~inline-block-or-tuple ("," list_expression<e>)* ","?
+tuple_section<e,pe> {
+    ListCompherension<e, pe> ~generator-or-tuple |
+    list_expression<e>
+    ~inline-block-or-tuple
+    ("," list_expression<e>)*
+    ("," ListCompherension<e, pe>?)?
 }
 
 list_expression<e> { e | AssignmentExpression_without_bare_tuple<e> | LonelyType }
@@ -646,7 +650,7 @@ ArrayComprehensionExpression[closedBy="]"]<e, pe> {
 }
 
 GeneratorExpression[closedBy=")"]<e, pe> {
-  "(" ListCompherension<e, pe> ")" ~afterclosingparen
+  "(" ListCompherension<e, pe> ~generator-or-tuple ")" ~afterclosingparen
 }
 
 comprehensionClause<e, pe> {
