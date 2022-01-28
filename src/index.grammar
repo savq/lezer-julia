@@ -563,8 +563,9 @@ AssignmentExpression_without_bare_tuple[@name=AssignmentExpression]<e> {
 MacroExpression<e, pe> {
   (MacroIdentifier | MacroFieldExpression<pe>)
   (
-    !right0 immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause? |
-    MacroArgumentList<e>
+    !right0 immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause? | // @use_memo([]) do; ... end
+    !immediate immediateBrace !immediate TypeArgumentList<e> | // @NamedTuple{x::Int}
+    MacroArgumentList<e> // Lame, normal macro call pfffft
   )?
 }
 
@@ -578,7 +579,6 @@ MacroIdentifier {
 }
 
 MacroArgumentList<e> {
-  // TODO Add BareTupleExpression
   (!regular-2 (e | AssignmentExpression<e> | BareTupleExpression<e>))+
 }
 

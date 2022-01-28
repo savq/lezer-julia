@@ -62,4 +62,28 @@ SourceFile(
 # Oh boy
 @NamedTuple{a::Float64, b::String}
 ==>
-SourceFile(BinaryExpression(Number,Identifier))
+SourceFile(MacroExpression(
+  MacroIdentifier(MacroName),
+  TypeArgumentList(
+    TypedExpression(Identifier,"::",Type(Identifier)),
+    TypedExpression(Identifier,"::",Type(Identifier)),
+  )
+))
+
+# BROKEN: Why though
+function pumas_be(
+    data::AbstractDataFrame;
+	  method::B = :AUC,
+    logtransformed::B = a,
+    period::Union{a} = a,
+    reference::Union{a} = a,
+    reml::B = a,
+)
+    a
+end
+==>
+SourceFile()
+
+# TransposeStuff
+(Bread' * Meat * Bread)
+==>
