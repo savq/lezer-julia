@@ -1,21 +1,23 @@
 import { parser } from "../src/index.js";
 import { fileTests } from "@lezer/generator/dist/test";
 
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
-let caseDir = path.dirname(fileURLToPath(import.meta.url));
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
-for (let file of fs.readdirSync(caseDir)) {
-  if (/\.min\.txt$/.test(file)) continue;
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+
+for (const file of fs.readdirSync(testDir)) {
   if (!/\.txt$/.test(file)) continue;
-
-  let name = /^[^\.]*/.exec(file)[0];
+  const name = (/^[^\.]*/).exec(file)[0];
   describe(name, () => {
-    for (let { name, run } of fileTests(
-      fs.readFileSync(path.join(caseDir, file), "utf8"),
-      file
-    ))
+    for (
+      const { name, run } of fileTests(
+        fs.readFileSync(path.join(testDir, file), "utf8"),
+        file,
+      )
+    ) {
       it(name, () => run(parser));
+    }
   });
 }

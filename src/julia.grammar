@@ -753,7 +753,7 @@ end { kw<"end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
 boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
 
-@external tokens layoutExtra from "./index.tokens.js" {
+@external tokens layoutExtra from "./tokens.js" {
   immediateParen,
   immediateColon,
   immediateBrace,
