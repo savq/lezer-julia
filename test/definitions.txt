@@ -2,8 +2,7 @@
 
 module A
 
-module B
-end
+baremodule B end
 
 module C
 end
@@ -11,260 +10,273 @@ end
 end
 
 ==>
-
-SourceFile(
-  ModuleDefinition(module,Definition(Identifier),
-    ModuleDefinition(module,Definition(Identifier),end),
-    ModuleDefinition(module,Definition(Identifier),end),
+Program(
+  ModuleDefinition(
+    module,
+    Identifier,
+    ModuleDefinition(baremodule, Identifier, end),
+    ModuleDefinition(module, Identifier, end),
     end
   )
 )
 
-# Structs
 
-# primitive
-primitive type T 8 end
-primitive type T <: S 16 end
-primitive type Ptr{T} 32 end
+# Abstract type definitions
 
-# abstract
 abstract type T end
 abstract type T <: S end
 abstract type T{S} <: U end
 
-# empty
-struct NoFields
-end
+==>
+Program(
+  AbstractDefinition(abstract, type, TypeHead(Identifier), end),
+  AbstractDefinition(abstract, type, TypeHead(BinaryExpression(Identifier, Identifier)), end),
+  AbstractDefinition(abstract, type, TypeHead(BinaryExpression(ParametrizedExpression(Identifier, BraceExpression(Identifier)), Identifier)), end),
+)
 
-# mutable
+
+# Primitive type definitions
+
+primitive type T 8 end
+primitive type T <: S 16 end
+primitive type Ptr{T} 32 end
+
+==>
+Program(
+  PrimitiveDefinition(primitive, type, TypeHead(Identifier), IntegerLiteral, end),
+  PrimitiveDefinition(primitive, type, TypeHead(BinaryExpression(Identifier, Identifier)), IntegerLiteral, end),
+  PrimitiveDefinition(primitive, type, TypeHead(ParametrizedExpression(Identifier, BraceExpression(Identifier))), IntegerLiteral, end),
+)
+
+
+# Struct definitions
+
+struct Unit end
+
+struct MyInt; field::Int end
+
+==>
+Program(
+  StructDefinition(struct, TypeHead(Identifier), end),
+  StructDefinition(struct, TypeHead(Identifier), BinaryExpression(Identifier, Identifier), end),
+)
+
+
+# Mutable struct definitions
+
 mutable struct Bar
   baz
   qux::Float64
 end
 
-# parametric
+==>
+Program(
+  StructDefinition(
+    mutable, struct,
+    TypeHead(Identifier),
+    Identifier,
+    BinaryExpression(Identifier, Identifier),
+    end
+  ),
+)
+
+
+# Parametric struct definitions
+
 struct Point{T}
   x::T
   y::T
 end
 
-# parametric with constraints, parent type
+==>
+Program(
+  StructDefinition(
+    struct,
+    TypeHead(ParametrizedExpression(Identifier, BraceExpression(Identifier))),
+    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, Identifier),
+    end
+  ),
+)
+
+
+# Parametric struct definitions with subtyping
+
 struct Rational{T<:Integer} <: Real
   num::T
   den::T
 end
 
-# parametric fields
-mutable struct Foo<:Bar
+==>
+Program(
+  StructDefinition(
+    struct,
+    TypeHead(
+      BinaryExpression(
+        ParametrizedExpression(Identifier, BraceExpression(BinaryExpression(Identifier, Identifier))),
+        Identifier
+      )
+    ),
+    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, Identifier),
+    end
+  ),
+)
+
+
+# Parametric struct fields
+
+mutable struct Foo <: Bar
   asd::Vector{Bar}
 end
 
 ==>
-
-
-SourceFile(
-  Comment,
-  PrimitiveDefinition(
-    primitive,type,
-    Definition(Identifier),
-    Number,
-    end),
-  PrimitiveDefinition(
-    primitive,type,
-    Definition(SubtypedExpression(Identifier, Identifier)),
-    Number,
-    end),
-  PrimitiveDefinition(
-    primitive,type,
-    Definition(ParameterizedIdentifier(
-      Identifier,
-      TypeArgumentList(Identifier),
-    )),
-    Number,
-    end),
-  Comment,
-  AbstractDefinition(
-    abstract,type,
-    Definition(Identifier),
-    end),
-  AbstractDefinition(
-    abstract,type,
-    Definition(SubtypedExpression(Identifier,Identifier)),
-    end),
-  AbstractDefinition(
-    abstract,type,
-    Definition(SubtypedExpression(
-      ParameterizedIdentifier(
-        Identifier,
-        TypeArgumentList(Identifier),
-      ),
-      Identifier,
-    )),
-    end),
-  Comment,
+Program(
   StructDefinition(
-    struct,
-    Definition(Identifier),
-    end),
-  Comment,
-  StructDefinition(
-    mutable,struct,
-    Definition(Identifier),
-    Identifier,
-    TypedExpression(Identifier,Type(Identifier)),
-    end),
-  Comment,
-  StructDefinition(
-    struct,
-    Definition(ParameterizedIdentifier(
-      Identifier,
-      TypeArgumentList(Identifier),
-    )),
-    TypedExpression(Identifier,Type(Identifier)),
-    TypedExpression(Identifier,Type(Identifier)),
-    end),
-  Comment,
-  StructDefinition(
-    struct,
-    Definition(SubtypedExpression(
-      ParameterizedIdentifier(
-        Identifier,
-        TypeArgumentList(SubtypedExpression(Identifier,"<:",Identifier))
-      ),
-      "<:",
-      Identifier
-    )),
-    TypedExpression(Identifier,"::",Type(Identifier)),
-    TypedExpression(Identifier,"::",Type(Identifier)),
-    end),
-  Comment,
-  StructDefinition(
-    mutable,struct,
-    Definition(SubtypedExpression(
-      Identifier,
-      Identifier,
-    )),
-    TypedExpression(
-      Identifier,
-      Type(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)))
-    ),
-    end)
-)
-
-# Functions with typed parameters
-
-function a(b::C)
-end
-
-function d{E}(f::E)
-end
-
-==>
-
-SourceFile(
-  FunctionDefinition(
-    function,
-    Definition(CallExpression(Identifier, ArgumentList(TypedExpression(Identifier,Type(Identifier))))),
-    end
-  ),
-  FunctionDefinition(
-    function,
-    Definition(
-      CallExpression(
-        ParameterizedIdentifier(
-          Identifier,
-          TypeArgumentList(Identifier),
-        )
-        ArgumentList(TypedExpression(Identifier,Type(Identifier))),
-      ),
-    ),
+    mutable, struct,
+    TypeHead(BinaryExpression(Identifier, Identifier)),
+    BinaryExpression(Identifier, ParametrizedExpression(Identifier, BraceExpression(Identifier))),
     end
   ),
 )
 
-# Functions with optional and keyword parameters
 
-function a(b::C = 1; d, e::F = 2)
+# Function definitions
+
+function nop() end
+
+function I(x) x end
+
+function Base.rand(n::MyInt)
+    return 4
+end
+
+function Γ(z)
+    gamma(z)
 end
 
 ==>
-
-SourceFile(
+Program(
+  FunctionDefinition(function, Signature(CallExpression(Identifier, Arguments)), end),
+  FunctionDefinition(function, Signature(CallExpression(Identifier, Arguments(Identifier))), Identifier, end),
   FunctionDefinition(
     function,
-    Definition(CallExpression(
-      Identifier,
-      ArgumentList(
-        AssignmentExpression(TypedExpression(Identifier,Type(Identifier)),Number),
-        Parameters(
-          Identifier,
-          AssignmentExpression(TypedExpression(Identifier,Type(Identifier)),Number)
-        )
-      ),
-    )),
-    end
+    Signature(CallExpression(FieldExpression(Identifier, Identifier), Arguments(BinaryExpression(Identifier, Identifier)))),
+    ReturnStatement(return, IntegerLiteral),
+    end,
+  ),
+  FunctionDefinition(
+    function,
+    Signature(CallExpression(Identifier, Arguments(Identifier))),
+    CallExpression(Identifier, Arguments(Identifier)),
+    end,
   )
 )
 
-# BROKEN: Macro definitions
+# Function definitions - Operators
 
-macro treelike(T, fs = nothing)
-  fs = [:($(map(QuoteNode, fs.args)...),)]
-  :(treelike(@__MODULE__, $(esc(T)), $(fs...)))
+function ⊕(x, y)
+    x + y
+end
+
+===>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(CallExpression(Operator, Arguments(Identifier, Identifier))),
+    BinaryExpression(Identifier, Identifier),
+    end,
+  )
+)
+
+
+# Function definitions - Callable structs
+
+function (foo::Foo)()
 end
 
 ==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(CallExpression(ParenExpression(BinaryExpression(Identifier, Identifier)), Arguments)),
+    end,
+  )
+)
 
-SourceFile(
+
+# function definitions - Zero method definitions
+
+function f end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(Identifier),
+    end,
+  )
+)
+
+
+# Function definitions - Anonymous functions
+
+function fix2(f, x)
+    return function(y,) # FIXME: Trailing comma
+        f(x, y)
+    end
+end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(CallExpression(Identifier, Arguments(Identifier, Identifier))),
+    ReturnStatement(
+      return,
+      FunctionDefinition(
+        function,
+        Signature(TupleExpression(Identifier)),
+        LineComment,
+        CallExpression(Identifier, Arguments(Identifier, Identifier)),
+        end,
+      )
+    )
+    end,
+  )
+)
+
+
+# Functions with typed parameters # TODO
+==>Program()
+
+# Functions with optional and keyword parameters # TODO
+==>Program()
+
+# Functions definitions with type parameters # TODO
+==>Program()
+
+
+# Macro definitions
+
+macro name(s::Symbol)
+    String(s)
+end
+
+macro count(args...); length(args) end
+
+==>
+Program(
   MacroDefinition(
     macro,
-    Definition(Identifier),
-    ArgumentList(Identifier,AssignmentExpression(Identifier,Identifier)),
-    AssignmentExpression(
-      Identifier,
-      ArrayExpression(
-        QuoteExpression(
-          TupleExpression(
-            InterpolationExpression(
-              ParenthesizedExpression(
-                SpreadExpression(
-                  CallExpression(
-                    Identifier,
-                    ArgumentList(
-                      Identifier,
-                      FieldExpression(Identifier,FieldName)
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    ),
-    QuoteExpression(
-      ParenthesizedExpression(
-        CallExpression(
-          Identifier,
-          ArgumentList(
-            MacroExpression(MacroIdentifier(MacroName)),
-            InterpolationExpression(
-              ParenthesizedExpression(
-                CallExpression(
-                  Identifier,
-                  ArgumentList(Identifier)
-                )
-              )
-            ),
-            InterpolationExpression(
-              ParenthesizedExpression(
-                SpreadExpression(Identifier)
-              )
-            )
-          )
-        )
-      )
-    ),
+    Signature(CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Identifier)))),
+    CallExpression(Identifier, Arguments(Identifier)),
     end
-  )
+  ),
+  MacroDefinition(
+    macro,
+    Signature(CallExpression(Identifier, Arguments(SplatExpression(Identifier)))),
+    CallExpression(Identifier, Arguments(Identifier)),
+    end
+  ),
 )

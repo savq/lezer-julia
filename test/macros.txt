@@ -1,0 +1,161 @@
+# Closed macro call expressions
+
+@enum(Light, red, yellow, green)
+
+==>
+Program(
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    Arguments(
+      Identifier,
+      Identifier,
+      Identifier,
+      Identifier,
+    ),
+  ),
+)
+
+
+# Open macro call expressions
+
+@mac a b c
+
+@assert x == y "a message"
+
+@. a * x + b
+
+joinpath(@__DIR__, "grammar.js")
+
+@macroexpand @async accept(socket)
+
+# @Meta.dump 1, 2 # TODO
+Meta.@dump x = 1
+
+==>
+Program(
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(Identifier, Identifier, Identifier),
+  )
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(BinaryExpression(Identifier,Identifier), StringLiteral)
+  ),
+  MacrocallExpression(
+    MacroIdentifier(Operator),
+    MacroArguments(BinaryExpression(BinaryExpression(Identifier, Identifier), Identifier))
+  ),
+  CallExpression(
+    Identifier,
+    Arguments(
+      MacrocallExpression(MacroIdentifier(Identifier))
+      StringLiteral
+    )
+  )
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(
+      MacrocallExpression(
+        MacroIdentifier(Identifier),
+        MacroArguments(
+          CallExpression(Identifier, Arguments(Identifier))
+        )
+      )
+    )
+  )
+  LineComment
+  MacrocallExpression(
+    FieldExpression(
+      Identifier,
+      MacroIdentifier(Identifier),
+    ),
+    MacroArguments(Assignment(Identifier, IntegerLiteral))
+  ),
+)
+
+
+# Open macro call expressions with blocks
+
+@testset "a" begin
+  b = c
+end
+
+==>
+Program(
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(
+      StringLiteral,
+      BeginStatement(
+        begin,
+        Assignment(Identifier, Identifier),
+        end)
+    )
+  )
+)
+
+
+# Open vs closed macros
+
+@m[1, 2] + 1
+@m [1, 2] + 1
+
+==>
+Program(
+  BinaryExpression(
+    MacrocallExpression(
+      MacroIdentifier(Identifier),
+      VectorExpression(IntegerLiteral, IntegerLiteral),
+    ),
+    IntegerLiteral
+  ),
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(
+      BinaryExpression(
+        VectorExpression(IntegerLiteral, IntegerLiteral),
+        IntegerLiteral
+      ),
+    )
+  ),
+)
+
+
+# Macros as parameters
+
+f(@nospecialize(x)) = x
+g(@nospecialize x) = x + 1
+h(@nospecialize x, y) = x + y
+
+==>
+Program(
+  Assignment(
+    CallExpression(
+      Identifier
+      Arguments(
+        MacrocallExpression(MacroIdentifier(Identifier), Arguments(Identifier))
+      )
+    ),
+    Identifier
+  )
+  Assignment(
+    CallExpression(
+      Identifier
+      Arguments(
+        MacrocallExpression(MacroIdentifier(Identifier), MacroArguments(Identifier))
+      )
+    ),
+    BinaryExpression(Identifier, IntegerLiteral),
+  )
+  Assignment(
+    CallExpression(
+      Identifier
+      Arguments(
+        MacrocallExpression(MacroIdentifier(Identifier), MacroArguments(OpenTuple(Identifier, Identifier)))
+      )
+    ),
+    BinaryExpression(Identifier, Identifier),
+  )
+)
+
+

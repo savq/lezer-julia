@@ -1,0 +1,323 @@
+# Identifiers
+
+abc_123_ABC
+_fn!
+ρ; φ; z
+ℝ
+x′
+θ̄
+logŷ
+ϵ
+ŷ
+∫
+🙋
+🦀
+
+==>
+Program(
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+  Identifier,
+)
+
+
+# Keywords as identifiers - Valid variable names
+
+where = Any
+
+where where where
+
+==>
+Program(
+  Assignment(Identifier, Identifier),
+  BinaryExpression(Identifier, where, Identifier),
+)
+
+
+# Field expressions
+
+foo.x
+bar.x.y.z
+
+Base.:+
+Base.:(==)
+df."a"
+Base.r"foo"
+
+(a[1].b().c).d
+
+==>
+Program(
+  FieldExpression(Identifier, Identifier),
+  FieldExpression(
+    FieldExpression(
+      FieldExpression(
+        Identifier,
+        Identifier,
+      ),
+      Identifier,
+    )
+    Identifier,
+  ),
+  FieldExpression(Identifier, Symbol(Operator)),
+  FieldExpression(Identifier, QuoteExpression(ParenExpression(Operator))),
+  FieldExpression(Identifier, StringLiteral)
+  FieldExpression(Identifier, NsStringLiteral(Identifier))
+
+  FieldExpression(
+    ParenExpression(
+      FieldExpression(
+        CallExpression(
+          FieldExpression(
+            IndexExpression(Identifier, VectorExpression(IntegerLiteral)),
+            Identifier
+          ),
+          Arguments
+        ),
+        Identifier
+      ),
+    ),
+    Identifier
+  ),
+)
+
+
+
+# Index expressions
+
+a[]
+a[1, :]
+"foo"[1]
+xs[i += 1]
+
+==>
+Program(
+  IndexExpression(Identifier, VectorExpression()),
+  IndexExpression(Identifier, VectorExpression(IntegerLiteral, Operator)),
+  IndexExpression(StringLiteral, VectorExpression(IntegerLiteral)),
+  IndexExpression(Identifier, VectorExpression(Assignment(Identifier, IntegerLiteral))),
+),
+
+
+# Keywords as identifiers - begin/end indexing
+
+xs[begin]
+xs[begin + 1]
+xs[end]
+xs[end - 1]
+
+==>
+Program(
+  IndexExpression(Identifier, VectorExpression(Identifier)),
+  IndexExpression(Identifier, VectorExpression(BinaryExpression(Identifier, IntegerLiteral))),
+  IndexExpression(Identifier, VectorExpression(Identifier)),
+  IndexExpression(Identifier, VectorExpression(BinaryExpression(Identifier, IntegerLiteral))),
+)
+
+
+# Type parametrized expressions
+
+Vector{Int}
+Vector{<:Number}
+$(usertype){T}
+
+## Gen.jl DSL with tilde syntax
+{:x} ~ normal(0, 1)
+
+==>
+Program(
+  ParametrizedExpression(Identifier, BraceExpression(Identifier)),
+  ParametrizedExpression(Identifier, BraceExpression(UnaryExpression(Identifier))),
+  ParametrizedExpression(
+    InterpExpression(ParenExpression(Identifier)),
+    BraceExpression(Identifier)
+  ),
+  LineComment,
+  Assignment(
+    BraceExpression(Symbol(Identifier)),
+    CallExpression(Identifier, Arguments(IntegerLiteral, IntegerLiteral))
+  )
+)
+
+
+
+# Function call expressions
+
+f()
+g("hi", 2)
+h(d...)
+
+f(e; f = g)
+g(arg; kwarg)
+
+new{typeof(xs)}(xs)
+
+f(g())
+
+==>
+Program(
+  CallExpression(Identifier, Arguments),
+  CallExpression(Identifier, Arguments(StringLiteral, IntegerLiteral)),
+  CallExpression(Identifier, Arguments(SplatExpression(Identifier))),
+
+  CallExpression(
+    Identifier,
+    Arguments(Identifier),
+    KeywordArguments(KwArg(Identifier, Identifier))
+  ),
+  CallExpression(
+    Identifier,
+    Arguments(Identifier),
+    KeywordArguments(Identifier)
+  ),
+
+  CallExpression(
+    ParametrizedExpression(
+      Identifier,
+      BraceExpression(CallExpression(Identifier, Arguments(Identifier)))
+    ),
+    Arguments(Identifier)
+  ),
+  CallExpression(
+    Identifier,
+    Arguments(CallExpression(Identifier, Arguments))
+  )
+)
+
+
+
+# Function broadcast call expressions
+
+f.(xs)
+foo!.(ys)
+.⋆(ys)
+
+==>
+Program(
+  CallExpression(Identifier, Arguments(Identifier)),
+  CallExpression(Identifier, Arguments(Identifier)),
+  CallExpression(Operator, Arguments(Identifier)),
+)
+
+
+
+# Function call expressions with do blocks
+
+reduce(xs) do x, y
+  f(x, y)
+end
+
+==>
+Program(
+  CallExpression(
+    Identifier,
+    Arguments(Identifier),
+
+    DoClause(
+      do,
+      Parameters(Identifier, Identifier),
+      CallExpression(
+        Identifier,
+        Arguments(Identifier, Identifier),
+      ),
+      end,
+    )
+  )
+)
+
+
+# Quote expressions and symbols
+
+:foo
+:if
+
+:(x; y)
+:(x, y)
+:[x, y, z]
+
+:+
+:->
+:(=)
+
+==>
+Program(
+  Symbol(Identifier),
+  Symbol(Identifier),
+
+  QuoteExpression(ParenExpression(Identifier, Identifier)),
+  QuoteExpression(TupleExpression(Identifier, Identifier)),
+  QuoteExpression(VectorExpression(Identifier, Identifier, Identifier)),
+
+  Symbol(Operator),
+  Symbol(Operator),
+  QuoteExpression(ParenExpression(Operator)),
+)
+
+
+# Keywords as identifiers - Quoted keywords
+
+if x == :end
+  1
+else
+  2
+end
+
+
+==>
+Program(
+  IfStatement(
+    if
+    Condition(BinaryExpression(Identifier, Symbol(Identifier)))
+    IntegerLiteral,
+    ElseClause(else, IntegerLiteral)
+    end
+  )
+)
+
+
+# Interpolation expressions
+
+$foo
+$obj.field
+$(obj.field)
+$f(x)
+$f[1, 2]
+
+==>
+Program(
+  InterpExpression(Identifier),
+  FieldExpression(InterpExpression(Identifier), Identifier),
+  InterpExpression(ParenExpression(FieldExpression(Identifier, Identifier))),
+  CallExpression(InterpExpression(Identifier), Arguments(Identifier)),
+  IndexExpression(InterpExpression(Identifier), VectorExpression(IntegerLiteral, IntegerLiteral)),
+)
+
+
+# Adjoint expressions
+
+[u, v]'
+A'[i]
+(x, y)'
+f'(x)
+:a'
+
+==>
+Program(
+  AdjointExpression(VectorExpression(Identifier, Identifier)),
+  IndexExpression(AdjointExpression(Identifier), VectorExpression(Identifier)),
+  AdjointExpression(TupleExpression(Identifier, Identifier)),
+  CallExpression(AdjointExpression(Identifier), Arguments(Identifier)),
+  AdjointExpression(Symbol(Identifier))
+)
+

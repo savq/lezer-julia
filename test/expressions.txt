@@ -1,613 +1,168 @@
-# Variables
-
-w
-w′
-θ
-θ̄
-logŷ
-ϵ
-ŷ
-
-==>
-
-SourceFile(
-  Identifier,
-  Identifier,
-  Identifier,
-  Identifier,
-  Identifier,
-  Identifier,
-  Identifier,
-)
-
-# Strings
-
-"foo"
-"f $name"
-"f $(a + b)"
-"
-f \$name"
-"fo\"o"
-"\\"
-
-==>
-
-SourceFile(
-  String,
-  String(Identifier),
-  String(BinaryExpression(Identifier,Identifier)),
-  String,
-  String,
-  String,
-)
-
-# Triple Strings
-
-"""
-a "quoted" string"""
-"""a $name string"""
-"""a $(a + b) string"""
-"""a \$name string"""
-
-==>
-
-SourceFile(
-  TripleString,
-  TripleString(Identifier),
-  TripleString(BinaryExpression(Identifier,Identifier)),
-  TripleString,
-)
-
-# Command strings
-
-`foo`
-`foo \` bar`
-`foo $name bar`
-`foo $(a + b) bar`
-`foo \$name bar`
-
-==>
-
-SourceFile(
-  CommandString,
-  CommandString,
-  CommandString(Identifier),
-  CommandString(BinaryExpression(Identifier, Identifier)),
-  CommandString,
-)
-
-# Prefixed strings
-
-x = r"foo"
-y = v"1.0"
-z = md"-- $(x) --"
-
-==>
-
-SourceFile(
-  AssignmentExpression(
-    Identifier,
-    PrefixedString(Prefix(Identifier),String)
-  ),
-  AssignmentExpression(
-    Identifier,
-    PrefixedString(Prefix(Identifier),String),
-  ),
-  AssignmentExpression(
-    Identifier,
-    PrefixedString(Prefix(Identifier),String),
-  ),
-)
-
-# Characters
-
-'o'
-'\t'
-'
-'
-
-==>
-
-SourceFile(Character,Character,Character)
-
 # Assignments
-
 a = b
+tup = 1, 2, 3
+car, cdr... = list
+
+a × b = a * b
 c &= d ÷= e
-a, b = c, d, e
+xs .+= ys
+
+A[i] = new_value
+id(x) = x         # short functions are currently parsed as calls
 
 ==>
+Program(
+  Assignment(Identifier, Identifier),
+  Assignment(Identifier, OpenTuple(IntegerLiteral, IntegerLiteral, IntegerLiteral)),
+  Assignment(OpenTuple(Identifier, SplatExpression(Identifier)), Identifier),
 
-SourceFile(
-  AssignmentExpression(
-    Identifier,
-    Identifier,
-  ),
-  AssignmentExpression(
-    Identifier,
-    AssignmentExpression(Identifier,Identifier),
-  ),
-  AssignmentExpression(
-    BareTupleExpression(Identifier,Identifier),
-    BareTupleExpression(Identifier,Identifier,Identifier)
-  )
+  Assignment(BinaryExpression(Identifier, Identifier), BinaryExpression(Identifier, Identifier)),
+  Assignment(Identifier, Assignment(Identifier, Identifier)),
+  Assignment(Identifier, Identifier),
+
+  Assignment(IndexExpression(Identifier, VectorExpression(Identifier)), Identifier),
+  Assignment(CallExpression(Identifier, Arguments(Identifier)), Identifier), LineComment,
 )
 
-# Functions
 
-function test(x, y)
-end
+# Type declarations
 
-==>
-
-SourceFile(
-  FunctionDefinition(
-    function,
-    Definition(CallExpression(Identifier, ArgumentList(Identifier,Identifier))),
-    end
-  )
-)
-
-# Function calls
-
-a()
-b("hi", 2)
-c(d...)
-d(e; f = g)
-new{typeof(xs)}(xs)
+x::T
+x::Vector{T} where T
 
 ==>
-
-SourceFile(
-  CallExpression(
-    Identifier,
-    ArgumentList
-  ),
-  CallExpression(
-    Identifier,
-    ArgumentList(String,Number)
-  ),
-  CallExpression(
-    Identifier,
-    ArgumentList(SpreadExpression(Identifier))
-  ),
-  CallExpression(
-    Identifier,
-    ArgumentList(
-      Identifier,
-      Parameters(
-        AssignmentExpression(Identifier,Identifier)
-      )
-    )
-  ),
-  CallExpression(
-    ParameterizedIdentifier(
-      Identifier,
-      TypeArgumentList(
-        CallExpression(Identifier,ArgumentList(Identifier))
-      )
-    ),
-    ArgumentList(Identifier)
-  )
-)
-
-# Function calls with do blocks
-
-a(b) do
-  print(c)
-end
-
-==> 
-
-SourceFile(
-  CallExpression(
-    Identifier,
-    ArgumentList(Identifier),
-    DoClause(
-      do,
-      CallExpression(Identifier,ArgumentList(Identifier)),
-      end
-    )
-  )
-)
-
-# Fields and subscripts
-
-(a[1].b().c).d
-
-==>
-
-SourceFile(
-  FieldExpression(
-    ParenthesizedExpression(
-      FieldExpression(
-        CallExpression(
-          FieldExpression(
-            SubscriptExpression(Identifier,Number),
-            FieldName
-          ),
-          ArgumentList
-        ),
-        FieldName
-      )
-    ),
-    FieldName
-  )
-)
-
-# Macro calls
-
-@assert x == y
-@assert x == y "a message"
-
-@. a
-
-@testset "a" begin
-  b = c
-end
-
-==>
-
-SourceFile(
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    MacroArgumentList(
-      BinaryExpression(Identifier,Identifier))
-  ),
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    MacroArgumentList(
-      BinaryExpression(Identifier,Identifier),
-      String
-    )
-  ),
-  MacroExpression(
-    MacroIdentifier(MacroName(Operator)),
-    MacroArgumentList(Identifier)
-  ),
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    MacroArgumentList(
-      String,
-      CompoundExpression(
-        begin,
-        AssignmentExpression(Identifier,Identifier),
-        end)
-      )
-    )
-  )
-
-# Binary operators
-
-a → b ⇶ c ⭄ d
-a * b ⦼ c
-a == b
-
-==>
-
-SourceFile(
+Program(
+  BinaryExpression(Identifier, Identifier),
   BinaryExpression(
     Identifier,
+    BinaryExpression(ParametrizedExpression(Identifier, BraceExpression(Identifier)), where, Identifier),
+  )
+)
+
+
+# Arrow function expressions
+
+x -> x^2
+(x,y,z)-> 2 * x + y - z
+()->3
+() -> (sleep(0.1); i += 1; l)
+
+==>
+Program(
+  ArrowFunctionExpression(
+    Identifier,
+    BinaryExpression(Identifier, IntegerLiteral),
+  ),
+  ArrowFunctionExpression(
+    TupleExpression(Identifier, Identifier, Identifier),
     BinaryExpression(
-      Identifier,
-      BinaryExpression(Identifier,Identifier)
+      BinaryExpression(
+        BinaryExpression(IntegerLiteral, Identifier),
+        Identifier
+      ),
+      Identifier
     )
   ),
-  BinaryExpression(
-    BinaryExpression(Identifier,Identifier),
-    Identifier
-  ),
-  BinaryExpression(Identifier,Identifier)
-)
-
-# Binary operators with leading dots
-
-a .* b .+ c
-
-==>
-
-SourceFile(
-  BinaryExpression(
-    BinaryExpression(Identifier,Identifier),
-    Identifier
+  ArrowFunctionExpression(TupleExpression, IntegerLiteral),
+  ArrowFunctionExpression(
+    TupleExpression,
+    ParenExpression(
+      CallExpression(Identifier, Arguments(FloatLiteral)),
+      Assignment(Identifier, IntegerLiteral),
+      Identifier
+    )
   )
 )
 
-# Unary operators
 
-+a
--b
-√9
-[a]'
-!(a + b)
+# Juxtaposition expressions - Coefficients
+
+2π
+2v[i]
+3f(x)
+4df.a
+5u"kg"
+
+# FIXME: Monomials currently don't get parsed with the correct precedence
+2x^2 - .3x
+1.5x^2 - .5x
+2^2x
+2(x-1)^2 - 3(x-1)
 
 ==>
-
-SourceFile(
-  UnaryExpression(Operator, Identifier),
-  UnaryExpression(Operator, Identifier),
-  UnaryExpression(Operator, Number),
-  TransposeExpression(ArrayExpression(Identifier)),
-  CallExpression(Operator, ArgumentList(BinaryExpression(Identifier,Identifier))),
+Program(
+  JuxtapositionExpression(IntegerLiteral, Identifier),
+  JuxtapositionExpression(IntegerLiteral, IndexExpression(Identifier, VectorExpression(Identifier))),
+  JuxtapositionExpression(IntegerLiteral, CallExpression(Identifier, Arguments(Identifier))),
+  JuxtapositionExpression(IntegerLiteral, FieldExpression(Identifier, Identifier)),
+  JuxtapositionExpression(IntegerLiteral, NsStringLiteral(Identifier)),
+  LineComment,
+  BinaryExpression(
+    BinaryExpression(
+      JuxtapositionExpression(IntegerLiteral, Identifier),
+      IntegerLiteral
+    ),
+    JuxtapositionExpression(FloatLiteral, Identifier)
+  ),
+  BinaryExpression(
+    BinaryExpression(
+      JuxtapositionExpression(FloatLiteral, Identifier),
+      IntegerLiteral
+    ),
+    JuxtapositionExpression(FloatLiteral, Identifier)
+  ),
+  BinaryExpression(
+    IntegerLiteral,
+    JuxtapositionExpression(IntegerLiteral, Identifier)
+  ),
+  BinaryExpression(
+    BinaryExpression(
+      JuxtapositionExpression(
+        IntegerLiteral,
+        ParenExpression(BinaryExpression(Identifier,IntegerLiteral))
+      ),
+      IntegerLiteral
+    ),
+    JuxtapositionExpression(
+      IntegerLiteral,
+      ParenExpression(
+        BinaryExpression(Identifier,IntegerLiteral)
+      )
+    )
+  ),
 )
 
-# The ternary operator
+
+# Juxtaposition expressions - Primary LHS
+
+x'x
+f()g()h()
+
+==>
+Program(
+  JuxtapositionExpression(AdjointExpression(Identifier), Identifier),
+  JuxtapositionExpression(
+    CallExpression(Identifier, Arguments),
+    CallExpression(Identifier, Arguments),
+    CallExpression(Identifier, Arguments),
+  ),
+)
+
+
+# Ternary operator
 
 x = batch_size == 1 ?
   rand(10) :
   rand(10, batch_size)
 
 ==>
-
-SourceFile(
-  AssignmentExpression(
+Program(
+  Assignment(
     Identifier,
     TernaryExpression(
-      BinaryExpression(Identifier,Number),
-      CallExpression(Identifier,ArgumentList(Number)),
-      CallExpression(Identifier,ArgumentList(Number,Identifier))
+      BinaryExpression(Identifier, IntegerLiteral),
+      CallExpression(Identifier, Arguments(IntegerLiteral)),
+      CallExpression(Identifier, Arguments(IntegerLiteral, Identifier))
     )
   )
-)
-
-# Operators as values
-
-x = +
-print(:)
-foo(^, ÷)
-
-==>
-
-SourceFile(
-  AssignmentExpression(Identifier,Operator),
-  CallExpression(Identifier,ArgumentList(Operator)),
-  CallExpression(Identifier,ArgumentList(Operator,Operator))
-)
-
-# Numerical expressions
-
-1
-2.0
-3.
-0xdeadbeef999
-100_000_000
-.4
-1.0e-7
-
-==>
-
-SourceFile(
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number
-)
-
-# Coefficient expressions
-
-2x^2 - 3x + 1
-1.5x^2 - .5x + 1
-2^2x
-2(x-1)^2 - 3(x-1) + 1
-
-==>
-
-SourceFile(
-  BinaryExpression(
-    BinaryExpression(
-      BinaryExpression(
-        CoefficientExpression(Number, Coefficient(Identifier)),
-        Number
-      ),
-      CoefficientExpression(Number, Coefficient(Identifier))
-    ),
-    Number
-  ),
-  BinaryExpression(
-    BinaryExpression(
-      BinaryExpression(
-        CoefficientExpression(Number, Coefficient(Identifier)),
-        Number
-      ),
-      CoefficientExpression(Number, Coefficient(Identifier))
-    ),
-    Number
-  ),
-  BinaryExpression(
-    Number,
-    CoefficientExpression(Number, Coefficient(Identifier))
-  ),
-  BinaryExpression(
-    BinaryExpression(
-      BinaryExpression(
-        CoefficientExpression(
-          Number,
-          Coefficient(ParenthesizedExpression(BinaryExpression(Identifier,Number)))
-        ),
-        Number
-      ),
-      CoefficientExpression(
-        Number,
-        Coefficient(ParenthesizedExpression(
-          BinaryExpression(Identifier,Number)
-        ))
-      )
-    ),
-    Number
-  )
-)
-
-# Tuples
-
-()
-(a)
-(a,)
-(a,b,c,)
-(a,b,c)
-
-==>
-
-SourceFile(
-  TupleExpression,
-  ParenthesizedExpression(Identifier),
-  TupleExpression(Identifier),
-  TupleExpression(Identifier,Identifier,Identifier)
-  TupleExpression(Identifier,Identifier,Identifier)
-)
-
-# Named tuples
-
-(a = 1)
-(a = 1,)
-(a = 1, b = 2)
-
-==>
-
-SourceFile(
-  ParenthesizedExpression(
-    AssignmentExpression(Identifier,Number)
-  ),
-  TupleExpression(
-    AssignmentExpression(Identifier,Number)
-  ),
-  TupleExpression(
-    AssignmentExpression(Identifier,Number),
-    AssignmentExpression(Identifier,Number)
-  )
-)
-
-# Arrays
-
-[]
-[1, 2,]
-
-==>
-
-SourceFile(
-  ArrayExpression,
-  ArrayExpression(Number,Number),
-)
-
-# Matrices
-
-[1 2]
-[1 2; 3 4]
-[1 2; 3 4;]
-
-==>
-
-SourceFile(
-  MatrixExpression(MatrixRow(Number,Number)),
-  MatrixExpression(MatrixRow(Number,Number),MatrixRow(Number,Number)),
-  MatrixExpression(MatrixRow(Number,Number),MatrixRow(Number,Number))
-)
-
-# Pairs
-
-A(b => c, d => e)
-
-==>
-
-SourceFile(
-  CallExpression(
-    Identifier,
-    ArgumentList(
-      BinaryExpression(Identifier,Identifier),
-      BinaryExpression(Identifier,Identifier)
-    )
-  )
-)
-
-# Function expressions
-
-x -> x^2
-(x,y,z)->2x+y-z
-()->3
-function () 3 end
-() -> (sleep(0.1); i += 1; l)
-
-==>
-
-SourceFile(
-  FunctionExpression(
-    Identifier,
-    BinaryExpression(Identifier,Number)
-  ),
-  FunctionExpression(
-    ArgumentList(Identifier,Identifier,Identifier),
-    BinaryExpression(
-      BinaryExpression(
-        CoefficientExpression(Number,Coefficient(Identifier)),
-        Identifier
-      ),
-      Identifier
-    )
-  ),
-  FunctionExpression(ArgumentList,Number),
-  FunctionDefinition(function,Definition(ArgumentList),Number,end),
-  FunctionExpression(
-    ArgumentList,
-    ParenthesizedExpression(
-      CallExpression(Identifier,ArgumentList(Number)),
-      AssignmentExpression(Identifier,Number),
-      Identifier
-    )
-  )
-)
-
-# Generator expressions
-
-(b(c, e) for c in d if e)
-(b(c, e) for c in d, e = 5)
-(b(c, e) for c in d, e = 5 if e)
-[b(c, e) for c in d for e in f]
-
-==>
-
-SourceFile(
-  GeneratorExpression(
-    ListCompherension(
-      CallExpression(
-        Identifier,
-        ArgumentList(Identifier,Identifier),
-      ),
-      ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier)),
-      IfClause(if,Identifier),
-    ),
-  ),
-  GeneratorExpression(
-    ListCompherension(
-      CallExpression(
-        Identifier,
-        ArgumentList(Identifier,Identifier),
-      ),
-      ForClause(
-        for,
-        ForBinding(Identifier,AssignOperator(in),Identifier),
-        ForBinding(Identifier,AssignOperator("="),Number),
-      ),
-    ),
-  ),
-  GeneratorExpression(
-    ListCompherension(
-      CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-      ForClause(
-        for,
-        ForBinding(Identifier,AssignOperator(in),Identifier),
-        ForBinding(Identifier,AssignOperator("="),Number),
-      ),
-      IfClause(if,Identifier),
-    ),
-  ),
-  ArrayComprehensionExpression(
-    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
-    ForClause(
-      for,
-      ForBinding(Identifier,AssignOperator(in),Identifier),
-    ),
-    ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier))
-  ),
 )

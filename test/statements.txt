@@ -1,4 +1,198 @@
+# Begin statements
+
+begin
+end
+
+begin ; ; end
+
+begin
+    foo
+    bar
+    baz
+end
+
+==>
+Program(
+  BeginStatement(begin, end),
+  BeginStatement(begin, end),
+  BeginStatement(begin, Identifier, Identifier, Identifier, end)
+)
+
+
+# Quote statements
+
+quote end
+
+quote
+  x
+  y
+end
+
+==>
+Program(
+  QuoteStatement(quote, end),
+  QuoteStatement(quote, Identifier, Identifier, end)
+)
+
+
+# While statements
+
+while true
+end
+
+while i < 5
+  print(i)
+  continue
+  break
+end
+
+while check(x) update!(x) end
+
+==>
+Program(
+  WhileStatement(while, Condition(BoolLiteral), end),
+  WhileStatement(
+    while,
+    Condition(BinaryExpression(Identifier, IntegerLiteral)),
+    CallExpression(Identifier, Arguments(Identifier)),
+    ContinueStatement(continue),
+    BreakStatement(break),
+    end
+  ),
+  WhileStatement(
+    while,
+    Condition(CallExpression(Identifier, Arguments(Identifier))),
+    CallExpression(Identifier, Arguments(Identifier)),
+    end
+  ),
+)
+
+
+# Let statements
+
+let
+end
+
+let var1 = value1, var2, var3 = value3
+    code
+end
+
+let (x, y) = tuple
+    x
+end
+
+==>
+Program(
+  LetStatement(let, end),
+  LetStatement(
+    let,
+    LetBinding(Assignment(Identifier, Identifier)),
+    LetBinding(Identifier)
+    LetBinding(Assignment(Identifier, Identifier)),
+    Identifier,
+    end
+  ),
+  LetStatement(
+    let,
+    LetBinding(Assignment(TupleExpression(Identifier, Identifier), Identifier)),
+    Identifier,
+    end,
+  )
+)
+
+
+# For statements
+
+for x in xs end
+
+for x in xs foo(x) end
+
+for i in [1, 2, 3]
+  println(i)
+end
+
+for (a, b) in cs
+  println(a, b)
+end
+
+==>
+Program(
+  ForStatement(
+    for,
+    ForBinding(Identifier, in, Identifier),
+    end
+  ),
+  ForStatement(
+    for,
+    ForBinding(Identifier, in, Identifier),
+    CallExpression(Identifier, Arguments(Identifier)),
+    end
+  ),
+  ForStatement(
+    for,
+    ForBinding(Identifier, in, VectorExpression(IntegerLiteral, IntegerLiteral, IntegerLiteral)),
+    CallExpression(Identifier,Arguments(Identifier)),
+    end
+  ),
+  ForStatement(
+    for,
+    ForBinding(TupleExpression(Identifier, Identifier), in, Identifier),
+    CallExpression(Identifier, Arguments(Identifier, Identifier)),
+    end
+  )
+)
+
+
+# For outer statements
+
+n = 1
+for outer n = range
+  body
+end
+
+for outer x = iter, outer y = iter
+  body
+end
+
+==>
+Program(
+  Assignment(Identifier, IntegerLiteral),
+  ForStatement(
+    for,
+    ForBinding(
+      outer,
+      Identifier,
+      Identifier,
+    )
+    Identifier,
+    end,
+  )
+  ForStatement(
+    for,
+    ForBinding(
+      outer,
+      Identifier,
+      Identifier,
+    )
+    ForBinding(
+      outer,
+      Identifier,
+      Identifier,
+    )
+    Identifier,
+    end,
+  )
+)
+
+
 # If statements
+
+if a
+elseif b
+else
+end
+
+if true 1 else 0 end
 
 if a
   b()
@@ -9,108 +203,76 @@ else
   e()
 end
 
-# empty bodies
-if a
-elseif b
-else
-end
-
 ==>
-
-SourceFile(
+Program(
   IfStatement(
-    IfClause(if,Identifier),
-    CallExpression(Identifier,ArgumentList),
-    ElseifClause(
-      IfClause(elseif,Identifier),
-      CallExpression(Identifier,ArgumentList),
-      CallExpression(Identifier,ArgumentList)
-    ),
-    ElseClause(
-      else,
-      CallExpression(Identifier,ArgumentList)
-    ),
-    end
-  ),
-  Comment,
-  IfStatement(
-    IfClause(if,Identifier),
-    ElseifClause(IfClause(elseif,Identifier)),
+    if,
+    Condition(Identifier),
+    ElseIfClause(elseif, Condition(Identifier)),
     ElseClause(else),
     end
   )
+  IfStatement(
+    if,
+    Condition(BoolLiteral),
+    IntegerLiteral,
+    ElseClause(else, IntegerLiteral),
+    end
+  )
+
+  IfStatement(
+    if,
+    Condition(Identifier),
+    CallExpression(Identifier, Arguments),
+    ElseIfClause(
+      elseif,
+      Condition(Identifier),
+      CallExpression(Identifier, Arguments),
+      CallExpression(Identifier, Arguments)
+    ),
+    ElseClause(
+      else,
+      CallExpression(Identifier, Arguments)
+    ),
+    end
+  )
 )
 
-# For statements
 
-for i in [1, 2, 3]
-  print(i)
-end
+# Try statements
 
-for (a, b) in c
-  print(a, b)
+try
+    result = fallible_func(resource)
+catch exception
+    log(:err, exception)
+else
+    log(:ok, result)
+finally
+    close(resource)
 end
 
 ==>
-
-SourceFile(
-  ForStatement(
-    for,
-    ForBinding(
-      Identifier,
-      AssignOperator(in),
-      ArrayExpression(Number,Number,Number)
-    ),
-    CallExpression(Identifier,ArgumentList(Identifier)),
-    end
-  ),
-  ForStatement(
-    for,
-    ForBinding(
-      TupleExpression(Identifier,Identifier),
-      AssignOperator(in),
+Program(
+  TryStatement(
+    try
+    Assignment(Identifier CallExpression(Identifier Arguments(Identifier))),
+    CatchClause(
+      catch
       Identifier
-    ),
-    CallExpression(Identifier,ArgumentList(Identifier,Identifier)),
+      CallExpression(Identifier Arguments(Symbol(Identifier) Identifier))
+    )
+    ElseClause(
+      else
+      CallExpression(Identifier Arguments(Symbol(Identifier) Identifier))
+    )
+    FinallyClause(
+      finally
+      CallExpression(Identifier Arguments(Identifier))
+    )
     end
   )
 )
 
-# While statements
-
-while i < 5
-  print(i)
-  continue
-  break
-end
-
-while a(); b(); end
-while a() b(); end
-
-==>
-
-SourceFile(
-  WhileStatement(
-    while,
-    WhileBinding(BinaryExpression(Identifier,Number)),
-    CallExpression(Identifier,ArgumentList(Identifier)),
-    ContinueStatement(continue),
-    BreakStatement(break),
-    end
-  ),
-  WhileStatement(
-    while,
-    WhileBinding(CallExpression(Identifier,ArgumentList)),
-    CallExpression(Identifier,ArgumentList),
-    end
-  ),
-  WhileStatement(
-    while,
-    WhileBinding(CallExpression(Identifier,ArgumentList)),
-    CallExpression(Identifier,ArgumentList),
-    end
-  )
-)
 
 # Return statements
 
@@ -120,259 +282,127 @@ return a || b
 return a, b, c
 
 ==>
-
-SourceFile(
+Program(
   ReturnStatement(return),
-  ReturnStatement(return,
-    Identifier),
-  ReturnStatement(return,
-    BinaryExpression(Identifier,Identifier)),
-  ReturnStatement(return,
-    BareTupleExpression(Identifier,Identifier,Identifier))
+  ReturnStatement(return, Identifier),
+  ReturnStatement(return, BinaryExpression(Identifier, Identifier)),
+  ReturnStatement(return, OpenTuple(Identifier, Identifier, Identifier))
 )
 
-# Let statements
 
-let var1 = value1, var2, var3 = value3
-    code
-end
+# Export statements
 
-let f() = 1, g() = 3
-    f()
-end
+export a
+export a, b, +, (*)
+export @macroMcAtface
 
 ==>
-
-SourceFile(
-  LetStatement(let,
-    LetBinding(
-      VariableDeclaration(Identifier,Identifier),
-      VariableDeclaration(Identifier),
-      VariableDeclaration(Identifier,Identifier),
-    ),
-    Identifier,
-    end
-  ),
-  LetStatement(let,
-    LetBinding(
-      VariableDeclaration(
-        CallExpression(Identifier,ArgumentList())
-        Number,
-      ),
-      VariableDeclaration(
-        CallExpression(Identifier,ArgumentList())
-        Number,
-      ),
-    ),
-    CallExpression(Identifier,ArgumentList()),
-    end,
-  )
+Program(
+  ExportStatement(export, Identifier),
+  ExportStatement(export, Identifier, Identifier, Operator, ParenExpression(Operator)),
+  ExportStatement(export, MacroIdentifier(Identifier)),
 )
 
-# Const statements
-
-const x, y = 5
-
-==>
-
-SourceFile(
-  ConstStatement(
-    const,
-    AssignmentExpression(
-      BareTupleExpression(Identifier,Identifier),
-      Number,
-    ),
-  ),
-)
-
-
-# Quote statements
-
-quote
-  x = 1
-  y = 2
-  x + y
-end
-
-==>
-
-SourceFile(
-  QuoteStatement(quote,
-    AssignmentExpression(Identifier,Number),
-    AssignmentExpression(Identifier,Number),
-    BinaryExpression(Identifier,Identifier),
-    end
-  )
-)
-
-# Call in call
-
-f(f())
-
-==>
-
-SourceFile(
-    CallExpression(
-        Identifier,
-        ArgumentList(CallExpression(Identifier,ArgumentList()))
-    )
-)
-
-# Try statements
-
-try
-    sqrt(x)
-catch
-    f(g(x,2))
-end
-
-try
-    do_something()
-catch
-else
-    success()
-end
-
-try
-    f(io)
-finally
-    close(io)
-end
-
-==>
-
-SourceFile(
-  TryStatement(try,
-    CallExpression(Identifier,ArgumentList(Identifier)),
-    CatchClause(catch,
-      CallExpression(
-        Identifier,
-        ArgumentList(
-          CallExpression(Identifier,ArgumentList(Identifier,Number))
-        )
-      )
-    ),
-    end
-  ),
-  TryStatement(try,
-    CallExpression(Identifier,ArgumentList()),
-    CatchClause(catch),
-    TryElseClause(else,
-        CallExpression(Identifier,ArgumentList()),
-    ),
-    end,
-  ),
-  TryStatement(try,
-    CallExpression(Identifier,ArgumentList(Identifier)),
-    FinallyClause(finally,
-      CallExpression(Identifier,ArgumentList(Identifier))
-    ),
-    end
-  )
-)
 
 # Import statements
 
 using Lib
-using BigLib: thing1, thing2
-import Base.show
-import .A: @b
 using A, B, C
+using ..Foo, ..Bar
+
+import Base.show
+using BigLib: thing1, thing2
+import .A: @b
+
+==>
+Program(
+  ImportStatement(using, ImportPath(Identifier)),
+  ImportStatement(using, ImportPath(Identifier), ImportPath(Identifier), ImportPath(Identifier)),
+  ImportStatement(using, ImportPath(Identifier), ImportPath(Identifier), ),
+
+  ImportStatement(import, ImportPath(Identifier, Identifier)),
+  ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportPath(Identifier), ImportPath(Identifier))),
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), MacroIdentifier(Identifier))),
+)
+
+
+# Import statements - Import aliases
+
 import A as B
 import A.B as C
 import CSV: a as b
+
+## Selected + Aliases
 import A: a as b, b as a, c
 using A: a as c
+
+## More Aliases
 import Pkg: Artifacts.archive_artifacts as aa
 import Base: + as -
 using Printf: @sprintf as @format
 
 ==>
+Program(
+  ImportStatement(import, ImportAlias(ImportPath(Identifier), as, Identifier)),
+  ImportStatement(import, ImportAlias(ImportPath(Identifier, Identifier), as, Identifier)),
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(ImportPath(Identifier), as, Identifier))),
+  LineComment,
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(ImportPath(Identifier), as, Identifier), ImportAlias(ImportPath(Identifier), as, Identifier), ImportPath(Identifier)))
+  ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportAlias(ImportPath(Identifier), as, Identifier))),
+  LineComment,
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(ImportPath(Identifier, Identifier), as, Identifier))),
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(Operator, as, Operator))),
+  ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportAlias(MacroIdentifier(Identifier), as, MacroIdentifier(Identifier))))
+)
 
-SourceFile(
-  ImportStatement(using,
-    Import(Identifier)),
-  ImportStatement(using,
-    SelectedImport(Identifier,Identifier,Identifier)),
-  ImportStatement(import,
-    Import(ScopedIdentifier(Identifier,Identifier))),
-  ImportStatement(import,
-    SelectedImport(
-      ScopedIdentifier(Identifier),
-      MacroIdentifier(MacroName)
-    )
-  ),
-  ImportStatement(using,
-    Import(Identifier,Identifier,Identifier)
-  ),
-  ImportStatement(import,
-    Import(RenamedIdentifier(Identifier,as,Identifier))
-  ),
-  ImportStatement(import,
-    Import(RenamedIdentifier(ScopedIdentifier(Identifier,Identifier),as,Identifier))
-  ),
-  ImportStatement(import,
-    SelectedImport(Identifier,RenamedImport(Identifier,as,Identifier)),
-  ),
-  ImportStatement(import,
-    SelectedImport(Identifier,RenamedImport(Identifier,as,Identifier),RenamedImport(Identifier,as,Identifier),Identifier),
-  ),
-  ImportStatement(using,
-    SelectedImport(Identifier,RenamedImport(Identifier,as,Identifier)),
-  ),
-  ImportStatement(import,
-    SelectedImport(Identifier,RenamedImport(ScopedIdentifier(Identifier,Identifier),as,Identifier))
-  ),
-  ImportStatement(import,
-    SelectedImport(Identifier,RenamedImport(Operator,as,Operator)),
-  ),
-  ImportStatement(using,
-    SelectedImport(Identifier,RenamedImport(MacroIdentifier(MacroName),as,MacroIdentifier(MacroName)))
+
+# Const statements
+
+const x = 5
+const y, z = 1, 2
+
+(0; const x, y = 1, 2)
+
+==>
+Program(
+  ConstStatement(const, Assignment(Identifier, IntegerLiteral)),
+  ConstStatement(const, Assignment(OpenTuple(Identifier, Identifier), OpenTuple(IntegerLiteral, IntegerLiteral))),
+  ParenExpression(
+    IntegerLiteral,
+    ConstStatement(const, Assignment(OpenTuple(Identifier, Identifier), OpenTuple(IntegerLiteral, IntegerLiteral))),
   )
 )
 
-# Export statements
+# Local statements
 
-export a
-export a, b, c
+local x
+local y, z = 1, 2
+
+local foo() = 3
+local function bar() 4 end
 
 ==>
+Program(
+  LocalStatement(local, Identifier),
+  LocalStatement(local, Assignment(OpenTuple(Identifier, Identifier), OpenTuple(IntegerLiteral, IntegerLiteral))),
 
-SourceFile(
-  ExportStatement(export,Identifier),
-  ExportStatement(export,Identifier,Identifier,Identifier)
+  LocalStatement(local, Assignment(CallExpression(Identifier, Arguments), IntegerLiteral)),
+  LocalStatement(local, FunctionDefinition(function, Signature(CallExpression(Identifier, Arguments)), IntegerLiteral, end)),
 )
 
-# Comments
 
-# comment
-#= comment =#
-#=
-comment
-=#
-x = #= comment =# 1
+# Global statements
 
-#=
-nested #= comments =# =#
-#==#
+global X
+global Y, Z = 11, 42
+global foo() = 3
+global function bar() 4 end
 
 ==>
+Program(
+  GlobalStatement(global, Identifier),
+  GlobalStatement(global, Assignment(OpenTuple(Identifier, Identifier), OpenTuple(IntegerLiteral, IntegerLiteral))),
 
-SourceFile(
-  Comment,
-  BlockComment,
-  BlockComment,
-  AssignmentExpression(Identifier,BlockComment,Number),
-  BlockComment,
-  BlockComment,
-)
-
-# Subtypes
-
-Bool <: Integer
-
-==>
-
-SourceFile(
-    SubtypedExpression(Identifier,Identifier),
+  GlobalStatement(global, Assignment(CallExpression(Identifier, Arguments), IntegerLiteral)),
+  GlobalStatement(global, FunctionDefinition(function, Signature(CallExpression(Identifier, Arguments)), IntegerLiteral, end)),
 )
