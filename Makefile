@@ -10,7 +10,7 @@ SRC = src/julia.grammar src/tokens.js
 PARSER = src/_parser.js src/_parser.terms.js
 
 # Bundled by rollup
-INDEX = dist/index.js dist/index.cjs
+INDEX = dist/index.es.js dist/index.cjs
 
 
 build: $(INDEX)

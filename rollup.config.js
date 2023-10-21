@@ -9,7 +9,7 @@ export default {
     },
     {
       format: "es",
-      file: process.env.ROLLUP_OUT + ".js",
+      file: process.env.ROLLUP_OUT + ".es.js",
     },
   ],
   external(id) {
