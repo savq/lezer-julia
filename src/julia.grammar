@@ -753,7 +753,7 @@ end { kw<"end"> }
 kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
 boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
 
-@external tokens layoutExtra from "./index.tokens.js" {
+@external tokens layoutExtra from "./tokens.js" {
   immediateParen,
   immediateColon,
   immediateBrace,
@@ -767,22 +767,22 @@ boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
 
 terminator { newline | ";" }
 
-@external tokens newline from "./index.tokens.js" { newline }
+@external tokens newline from "./tokens.js" { newline }
 
 // So this is a tricky one... to have `word` for fieldnames and symbols
 // but `Identifier` for Identifiers *and keywords*, I now have two tokens that are generated the same way...
 // The trick is having `word` earlier in this list, so when it has to chose between `word` or `Identifier`,
 // it will always take the `word` first.
-@external tokens word from "./index.tokens.js" { word }
-@external tokens Identifier from "./index.tokens.js" { Identifier }
+@external tokens word from "./tokens.js" { word }
+@external tokens Identifier from "./tokens.js" { Identifier }
 
-@external tokens BlockComment from "./index.tokens.js" { BlockComment }
-@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
-@external tokens stringContent from "./index.tokens.js" { stringContent }
-@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
-@external tokens tripleStringContentWithoutInterpolation from "./index.tokens.js" { tripleStringContentWithoutInterpolation }
-@external tokens stringContentWithoutInterpolation from "./index.tokens.js" { stringContentWithoutInterpolation }
-@external tokens commandStringContentWithoutInterpolation from "./index.tokens.js" { commandStringContentWithoutInterpolation }
+@external tokens BlockComment from "./tokens.js" { BlockComment }
+@external tokens tripleStringContent from "./tokens.js" { tripleStringContent }
+@external tokens stringContent from "./tokens.js" { stringContent }
+@external tokens commandStringContent from "./tokens.js" { commandStringContent }
+@external tokens tripleStringContentWithoutInterpolation from "./tokens.js" { tripleStringContentWithoutInterpolation }
+@external tokens stringContentWithoutInterpolation from "./tokens.js" { stringContentWithoutInterpolation }
+@external tokens commandStringContentWithoutInterpolation from "./tokens.js" { commandStringContentWithoutInterpolation }
 
 @tokens {
   whitespace {
