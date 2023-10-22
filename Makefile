@@ -35,3 +35,7 @@ check: # Ensure tooling is installed
 clean: # Remove generated files
 	rm $(PARSER)
 	rm $(INDEX)
+
+release:
+	npm publish
+	git tag v$(cat package.json | jq -r .version)
