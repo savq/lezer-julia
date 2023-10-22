@@ -22,6 +22,7 @@
   ternary @right
   pair @right
   forbinding
+  letbindinglist
   baretuple
   assign @right
   arrow @right
@@ -64,11 +65,11 @@ AssignmentExpression<e> {
   (e | AssignmentExpression<e> | BareTupleExpression<e>))
 }
 
-FunctionAssignmentExpression[@dynamicPrecedence=2] {
-  Identifier ~id immediateParen !call ArgumentList<e, pe> ~id
+FunctionAssignmentExpression {
+  CallExpression<e, pe>
   (kw<"where"> TypeArgumentList<e>)?
   !assign (assignOperator | "=")
-  !assign (e | AssignmentExpression<e>)
+  !assign (e | BareTupleExpression<e>)
 }
 
 // STATEMENTS
@@ -108,17 +109,23 @@ ElseClause[closedBy="end"] {
     expressionList<e, pe>
 }
 
-TryStatement[closedBy="end catch finally"] {
+TryStatement[closedBy="end catch else finally"] {
   kw<"try">
     expressionList<e, pe>
   CatchClause?
+  TryElseClause?
   FinallyClause?
   end
 }
 
-CatchClause[closedBy="end finally"] {
+CatchClause[closedBy="end else finally"] {
   kw<"catch"> CatchBinding { Identifier ~id }? !regular1
     expressionList<e, pe>
+}
+
+TryElseClause[closedBy="finally end"] {
+    kw<"else">
+      expressionList<e, pe>
 }
 
 FinallyClause[closedBy="end"] {
@@ -151,11 +158,11 @@ ReturnStatement {
 }
 
 VariableDeclaration {
-  (Identifier | InterpolationExpression) (!right0 "=" e)?
+  ((Identifier | InterpolationExpression | (CallExpression<e,pe> (kw<"where"> TypeArgumentList<e>)?)) (!right0 "=" e)?)
 }
 
 LetStatement[closedBy="end"] {
-  kw<"let"> LetBinding { VariableDeclaration ("," VariableDeclaration)* }? terminator
+  kw<"let"> LetBinding { VariableDeclaration !letbindinglist ("," VariableDeclaration)* }? terminator
     expressionList<e, pe>
   end
 }
@@ -343,6 +350,7 @@ pe {
   MatrixExpression<e> |
   GeneratorExpression<e, pe> |
   TypedExpression<pe> |
+  SubtypedExpression<pe> |
   ParameterizedIdentifier<e, pe> |
   Operator ~op
 }
@@ -440,7 +448,11 @@ TernaryExpression<e> {
 
 TypePart[@name="Type"] { pe }
 TypedExpression<pe> {
-  pe !typeascription (operator<"::"> | operator<"<:">) !typeascription TypePart
+  pe !typeascription operator<"::"> !typeascription TypePart
+}
+
+SubtypedExpression<pe> {
+  pe !typeascription operator<"<:"> !typeascription pe
 }
 
 // I guess there might be more thing "coeffecientable",

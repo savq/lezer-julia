@@ -137,6 +137,10 @@ let var1 = value1, var2, var3 = value3
     code
 end
 
+let f() = 1, g() = 3
+    f()
+end
+
 ==>
 
 SourceFile(
@@ -148,6 +152,20 @@ SourceFile(
     ),
     Identifier,
     end
+  ),
+  LetStatement(let,
+    LetBinding(
+      VariableDeclaration(
+        CallExpression(Identifier,ArgumentList())
+        Number,
+      ),
+      VariableDeclaration(
+        CallExpression(Identifier,ArgumentList())
+        Number,
+      ),
+    ),
+    CallExpression(Identifier,ArgumentList()),
+    end,
   )
 )
 
@@ -187,18 +205,38 @@ SourceFile(
   )
 )
 
+# Call in call
+
+f(f())
+
+==>
+
+SourceFile(
+    CallExpression(
+        Identifier,
+        ArgumentList(CallExpression(Identifier,ArgumentList()))
+    )
+)
+
 # Try statements
 
 try
     sqrt(x)
 catch
-    sqrt(complex(x, 0))
+    f(g(x,2))
 end
 
 try
-    operate_on_file(f)
+    do_something()
+catch
+else
+    success()
+end
+
+try
+    f(io)
 finally
-    close(f)
+    close(io)
 end
 
 ==>
@@ -215,6 +253,14 @@ SourceFile(
       )
     ),
     end
+  ),
+  TryStatement(try,
+    CallExpression(Identifier,ArgumentList()),
+    CatchClause(catch),
+    TryElseClause(else,
+        CallExpression(Identifier,ArgumentList()),
+    ),
+    end,
   ),
   TryStatement(try,
     CallExpression(Identifier,ArgumentList(Identifier)),
@@ -319,4 +365,14 @@ SourceFile(
   AssignmentExpression(Identifier,BlockComment,Number),
   BlockComment,
   BlockComment,
+)
+
+# Subtypes
+
+Bool <: Integer
+
+==>
+
+SourceFile(
+    SubtypedExpression(Identifier,Identifier),
 )
