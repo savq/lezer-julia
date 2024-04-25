@@ -1,182 +1,199 @@
-# Number
+# Export statements - Macro identifier
 
-12
-1.2
-1.1e10
-1.2E10
-1_000_000
-0.1_000_000
-1.
-.1
-1.2e-10
-1.2e+10
-0x12AF
+export @macroname
+export somename, @andamacroname, andsomethingelse
 
 ==>
-
 SourceFile(
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
-  Number,
+  ExportStatement(export, MacroIdentifier(MacroName)),
+  ExportStatement(export, Identifier, MacroIdentifier(MacroName), Identifier),
 )
 
-# String
 
-"hello, world"
-"!!!"
+# Import statements - import operators
+
+import Module: ==, +
 
 ==>
-
 SourceFile(
-  String,
-  String
+  ImportStatement(
+    import,
+    SelectedImport(Identifier, Operator, Operator)
+  )
 )
 
-# String_stringInterpolation_not_really_ok
 
-"hello $ dollar"
+# Let statements - No let bindings
 
-==>
-
-SourceFile(String)
-
-# Bare Tuple
-
-"Hello", "world!"
-
-==>
-
-SourceFile(
-  BareTupleExpression(String,String)
-)
-
-# Triple String
-
-"""
-multiline here
-ok
-"""
-
-"""simple"""
-
-==>
-
-SourceFile(
-  TripleString,
-  TripleString,
-)
-
-# Line Comments
-
-# some
-
-==>
-
-SourceFile(Comment)
-
-# Block Comments
-
-#=
- 
-  Block Comment
-
-  #= NESTED =#
-
-=#
-
-==>
-
-SourceFile(BlockComment)
-
-# CallExpression
-
-some()
-some("hello")
-some("hello", "world")
-
-==>
-
-SourceFile(
-  CallExpression(Identifier,ArgumentList),
-  CallExpression(Identifier,ArgumentList(String)),
-  CallExpression(Identifier,ArgumentList(String, String)),
-)
-
-# FunctionDefinition_1
-
-function some()
-  "hello"
+let
+    code
 end
 
 ==>
-
 SourceFile(
-  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),String,end)
+  LetStatement(
+    let,
+    Identifier,
+    end
+  )
 )
 
-# FunctionDefinition_2
 
-function some() "hello" end
+# Const statements - OpenTuple in assignment RHS
+
+const x = a, b
 
 ==>
-
 SourceFile(
-  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),String,end),
+  ConstStatement(
+    const,
+    AssignmentExpression(
+      Identifier,
+      BareTupleExpression(Identifier,Identifier)
+    )
+  )
 )
 
-# FunctionDefinition_3
 
-function some() end
+# If statements - No terminator after condition
 
-function some()
+if true end
+if true
 end
+if true x end
+if true x else end
+if true x else y end
 
 ==>
-
 SourceFile(
-  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),end),
-  FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList)),end),
+  IfStatement(IfClause(if,BooleanLiteral()),end),
+  IfStatement(IfClause(if,BooleanLiteral()),end),
+  IfStatement(IfClause(if,BooleanLiteral()),Identifier,end),
+  IfStatement(IfClause(if,BooleanLiteral()),Identifier,ElseClause(else),end),
+  IfStatement(IfClause(if,BooleanLiteral()),Identifier,ElseClause(else,Identifier),end),
 )
 
-# FunctionDefinition_anonymous
+
+# While statements - Call as condition, no body
+
+while call(); end
+
+==>
+SourceFile(
+  WhileStatement(
+    while,
+    WhileBinding(CallExpression(Identifier,ArgumentList)),
+    end
+  )
+)
+
+
+# Function definitions - Keyword parameters
+
+function a(;x,y) end
+==>
+SourceFile(FunctionDefinition(
+  function,
+  Definition(CallExpression(Identifier,ArgumentList(Parameters(Identifier,Identifier)))),
+  end
+))
+
+
+# Function definitions - Anonymous function with keyword parameters
+
+function (x; y) end
+==>
+SourceFile(FunctionDefinition(function,Definition(ArgumentList(Identifier,Parameters(Identifier))),end))
+
+
+# Function definitions - Return type annotation
+
+function f()::Int
+end
+==>
+SourceFile(FunctionDefinition(
+  function,
+  Definition(
+    TypedExpression(
+      CallExpression(Identifier,ArgumentList),
+      Type(Identifier),
+    ),
+  ),
+  end
+))
+
+
+# Function definitions - return type annotation 2
+
+function name()::T end
+==>
+SourceFile(
+  FunctionDefinition(
+    function,
+    Definition(
+      TypedExpression(
+        CallExpression(
+          Identifier,
+          ArgumentList,
+        ),
+        Type(Identifier),
+      ),
+    )
+    end
+  )
+)
+
+
+# Function definitions - signature with `where` expression
+
+function f()::T where T
+end
+==>
+SourceFile(
+  FunctionDefinition(
+    function,
+    Definition(
+      TypedExpression(
+        CallExpression(Identifier, ArgumentList),
+        Type(Identifier),
+      )
+    ),
+    where,
+    TypeParameters(Identifier),
+    end
+  )
+)
+
+# Function definitions - Anonymous function, no parameters
 
 function() end
 function()
 end
 
 ==>
-
 SourceFile(
   FunctionDefinition(function,Definition(ArgumentList),end),
   FunctionDefinition(function,Definition(ArgumentList),end),
 )
 
-# FunctionDefinition_no_parens_ok
+
+# Function definitions - zero method definitions
 
 function name end
 
 ==>
-
 SourceFile(
   FunctionDefinition(function,Definition(Identifier),end)
 )
 
-# FunctionDefinition_only_type_ok
+
+# Function definitions - Implicit typed parameter (unary `::`)
 
 function name(arg::A, ::B)
   ok
 end
 
 ==>
-
 SourceFile(
   FunctionDefinition(
     function,
@@ -194,48 +211,8 @@ SourceFile(
   )
 )
 
-# FunctionDefinition_return_type_ok
 
-function name()::T end
-
-==>
-
-SourceFile(
-  FunctionDefinition(
-    function,
-    Definition(
-      TypedExpression(
-        CallExpression(
-          Identifier,
-          ArgumentList,
-        ),
-        Type(Identifier),
-      ),
-    )
-    end
-  )
-)
-
-# FunctionDefinition_complexHead_ok
-
-function Base.union!() end
-
-==>
-
-SourceFile(
-  FunctionDefinition(
-    function,
-    Definition(
-      CallExpression(
-        FieldExpression(Identifier,FieldName),
-        ArgumentList,
-      ),
-    ),
-    end
-  )
-)
-
-# TypedParameter_FieldExpression_ok
+# Function definitions - FieldExpression as type of parameter
 
 function name(param::Type.Some) end
 
@@ -254,35 +231,23 @@ SourceFile(
   )
 )
 
-# AbstractDefinition
 
-abstract type name end
-abstract type name
-end
-abstract type name{param} end
-abstract type name{param} <: supertype end
+# Macro definitions - FieldExpression as macro name
+
+macro Base.union() end
 
 ==>
-
 SourceFile(
-  AbstractDefinition(abstract,type,Definition(Identifier),end),
-  AbstractDefinition(abstract,type,Definition(Identifier),end),
-  AbstractDefinition(
-    abstract,type,
-    Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),
+  MacroDefinition(
+    macro,
+    Definition(FieldExpression(Identifier,FieldName)),
+    ArgumentList,
     end
-  ),
-  AbstractDefinition(
-    abstract,type,
-    Definition(SubtypedExpression(
-      ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))
-      Identifier,
-    )),
-    end
-  ),
+  )
 )
 
-# AbstractDefinition_TypeParameterList
+
+# Abstract type definitions - Type parameters
 
 abstract type name{a} end
 abstract type name{a,b} end
@@ -294,7 +259,6 @@ abstract type name{a, a<:b} end
 abstract type name{a, a<:b,} end
 
 ==>
-
 SourceFile(
   AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),end),
   AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,Identifier))),end),
@@ -303,525 +267,124 @@ SourceFile(
   AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(SubtypedExpression(Identifier,Identifier)))),end),
   AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(SubtypedExpression(Identifier,Identifier)))),end),
   AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,SubtypedExpression(Identifier,Identifier)))),end),
-  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,SubtypedExpression(Identifier,Identifier)))),end))
-
-# PrimitiveDefinition
-
-primitive type name 42 end
-primitive type name
-  42
-end
-primitive type name{param} 42 end
-primitive type name{param} <: supertype 42 end
-
-==>
-
-SourceFile(
-  PrimitiveDefinition(primitive,type,Definition(Identifier),Number,end),
-  PrimitiveDefinition(primitive,type,Definition(Identifier),Number,end),
-  PrimitiveDefinition(
-    primitive,type,
-    Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),
-    Number,end
-  ),
-  PrimitiveDefinition(
-    primitive,type,
-    Definition(SubtypedExpression(
-      ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),
-      Identifier,
-    )),
-    Number,
-    end
-  )
-)
-
-# StructDefinition
-
-struct name end
-struct name
-end
-struct name{param}
-end
-struct name{param} <: supertype
-end
-struct name
-  expr
-end
-struct name
-  expr
-  expr
-end
-mutable struct name end
-
-==>
-
-SourceFile(
-  StructDefinition(struct,Definition(Identifier),end),
-  StructDefinition(struct,Definition(Identifier),end),
-  StructDefinition(struct,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier))),end),
-  StructDefinition(struct,Definition(SubtypedExpression(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)),Identifier)),end),
-  StructDefinition(struct,Definition(Identifier),Identifier,end),
-  StructDefinition(struct,Definition(Identifier),Identifier,Identifier,end),
-  StructDefinition(mutable,struct,Definition(Identifier),end),
-)
-
-# ModuleDefinition
-
-module name end
-module name
-  expr
-end
-
-==>
-
-SourceFile(
-  ModuleDefinition(module,Definition(Identifier),end),
-  ModuleDefinition(module,Definition(Identifier),Identifier,end)
-)
-
-# BareModuleDefinition
-
-baremodule name end
-baremodule name
-  expr
-end
-
-==>
-
-SourceFile(
-  BareModuleDefinition(baremodule,Definition(Identifier),end),
-  BareModuleDefinition(baremodule,Definition(Identifier),Identifier,end)
-)
-
-# MacroDefinition_ok
-
-macro name() end
-macro name()
-end
-macro name()
-  expr
-end
-
-==>
-
-SourceFile(
-  MacroDefinition(macro,Definition(Identifier),ArgumentList,end),
-  MacroDefinition(macro,Definition(Identifier),ArgumentList,end),
-  MacroDefinition(macro,Definition(Identifier),ArgumentList,Identifier,end),
-)
-
-# MacroDefinition_complexHead_ok
-
-macro Base.union() end
-
-==>
-
-SourceFile(
-  MacroDefinition(
-    macro,
-    Definition(FieldExpression(Identifier,FieldName)),
-    ArgumentList,
-    end
-  )
-)
-
-# AssignmentExpression_1
-
-name = "hello"
-
-==>
-
-SourceFile(
-  AssignmentExpression(Identifier,String),
-)
-
-# FunctionAssignmentExpression_ok
-
-name(a, b) = a + b
-
-==>
-
-SourceFile(
-  FunctionAssignmentExpression(
-    CallExpression(Identifier, ArgumentList(Identifier,Identifier)),
-    BinaryExpression(Identifier,Identifier)
-  )
-)
-
-# FunctionAssignmentExpression_where_ok
-
-name(a::T) where {T} = a
-
-==>
-
-SourceFile(
-  FunctionAssignmentExpression(
-    CallExpression(Identifier, ArgumentList(TypedExpression(Identifier,Type(Identifier)))),
-    where,TypeArgumentList(Identifier),
-    Identifier
-  )
-)
-
-# FunctionExpression
-
-(a, b) -> a + b
-
-==>
-
-SourceFile(
-  FunctionExpression(
-    ArgumentList(Identifier,Identifier),
-    BinaryExpression(Identifier,Identifier),
-  )
-)
-
-# Symbol
-
-:syntax
-
-==>
-
-SourceFile(
-  Symbol(SymbolName),
-)
-
-# QuoteExpression_2
-
-:(a + b)
-
-==>
-
-SourceFile(
-  QuoteExpression(ParenthesizedExpression(BinaryExpression(Identifier,Identifier))),
-)
-
-# QuoteExpression_3
-
-quote
-  $a + $b
-end
-
-==>
-
-SourceFile(
-  QuoteStatement(
-    quote,
-    BinaryExpression(
-      InterpolationExpression(Identifier),
-      InterpolationExpression(Identifier)
-    ),
-    end
-  )
-)
-
-# QuoteExpression_4
-
-:a + :b
-
-==>
-
-SourceFile(
-  BinaryExpression(
-    Symbol(SymbolName),
-    Symbol(SymbolName),
-  )
+  AbstractDefinition(abstract,type,Definition(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier,SubtypedExpression(Identifier,Identifier)))),end)
 )
 
 
-# CoefficientExpression
+# String literals - Escaped backslash
 
-1x
-3(x + 1)
-
+"\\" # i am a comment "
 ==>
+SourceFile(String, Comment)
 
-SourceFile(
-  CoefficientExpression(Number, Coefficient(Identifier)),
-  CoefficientExpression(
-    Number,
-    Coefficient(ParenthesizedExpression(BinaryExpression(Identifier,Number))),
-  )
-)
 
-# MacroExpression_ok_1
+# NsStringLiteral - no interpolation
 
-@name x
-@name y z
-
+md"$(x)"
 ==>
+SourceFile(PrefixedString(Prefix(Identifier),String))
 
-SourceFile(
-  MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(Identifier)),
-  MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(Identifier,Identifier)),
-)
 
-# MacroExpression_ok_2
-
-@name(1, 2)
-
+# Named tuples - leading semicolon `;`
+(;x,y)
 ==>
+SourceFile(TupleExpression(Parameters(Identifier,Identifier)))
 
-SourceFile(
-  MacroExpression(MacroIdentifier(MacroName),ArgumentList(Number,Number))
-)
 
-# BinaryExpression_bitshift_ok
-
-a >> 2
-b << 2
-c >>> 3
-
+# Generator expressions - generators as function argument
+sum(x for x in g)
 ==>
-
-SourceFile(
-  BinaryExpression(Identifier,Number),
-  BinaryExpression(Identifier,Number),
-  BinaryExpression(Identifier,Number)
-)
-
-# BinaryExpression_span
-
-1 +
-2
-
-==>
-
-SourceFile(BinaryExpression(Number,Number))
-
-
-# MacroExpression_span_1
-
-@name a +
-  2
-
-==>
-
-SourceFile(
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    MacroArgumentList(BinaryExpression(Identifier,Number))
-  )
-)
-
-# MacroExpression_span_2
-
-@name a begin
-  b
-end
-
-==>
-
-SourceFile(
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    MacroArgumentList(Identifier,CompoundExpression(begin,Identifier,end))
-  )
-)
-
-# MacroExpression_MacroFieldExpression_ok
-
-Base.@name
-
-==>
-
-SourceFile(
-  MacroExpression(
-    MacroFieldExpression(Identifier,MacroIdentifier(MacroName))
-  )
-)
-
-# MacroExpression_AssignmentExpression_ok
-
-@eval a = 2
-
-==>
-
-SourceFile(
-  MacroExpression(
-    MacroIdentifier(MacroName),
-    MacroArgumentList(AssignmentExpression(Identifier,Number))
-  )
-)
-
-# ParenthesizedExpression_expression_ok
-
-(1)
-
-==>
-
-SourceFile(ParenthesizedExpression(Number))
-
-# ParenthesizedExpression_AssignmentExpression_ok
-
-(a=1)
-
-==>
-
-SourceFile(ParenthesizedExpression(AssignmentExpression(Identifier,Number)))
-
-# Tuple_empty_ok
-
-()
-
-==>
-
-SourceFile(TupleExpression)
-
-# Tuple_one_ok
-
-(1,)
-
-==>
-
-SourceFile(TupleExpression(Number))
-
-# Tuple_many_ok
-
-(1,2)
-(1,2,)
-
-==>
-
-SourceFile(
-  TupleExpression(Number,Number),
-  TupleExpression(Number,Number),
-)
-
-# Tuple_NamedField_one_ok
-
-(a=1,)
-
-==>
-
-SourceFile(
-  TupleExpression(AssignmentExpression(Identifier,Number)),
-)
-
-# Tuple_NamedField_many_ok
-
-(a=1, b=2)
-
-==>
-
-SourceFile(
-  TupleExpression(
-    AssignmentExpression(Identifier,Number),
-    AssignmentExpression(Identifier,Number)
-  ),
-)
-
-# Tuple_NamedField_many_trailing_comma_ok
-
-(a=1, b=2,)
-
-==>
-
-SourceFile(
-  TupleExpression(
-    AssignmentExpression(Identifier,Number),
-    AssignmentExpression(Identifier,Number)
-  ),
-)
-
-# FunctionExpression_ok
-
-(a, b) -> a + b
-(a) -> a
-
-==>
-
-SourceFile(
-  FunctionExpression(ArgumentList(Identifier,Identifier),BinaryExpression(Identifier,Identifier)),
-  FunctionExpression(ArgumentList(Identifier),Identifier),
-)
-
-# RangeExpression_ok
-
-a:b
-
-==>
-
-SourceFile(BinaryExpression(Identifier,Identifier))
-
-# InterpolationExpression_call
-
-$x(1, 2)
-
-==>
-
 SourceFile(
   CallExpression(
-    InterpolationExpression(Identifier),
-    ArgumentList(Number,Number)
-  )
-)
-
-# while_call_ok
-
-while call(); end
-
-==>
-
-SourceFile(
-  WhileStatement(
-    while,
-    WhileBinding(CallExpression(Identifier,ArgumentList)),
-    end
-  )
-)
-
-# Import_operator_ok
-
-import Module: ==, +
-
-==>
-
-SourceFile(
-  ImportStatement(
-    import,
-    SelectedImport(Identifier,Operator,Operator)
-  )
-)
-
-# SubscriptExpression_end_ok
-
-Bc[end]
-Bc[end + 1]
-Bc[begin+1:end-1]
-
-==>
-
-SourceFile(
-  SubscriptExpression(Identifier,end),
-  SubscriptExpression(Identifier,BinaryExpression(end, Number)),
-  SubscriptExpression(
     Identifier,
-    BinaryExpression(
-      BinaryExpression(begin, Number),
-      BinaryExpression(end, Number),
+    ArgumentList(
+      ListCompherension(Identifier,ForClause(for,ForBinding(Identifier,AssignOperator(in),Identifier))),
     ),
   ),
 )
 
-# SubscriptExpression_assignment_ok
 
-arr[s += 1]
+# Generator expressions - generators with multiple bindings as function argument
+sum(x for x in g, y in z)
+sum(c for c in d, e = 5)
+==>
+SourceFile(
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      ListCompherension(
+        Identifier,
+        ForClause(
+          for,
+          ForBinding(Identifier,AssignOperator(in),Identifier),
+          ForBinding(Identifier,AssignOperator(in),Identifier),
+        ),
+      ),
+    ),
+  ),
+  CallExpression(
+    Identifier,
+    ArgumentList(
+      ListCompherension(
+        Identifier,
+        ForClause(
+          for,
+          ForBinding(Identifier,AssignOperator(in),Identifier),
+          ForBinding(Identifier,AssignOperator("="),Number),
+        ),
+      ),
+    ),
+  ),
+)
+
+
+# Adjoint expressions
+
+A'B:C'D
 
 ==>
 
-SourceFile(
-  SubscriptExpression(
-    Identifier,
-    AssignmentExpression(Identifier,Number)
-  )
-)
+SourceFile(BinaryExpression(
+  CoefficientExpression(
+    TransposeExpression(Identifier),
+    Coefficient(Identifier),
+  ),
+  CoefficientExpression(
+    TransposeExpression(Identifier),
+    Coefficient(Identifier),
+  ),
+))
 
-# SubscriptExpression_generator_ok
+# Adjoint expressions - 2
+a'
+==>
+SourceFile(TransposeExpression(Identifier))
+
+# Adjoint expressions - 3
+Bread' * Meat * Bread
+==>
+SourceFile(BinaryExpression(BinaryExpression(TransposeExpression(Identifier),Identifier),Identifier))
+
+
+# Field expressions - NsStringLiteral RHS
+
+module.macro"aaa"
+==>
+SourceFile()
+
+
+# Field expressions - Keywords as field name
+
+object.if
+==>
+SourceFile(FieldExpression(Identifier,FieldName))
+
+
+# Index expressions - typed comprehensions
 
 arr[x for x in xs]
 
 ==>
-
 SourceFile(
   SubscriptExpression(
     Identifier,
@@ -833,80 +396,391 @@ SourceFile(
 )
 
 
-# GlobalStatement_ok
+# Symbols - quoted keywords
 
-global x
-global x = 1
-
+:if
 ==>
+SourceFile(Symbol(SymbolName))
 
+
+# Interpolation expressions - interpolation in hcat
+
+:([x $y])
+==>
 SourceFile(
-  GlobalStatement(global,Identifier),
-  GlobalStatement(global,AssignmentExpression(Identifier, Number))
+  QuoteExpression(ParenthesizedExpression(
+    MatrixExpression(MatrixRow(
+      Identifier,
+      InterpolationExpression(Identifier),
+    )),
+  )),
 )
 
-# LocalStatement_ok
 
-local x = 1
+# Type parametrized expression
 
+Type{<:Hi, ::Wow}
 ==>
+SourceFile(ParameterizedIdentifier(Identifier,TypeArgumentList(LonelyType("<:",Type(Identifier)),LonelyType("::",Type(Identifier)))))
 
-SourceFile(
-  LocalStatement(local,AssignmentExpression(Identifier,Number))
-)
 
-# LocalStatement_InterpolationExpression_ok
-
-local $x = 1
-local $(x) = 1
-
+# Function calls - Broadcast call
+zip.(xs)
 ==>
+SourceFile(CallExpression(Identifier,BroadcastDot,ArgumentList(Identifier)))
 
+
+# Function calls - keyword arguments
+a(;x,y)
+==>
+SourceFile(CallExpression(Identifier,ArgumentList(Parameters(Identifier,Identifier))))
+
+
+# Function calls - Broadcast-dot-operator-call
+.!(true, true, false)
+==>
+SourceFile(CallExpression(Operator,ArgumentList(BooleanLiteral,BooleanLiteral,BooleanLiteral)))
+
+# Function calls - Broadcast-dot-operator
+.!isnan.([1,2,3])
+==>
+SourceFile(UnaryExpression(Operator,CallExpression(Identifier,BroadcastDot,ArgumentList(ArrayExpression(Number,Number,Number)))))
+
+
+# Do blocks - no parameters
+f() do; end
+==>
+SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,end)))
+
+
+# Do blocks - one parameter
+f() do x x end
+==>
+SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(Identifier),Identifier,end)))
+
+
+# Do blocks - typed parameter
+f() do x::Int; end
+==>
+SourceFile(CallExpression(Identifier,ArgumentList,DoClause(do,DoClauseArguments(TypedExpression(Identifier,"::",Type(Identifier))),end)))
+
+
+# Macro call expressions - do block
+@test() do x, y
+
+end
+==>
+SourceFile(MacroExpression(MacroIdentifier(MacroName),ArgumentList,DoClause(do,DoClauseArguments(Identifier,Identifier),end)))
+
+
+# Macro call expressions - Qualified name with @ at the beginning
+@Test.test 1 == 1
+==>
 SourceFile(
-  LocalStatement(
-    local,
-    AssignmentExpression(InterpolationExpression(Identifier),Number)
-  ),
-  LocalStatement(
-    local,
-    AssignmentExpression(InterpolationExpression(ParenthesizedExpression(Identifier)),Number)
+  MacroExpression(
+    MacroFieldExpression(MacroIdentifier(MacroName),MacroFieldName),
+    MacroArgumentList(BinaryExpression(Number,Number))
   )
 )
 
-# FieldExpression_QuoteExpression_ok
 
-Base.:(==)
+# Macro call expressions - brace arguments
+@NamedTuple{a::Float64, b::String}
+==>
+SourceFile(MacroExpression(
+  MacroIdentifier(MacroName),
+  TypeArgumentList(
+    TypedExpression(Identifier,"::",Type(Identifier)),
+    TypedExpression(Identifier,"::",Type(Identifier)),
+  )
+))
+
+
+# Macro call expressions - nested assignments arguments
+@macro x = x = x
+==>
+SourceFile(MacroExpression(MacroIdentifier(MacroName),MacroArgumentList(AssignmentExpression(Identifier,AssignmentExpression(Identifier,Identifier)))))
+
+
+# Macro call expressions - OpenTuple arguments
+@macro x, y, z x, y, z
+==>
+SourceFile(MacroExpression(
+  MacroIdentifier(MacroName),
+  MacroArgumentList(
+    BareTupleExpression(Identifier,Identifier,Identifier),
+    BareTupleExpression(Identifier,Identifier,Identifier),
+  )
+))
+
+
+# Macro call expressions - arguments spanning multiple lines
+
+@name a +
+  2
 
 ==>
-
 SourceFile(
-  FieldExpression(
+  MacroExpression(
+    MacroIdentifier(MacroName),
+    MacroArgumentList(BinaryExpression(Identifier,Number))
+  )
+)
+
+
+# Macro call expressions - blocks as arguments
+
+@name a begin
+  b
+end
+
+==>
+SourceFile(
+  MacroExpression(
+    MacroIdentifier(MacroName),
+    MacroArgumentList(Identifier,CompoundExpression(begin,Identifier,end))
+  )
+)
+
+
+# Macro call expressions - Qualified macro name (FieldExpression)
+
+Base.@name
+
+==>
+SourceFile(
+  MacroExpression(
+    MacroFieldExpression(Identifier,MacroIdentifier(MacroName))
+  )
+)
+
+
+# Macro calls - Assignments as arguments
+
+@eval a = 2
+
+==>
+SourceFile(
+  MacroExpression(
+    MacroIdentifier(MacroName),
+    MacroArgumentList(AssignmentExpression(Identifier,Number))
+  )
+)
+
+
+# Assignments - short function definitions
+
+name(a, b) = a + b
+
+==>
+SourceFile(
+  FunctionAssignmentExpression(
+    CallExpression(Identifier, ArgumentList(Identifier,Identifier)),
+    BinaryExpression(Identifier,Identifier)
+  )
+)
+
+
+# Assignments - short function definitions - where expression
+
+name(a::T) where {T} = a
+
+==>
+SourceFile(
+  FunctionAssignmentExpression(
+    CallExpression(Identifier, ArgumentList(TypedExpression(Identifier,Type(Identifier)))),
+    where,TypeArgumentList(Identifier),
+    Identifier
+  )
+)
+
+
+# Arrow function expressions - Ternary expression in RHS
+y -> y ? x : 10
+==>
+SourceFile(FunctionExpression(Identifier,TernaryExpression(Identifier,Identifier,Number)))
+
+
+# Arrow function expressions - Arrow function as argument
+foreach(c -> c.queued, cells)
+==>
+SourceFile(CallExpression(
+  Identifier,
+  ArgumentList(
+    FunctionExpression(Identifier,FieldExpression(Identifier,FieldName)),
     Identifier,
-    QuoteExpression(ParenthesizedExpression(Operator))
+  ),
+))
+
+
+# Arrow function expressions - assignment in RHS
+foreach(c -> c.queued = true)
+==>
+SourceFile(CallExpression(Identifier,ArgumentList(FunctionExpression(Identifier,AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral)))))
+
+
+# Arrow function expressions - Arrow function as argument and assignment in RHS
+foreach(c -> c.queued = true, cells)
+==>
+SourceFile(CallExpression(
+  Identifier,
+  ArgumentList(
+    FunctionExpression(
+      Identifier,
+      AssignmentExpression(FieldExpression(Identifier,FieldName),BooleanLiteral)
+    ),
+    Identifier,
+  )
+))
+
+
+# Juxtaposition expressions - Number LHS with with tuple RHS
+1(x, y)
+==>
+SourceFile(CoefficientExpression(Number,Coefficient(TupleExpression(Identifier,Identifier))))
+
+
+# Juxtaposition expressions - FieldExpression RHS
+10x.a
+==>
+SourceFile(CoefficientExpression(Number,Coefficient(FieldExpression(Identifier,FieldName))))
+
+# Juxtaposition expressions - function as RHS
+2xxx()
+==>
+SourceFile(
+  CoefficientExpression(
+    Number,
+    Coefficient(
+      CallExpression(Identifier,ArgumentList),
+    ),
+  ),
+)
+
+
+# Operators as identifiers - More operators as standalone
+(!)
+@>:
+==>
+SourceFile(
+    ParenthesizedExpression(Operator),
+    MacroExpression(MacroIdentifier(MacroName(Operator)),MacroArgumentList(Operator))
+)
+
+
+# Operators as identifiers - BROKEN: Just operators hanging out
+!
+.!
+.<:
+.>:
+==>
+SourceFile(Operator,Operator,Operator,Operator)
+
+# Bitwise operator - Huh? Bitwise operators weren't in here?
+1 | x
+==>
+SourceFile(BinaryExpression(Number,Identifier))
+
+# Arrow operators - I mean com'on this is easy operator stuff
+a .=> x
+a .<| b
+a |> b .<| c
+==>
+SourceFile(
+  BinaryExpression(Identifier,Identifier),
+  BinaryExpression(Identifier,"pipe<",Identifier),
+  BinaryExpression(BinaryExpression(Identifier,"pipe>",Identifier),"pipe<",Identifier)
+)
+
+# Bitshift operators - BinaryExpression_bitshift_ok
+
+a >> 2
+b << 2
+c >>> 3
+
+==>
+SourceFile(
+  BinaryExpression(Identifier,Number),
+  BinaryExpression(Identifier,Number),
+  BinaryExpression(Identifier,Number)
+)
+
+
+# Binary expressions - operands spanning multiple lines
+
+1 +
+2
+
+==>
+SourceFile(BinaryExpression(Number,Number))
+
+
+# Range binary expressions
+
+a:b
+
+==>
+SourceFile(BinaryExpression(Identifier,Identifier))
+
+
+# IDK
+
+begin
+	function under_root(x)
+		ret = 2exp(+x+2) + 1
+	end
+end
+
+==>
+SourceFile(
+  CompoundExpression(
+    begin,
+    FunctionDefinition(
+      function,
+      Definition(CallExpression(
+        Identifier,
+        ArgumentList(Identifier),
+      )),
+      AssignmentExpression(
+        Identifier,
+        BinaryExpression(
+          CoefficientExpression(
+            Number,
+            Coefficient(
+              CallExpression(
+                Identifier,
+                ArgumentList(BinaryExpression(UnaryExpression(Operator, Identifier),Number)),
+              ),
+            ),
+          ),
+          Number,
+        ),
+      ),
+      end
+    ),
+    end,
   )
 )
 
-# ImportStatement_relative_ok
 
-import ..Ok
-
-==>
-
-SourceFile(
-  ImportStatement(
-    import,
-    Import(ScopedIdentifier(ScopedIdentifier(Identifier)))
-  )
+# IDK - Why though (Not sure why this was fixed but it was...????)
+function pumas_be(
+    data::AbstractDataFrame;
+	  method::B = :AUC,
+    logtransformed::B = a,
+    period::Union{a} = a,
+    reference::Union{a} = a,
+    reml::B = a,
 )
-
-# Operator_eq_ok
-
-:(=)
-:(+=)
-
+    a
+end
 ==>
-
-SourceFile(
-  QuoteExpression(ParenthesizedExpression(Operator)),
-  QuoteExpression(ParenthesizedExpression(Operator)),
-)
+SourceFile(FunctionDefinition(function,Definition(CallExpression(Identifier,ArgumentList(
+  TypedExpression(Identifier,"::",Type(Identifier)),
+  Parameters(
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(Identifier)),Symbol(SymbolName)),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(Identifier)),Identifier),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)))),Identifier),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(ParameterizedIdentifier(Identifier,TypeArgumentList(Identifier)))),Identifier),
+    AssignmentExpression(TypedExpression(Identifier,"::",Type(Identifier)),Identifier))
+))),Identifier,end))
