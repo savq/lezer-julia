@@ -93,6 +93,19 @@ Program(
 )
 
 
+# Keywords as identifiers - keywords as field names
+
+obj.if
+obj.begin
+obj.end
+
+==>
+Program(
+  FieldExpression(Identifier, Identifier),
+  FieldExpression(Identifier, Identifier),
+  FieldExpression(Identifier, Identifier),
+)
+
 
 # Index expressions
 
@@ -129,6 +142,7 @@ Program(
 # Type parametrized expressions
 
 Vector{Int}
+T{S, U}
 Vector{<:Number}
 $(usertype){T}
 
@@ -138,6 +152,7 @@ $(usertype){T}
 ==>
 Program(
   ParametrizedExpression(Identifier, BraceExpression(Identifier)),
+  ParametrizedExpression(Identifier, BraceExpression(Identifier, Identifier)),
   ParametrizedExpression(Identifier, BraceExpression(UnaryExpression(Identifier))),
   ParametrizedExpression(
     InterpExpression(ParenExpression(Identifier)),
@@ -157,12 +172,7 @@ Program(
 f()
 g("hi", 2)
 h(d...)
-
-f(e; f = g)
-g(arg; kwarg)
-
 new{typeof(xs)}(xs)
-
 f(g())
 
 ==>
@@ -170,18 +180,6 @@ Program(
   CallExpression(Identifier, Arguments),
   CallExpression(Identifier, Arguments(StringLiteral, IntegerLiteral)),
   CallExpression(Identifier, Arguments(SplatExpression(Identifier))),
-
-  CallExpression(
-    Identifier,
-    Arguments(Identifier),
-    KeywordArguments(KwArg(Identifier, Identifier))
-  ),
-  CallExpression(
-    Identifier,
-    Arguments(Identifier),
-    KeywordArguments(Identifier)
-  ),
-
   CallExpression(
     ParametrizedExpression(
       Identifier,
@@ -196,20 +194,46 @@ Program(
 )
 
 
-
-# Function broadcast call expressions
+# Function call expressions - Broadcasting
 
 f.(xs)
 foo!.(ys)
 .⋆(ys)
+.!isnan.(zs)
 
 ==>
 Program(
   CallExpression(Identifier, Arguments(Identifier)),
   CallExpression(Identifier, Arguments(Identifier)),
   CallExpression(Operator, Arguments(Identifier)),
+  UnaryExpression(CallExpression(Identifier, Arguments(Identifier))),
 )
 
+
+# Function call expressions - Keyword arguments
+
+f(e; f = g)
+g(arg; kwarg)
+h(; x, y)
+
+==>
+Program(
+  CallExpression(
+    Identifier,
+    Arguments(Identifier),
+    KeywordArguments(KwArg(Identifier, Identifier))
+  ),
+  CallExpression(
+    Identifier,
+    Arguments(Identifier),
+    KeywordArguments(Identifier)
+  ),
+  CallExpression(
+    Identifier,
+    Arguments,
+    KeywordArguments(Identifier, Identifier)
+  ),
+)
 
 
 # Function call expressions with do blocks
@@ -223,7 +247,6 @@ Program(
   CallExpression(
     Identifier,
     Arguments(Identifier),
-
     DoClause(
       do,
       Parameters(Identifier, Identifier),
@@ -232,6 +255,42 @@ Program(
         Arguments(Identifier, Identifier),
       ),
       end,
+    )
+  )
+)
+
+
+# Function call expressions with do blocks - no parameters
+
+f() do; end
+
+==>
+Program(
+  CallExpression(
+    Identifier,
+    Arguments,
+    DoClause(
+      do,
+      Parameters,
+      end
+    )
+  )
+)
+
+
+# Function call expressions with do blocks - typed parameter
+
+f(xs) do x::Int; end
+
+==>
+Program(
+  CallExpression(
+    Identifier,
+    Arguments(Identifier),
+    DoClause(
+      do,
+      Parameters(BinaryExpression(Identifier, Identifier))
+      end
     )
   )
 )
@@ -267,6 +326,8 @@ Program(
 
 # Keywords as identifiers - Quoted keywords
 
+:if
+
 if x == :end
   1
 else
@@ -276,6 +337,7 @@ end
 
 ==>
 Program(
+  Symbol(Identifier),
   IfStatement(
     if
     Condition(BinaryExpression(Identifier, Symbol(Identifier)))
@@ -304,20 +366,35 @@ Program(
 )
 
 
+# Interpolation expressions - Interpolation in hcat # BROKEN
+
+#=
+[x $y z]
+
+= =>
+Program(
+  MatrixExpression(MatrixRow(Identifier, InterpExpression(Identifier), Identifier)),
+)
+=#
+==>Program(BlockComment)
+
+
 # Adjoint expressions
 
 [u, v]'
-A'[i]
 (x, y)'
+A'[i]
 f'(x)
 :a'
+a' * b
 
 ==>
 Program(
   AdjointExpression(VectorExpression(Identifier, Identifier)),
-  IndexExpression(AdjointExpression(Identifier), VectorExpression(Identifier)),
   AdjointExpression(TupleExpression(Identifier, Identifier)),
+  IndexExpression(AdjointExpression(Identifier), VectorExpression(Identifier)),
   CallExpression(AdjointExpression(Identifier), Arguments(Identifier)),
   AdjointExpression(Symbol(Identifier))
+  BinaryExpression(AdjointExpression(Identifier), Identifier),
 )
 

@@ -137,6 +137,7 @@ Program(
 
 x'x
 f()g()h()
+A'B:C'D
 
 ==>
 Program(
@@ -146,6 +147,10 @@ Program(
     CallExpression(Identifier, Arguments),
     CallExpression(Identifier, Arguments),
   ),
+  BinaryExpression(
+    JuxtapositionExpression(AdjointExpression(Identifier), Identifier),
+    JuxtapositionExpression(AdjointExpression(Identifier), Identifier),
+  )
 )
 
 
