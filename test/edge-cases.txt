@@ -1,17 +1,3 @@
-# String literals - Escaped backslash
-
-"\\" # i am a comment "
-==>
-SourceFile(String, Comment)
-
-
-# NsStringLiteral - no interpolation
-
-md"$(x)"
-==>
-SourceFile(PrefixedString(Prefix(Identifier),String))
-
-
 # Named tuples - leading semicolon `;`
 (;x,y)
 ==>

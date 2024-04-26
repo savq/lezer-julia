@@ -86,11 +86,33 @@ Program(
 # String literals
 
 ""
-"\""
 "foo
  bar"
+
+==>
+Program(
+  StringLiteral,
+  StringLiteral,
+)
+
+
+# String literals - Escape sequences
+
+"\""
 "this is a \"string\"."
-"""this is also a "string"."""
+"\\" # I am a comment "
+
+==>
+Program(
+  StringLiteral(EscapeSequence),
+  StringLiteral(EscapeSequence, EscapeSequence),
+  StringLiteral(EscapeSequence),
+  LineComment,
+)
+
+
+# String literals - Interpolations
+
 band = "Interpol"
 "$band is a cool band"
 "$(2*π) is a cool number"
@@ -98,11 +120,6 @@ band = "Interpol"
 
 ==>
 Program(
-  StringLiteral,
-  StringLiteral(EscapeSequence),
-  StringLiteral
-  StringLiteral(EscapeSequence, EscapeSequence),
-  StringLiteral
   Assignment(Identifier, StringLiteral),
   StringLiteral(Identifier),
   StringLiteral(ParenExpression(BinaryExpression(IntegerLiteral, Identifier))),
@@ -110,7 +127,7 @@ Program(
 )
 
 
-# Triple-quote string literals
+# String literals - Triple quote delimiters
 
 """
 a "quoted" string"""
@@ -193,4 +210,3 @@ Program(
   BlockComment,
   BlockComment(BlockComment(BlockComment)),
 )
-
