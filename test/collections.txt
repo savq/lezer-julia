@@ -36,10 +36,11 @@ Program(
 )
 
 
-# Named tuples with semicolon
+# Named tuples with leading semicolon
 
 (;)
 (; a)
+(; a, b)
 (; a = 1)
 (; a = 1, b = 2)
 (; a, foo.b)
@@ -48,6 +49,7 @@ Program(
 Program(
   TupleExpression,
   TupleExpression(Identifier),
+  TupleExpression(Identifier, Identifier),
   TupleExpression(NamedField(Identifier, IntegerLiteral)),
   TupleExpression(NamedField(Identifier, IntegerLiteral), NamedField(Identifier, IntegerLiteral)),
   TupleExpression(Identifier, FieldExpression(Identifier, Identifier))
@@ -191,6 +193,7 @@ Program(
 
 f(i for i in iter)
 f(1, 2, x for x = xs)
+f(1, 2, x + y for x = xs, y = ys)
 
 ==>
 Program(
@@ -211,6 +214,20 @@ Program(
       Generator(
         Identifier,
         GenFor(for, ForBinding(Identifier, Identifier)),
+      )
+    )
+  ),
+  CallExpression(
+    Identifier,
+    Arguments(
+      IntegerLiteral,
+      IntegerLiteral,
+      Generator(
+        BinaryExpression(
+          Identifier,
+          Identifier,
+        )
+        GenFor(for, ForBinding(Identifier, Identifier), ForBinding(Identifier, Identifier)),
       )
     )
   )
