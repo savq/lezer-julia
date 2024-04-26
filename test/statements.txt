@@ -48,6 +48,8 @@ end
 
 while check(x) update!(x) end
 
+while check(); end
+
 ==>
 Program(
   WhileStatement(while, Condition(BoolLiteral), end),
@@ -65,6 +67,11 @@ Program(
     CallExpression(Identifier, Arguments(Identifier)),
     end
   ),
+  WhileStatement(
+    while,
+    Condition(CallExpression(Identifier, Arguments)),
+    end
+  )
 )
 
 
@@ -97,6 +104,22 @@ Program(
     LetBinding(Assignment(TupleExpression(Identifier, Identifier), Identifier)),
     Identifier,
     end,
+  )
+)
+
+
+# Let statements - No bindings
+
+let
+    code
+end
+
+==>
+Program(
+  LetStatement(
+    let,
+    Identifier,
+    end
   )
 )
 
@@ -192,6 +215,7 @@ elseif b
 else
 end
 
+if true 1 end
 if true 1 else 0 end
 
 if a
@@ -210,6 +234,12 @@ Program(
     Condition(Identifier),
     ElseIfClause(elseif, Condition(Identifier)),
     ElseClause(else),
+    end
+  )
+  IfStatement(
+    if,
+    Condition(BoolLiteral),
+    IntegerLiteral,
     end
   )
   IfStatement(
@@ -294,13 +324,23 @@ Program(
 
 export a
 export a, b, +, (*)
-export @macroMcAtface
 
 ==>
 Program(
   ExportStatement(export, Identifier),
   ExportStatement(export, Identifier, Identifier, Operator, ParenExpression(Operator)),
+)
+
+
+# Export statements - Macro identifiers
+
+export @macroMcAtface
+export somename, @andamacroname, andsomethingelse
+
+==>
+Program(
   ExportStatement(export, MacroIdentifier(Identifier)),
+  ExportStatement(export, Identifier, MacroIdentifier(Identifier), Identifier),
 )
 
 
@@ -311,8 +351,10 @@ using A, B, C
 using ..Foo, ..Bar
 
 import Base.show
+
 using BigLib: thing1, thing2
 import .A: @b
+import Module: ==, +
 
 ==>
 Program(
@@ -323,6 +365,7 @@ Program(
   ImportStatement(import, ImportPath(Identifier, Identifier)),
   ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportPath(Identifier), ImportPath(Identifier))),
   ImportStatement(import, SelectedImport(ImportPath(Identifier), MacroIdentifier(Identifier))),
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), Operator, Operator))
 )
 
 
@@ -359,13 +402,15 @@ Program(
 # Const statements
 
 const x = 5
-const y, z = 1, 2
+const x = 1, 2
+const y, z = 3, 4
 
 (0; const x, y = 1, 2)
 
 ==>
 Program(
   ConstStatement(const, Assignment(Identifier, IntegerLiteral)),
+  ConstStatement(const, Assignment(Identifier, OpenTuple(IntegerLiteral, IntegerLiteral))),
   ConstStatement(const, Assignment(OpenTuple(Identifier, Identifier), OpenTuple(IntegerLiteral, IntegerLiteral))),
   ParenExpression(
     IntegerLiteral,
