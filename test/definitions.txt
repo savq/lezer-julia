@@ -24,12 +24,22 @@ Program(
 # Abstract type definitions
 
 abstract type T end
+
+abstract type T{N} end
+abstract type T{X, Y,} end
+abstract type T{S <: U} end
+
 abstract type T <: S end
-abstract type T{S} <: U end
+abstract type T{N} <: S end
 
 ==>
 Program(
   AbstractDefinition(abstract, type, TypeHead(Identifier), end),
+
+  AbstractDefinition(abstract, type, TypeHead(ParametrizedExpression(Identifier, BraceExpression(Identifier))), end),
+  AbstractDefinition(abstract, type, TypeHead(ParametrizedExpression(Identifier, BraceExpression(Identifier, Identifier))), end),
+  AbstractDefinition(abstract, type, TypeHead(ParametrizedExpression(Identifier, BraceExpression(BinaryExpression(Identifier, Identifier)))), end),
+
   AbstractDefinition(abstract, type, TypeHead(BinaryExpression(Identifier, Identifier)), end),
   AbstractDefinition(abstract, type, TypeHead(BinaryExpression(ParametrizedExpression(Identifier, BraceExpression(Identifier)), Identifier)), end),
 )
@@ -247,14 +257,188 @@ Program(
 )
 
 
-# Functions with typed parameters # TODO
-==>Program()
+# Function definitions - Anonymous functions with no parameters
 
-# Functions with optional and keyword parameters # TODO
-==>Program()
+function() end
 
-# Functions definitions with type parameters # TODO
-==>Program()
+function()
+  code
+end
+
+==>
+Program(
+  FunctionDefinition(function, Signature(TupleExpression), end),
+  FunctionDefinition(function, Signature(TupleExpression), Identifier, end),
+)
+
+
+# Function definitions - Return type annotations # FIXME
+
+function f()::T end
+
+function f()::Int
+  code
+end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(
+      CallExpression(Identifier, Arguments),
+    ),
+    UnaryExpression(
+      Identifier,
+    ),
+    end,
+  ),
+  FunctionDefinition(
+    function,
+    Signature(
+        CallExpression(Identifier, Arguments),
+    ),
+    UnaryExpression(
+      Identifier,
+    ),
+    Identifier,
+    end,
+  )
+)
+
+
+# Function definitions - Signature with `where` expression # FIXME
+
+function f()::T where T
+end
+
+function f(n::N)::S where {N <: Number, S}
+end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(
+        CallExpression(Identifier, Arguments),
+    )
+    UnaryExpression(
+      BinaryExpression(
+        Identifier,
+        where,
+        Identifier,
+      )
+    )
+    end
+  ),
+  FunctionDefinition(
+    function,
+    Signature(
+      CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Identifier))),
+    )
+    UnaryExpression(
+      BinaryExpression(
+        Identifier,
+        where,
+        BraceExpression(BinaryExpression(Identifier, Identifier), Identifier),
+      )
+    ),
+    end
+  )
+)
+
+
+# Function definitions - Typed parameters
+
+function name(arg::T, ::S)
+  code
+end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(
+      CallExpression(
+        Identifier,
+        Arguments(
+          BinaryExpression(Identifier, Identifier),
+          UnaryExpression(Identifier)
+        )
+      )
+    )
+    Identifier,
+    end
+  )
+)
+
+
+# Function definitions - Typed parameters with FieldExpression type
+
+function name(param::Type.Some) end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(
+      CallExpression(
+        Identifier,
+        Arguments(BinaryExpression(Identifier, FieldExpression(Identifier, Identifier))),
+      )
+    )
+    end
+  )
+)
+
+
+# Function definitions - optional parameters
+
+function f(x, y=2)
+  x, y
+end
+
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(
+      CallExpression(Identifier, Arguments(Identifier, KwArg(Identifier, IntegerLiteral)))
+    ),
+    OpenTuple(Identifier, Identifier),
+    end
+  )
+)
+
+
+# Function definitions - keyword parameters
+
+function a(; x, y) end
+==>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(
+      CallExpression(Identifier, Arguments, KeywordArguments(Identifier, Identifier))
+    ),
+    end
+  )
+)
+
+
+# Function definitions - Anonymous function with keyword parameters # BROKEN
+
+#=
+function (x; y) end
+= =>
+Program(
+  FunctionDefinition(
+    function,
+    Signature(TupleExpression(Identifier, Identifier)),
+    end
+  )
+)
+=#
+==>Program(BlockComment)
 
 
 # Macro definitions
@@ -264,6 +448,8 @@ macro name(s::Symbol)
 end
 
 macro count(args...); length(args) end
+
+macro Mod.mac() end
 
 ==>
 Program(
@@ -279,4 +465,9 @@ Program(
     CallExpression(Identifier, Arguments(Identifier)),
     end
   ),
+  MacroDefinition(
+    macro,
+    Signature(CallExpression(FieldExpression(Identifier, Identifier), Arguments)),
+    end
+  )
 )
