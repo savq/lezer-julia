@@ -1,6 +1,7 @@
 # Closed macro call expressions
 
 @enum(Light, red, yellow, green)
+@NamedTuple{a::Float64, b::String}
 
 ==>
 Program(
@@ -11,6 +12,13 @@ Program(
       Identifier,
       Identifier,
       Identifier,
+    ),
+  ),
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    BraceExpression(
+      BinaryExpression(Identifier, Identifier),
+      BinaryExpression(Identifier, Identifier),
     ),
   ),
 )
@@ -27,9 +35,6 @@ Program(
 joinpath(@__DIR__, "grammar.js")
 
 @macroexpand @async accept(socket)
-
-# @Meta.dump 1, 2 # TODO
-Meta.@dump x = 1
 
 ==>
 Program(
@@ -63,18 +68,83 @@ Program(
       )
     )
   )
-  LineComment
+)
+
+
+# Qualified macro identifiers
+
+Meta.@dump x = 1
+# @Meta.dump 1, 2 # TODO
+
+==>
+Program(
   MacrocallExpression(
     FieldExpression(
       Identifier,
       MacroIdentifier(Identifier),
     ),
     MacroArguments(Assignment(Identifier, IntegerLiteral))
-  ),
+  )
+  LineComment
 )
 
 
-# Open macro call expressions with blocks
+# Open macro call expressions - Assignments and open tuple arguments
+
+@m x = y = z
+
+@m x, y = 1, 2
+
+@m x, y, z x, y, z
+
+==>
+Program(
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(
+      Assignment(
+        Identifier,
+        Assignment(
+          Identifier,
+          Identifier,
+        )
+      )
+    )
+  ),
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(
+      Assignment(
+        OpenTuple(Identifier, Identifier),
+        OpenTuple(IntegerLiteral, IntegerLiteral),
+      )
+    )
+  ),
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(
+      OpenTuple(Identifier, Identifier, Identifier),
+      OpenTuple(Identifier, Identifier, Identifier),
+    )
+  )
+)
+
+
+# Open macro call expressions - Arguments spanning multiple lines
+
+@name a +
+  2
+
+==>
+Program(
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    MacroArguments(BinaryExpression(Identifier, IntegerLiteral)),
+  )
+)
+
+
+# Open macro call expressions - Block arguments
 
 @testset "a" begin
   b = c
@@ -94,8 +164,29 @@ Program(
   )
 )
 
+# Closed macro call expressions - Do blocks
 
-# Open vs closed macros
+@test() do x, y
+  body
+end
+
+==>
+
+Program(
+  MacrocallExpression(
+    MacroIdentifier(Identifier),
+    Arguments,
+    DoClause(
+      do,
+      Parameters(Identifier, Identifier),
+      Identifier,
+      end
+    )
+  )
+)
+
+
+# Open vs closed macro calls
 
 @m[1, 2] + 1
 @m [1, 2] + 1
@@ -121,7 +212,7 @@ Program(
 )
 
 
-# Macros as parameters
+# Macro calls as parameters
 
 f(@nospecialize(x)) = x
 g(@nospecialize x) = x + 1
@@ -157,5 +248,3 @@ Program(
     BinaryExpression(Identifier, Identifier),
   )
 )
-
-
