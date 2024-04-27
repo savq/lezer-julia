@@ -38,6 +38,20 @@ Program(
 )
 
 
+# Binary arithmetic operators - operations spanning multiple lines
+
+1 +
+2
+
+==>
+Program(
+  BinaryExpression(
+    IntegerLiteral,
+    IntegerLiteral,
+  )
+)
+
+
 # Operator broadcasting
 
 a .* b .+ c
@@ -126,11 +140,13 @@ Program(
 # Binary ellipsis operators
 
 1:10
+x:y+1
 # 1..10 # TODO: Fix conflict with ImportPath: BinaryExpression(IntegerLiteral, IntegerLiteral)
 
 ==>
 Program(
   BinaryExpression(IntegerLiteral, IntegerLiteral),
+  BinaryExpression(Identifier, BinaryExpression(Identifier, IntegerLiteral)),
   LineComment,
 )
 
@@ -156,13 +172,18 @@ Program(
 a === 1
 a! != 0
 
-# Chained comparisons are parsed as a single expression in Julia.  So this isn't 100% correct.
+## NOT an assignment
+a!= 1
+
+## Chained comparisons are parsed as a single expression in Julia.  So this isn't 100% correct.
 A ⊆ B ⊆ C
 x ≥ 0 ≥ z
 
 ==>
 Program(
   BinaryExpression(Identifier, IntegerLiteral),
+  BinaryExpression(Identifier, IntegerLiteral),
+  LineComment,
   BinaryExpression(Identifier, IntegerLiteral),
   LineComment,
   BinaryExpression(
@@ -188,13 +209,32 @@ Program(
 
 # Operators as values
 
+!
+.!
+
 x = +
 ⪯ = .≤
 foo(^, ÷, -)
 
 ==>
 Program(
+  Operator,
+  Operator,
   Assignment(Identifier, Operator),
   Assignment(Operator, Operator),
   CallExpression(Identifier, Arguments(Operator, Operator, Operator)),
+)
+
+
+# Operators as values - function and macro names
+
++(1, 2)
+.*(xs, ys)
+@>:
+
+==>
+Program(
+  CallExpression(Operator, Arguments(IntegerLiteral, IntegerLiteral)),
+  CallExpression(Operator, Arguments(Identifier, Identifier)),
+  MacrocallExpression(MacroIdentifier(Operator)),
 )
