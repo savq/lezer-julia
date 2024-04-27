@@ -8,7 +8,6 @@ c &= d ÷= e
 xs .+= ys
 
 A[i] = new_value
-id(x) = x         # short functions are currently parsed as calls
 
 ==>
 Program(
@@ -21,7 +20,35 @@ Program(
   Assignment(Identifier, Identifier),
 
   Assignment(IndexExpression(Identifier, VectorExpression(Identifier)), Identifier),
-  Assignment(CallExpression(Identifier, Arguments(Identifier)), Identifier), LineComment,
+)
+
+# Assignments - Short functions
+
+id(x) = x
+add(x, y) = x + y
+id(x::T)::T where {T} = x
+
+==>
+Program(
+  Assignment(
+    CallExpression(Identifier, Arguments(Identifier)),
+    Identifier
+  ),
+  Assignment(
+    CallExpression(Identifier, Arguments(Identifier, Identifier)),
+    BinaryExpression(Identifier, Identifier),
+  )
+  Assignment(
+    BinaryExpression(
+      CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Identifier))),
+      BinaryExpression(
+        Identifier
+        where,
+        BraceExpression(Identifier),
+      )
+    )
+    Identifier,
+  )
 )
 
 
@@ -43,9 +70,9 @@ Program(
 # Arrow function expressions
 
 x -> x^2
-(x,y,z)-> 2 * x + y - z
-()->3
+(x,y,z) -> 2 * x + y - z
 () -> (sleep(0.1); i += 1; l)
+foreach(c -> c.queued = true, cells)
 
 ==>
 Program(
@@ -63,7 +90,6 @@ Program(
       Identifier
     )
   ),
-  ArrowFunctionExpression(TupleExpression, IntegerLiteral),
   ArrowFunctionExpression(
     TupleExpression,
     ParenExpression(
@@ -72,18 +98,42 @@ Program(
       Identifier
     )
   )
+  CallExpression(
+    Identifier,
+    Arguments(
+      ArrowFunctionExpression(
+        Identifier,
+        Assignment(FieldExpression(Identifier, Identifier), BoolLiteral),
+      ),
+      Identifier,
+    )
+  )
 )
 
 
 # Juxtaposition expressions - Coefficients
 
+1__1 # Not an integer
 2π
 2v[i]
 3f(x)
 4df.a
 5u"kg"
 
-# FIXME: Monomials currently don't get parsed with the correct precedence
+==>
+Program(
+  JuxtapositionExpression(IntegerLiteral, Identifier), LineComment,
+  JuxtapositionExpression(IntegerLiteral, Identifier),
+  JuxtapositionExpression(IntegerLiteral, IndexExpression(Identifier, VectorExpression(Identifier))),
+  JuxtapositionExpression(IntegerLiteral, CallExpression(Identifier, Arguments(Identifier))),
+  JuxtapositionExpression(IntegerLiteral, FieldExpression(Identifier, Identifier)),
+  JuxtapositionExpression(IntegerLiteral, NsStringLiteral(Identifier)),
+)
+
+
+# Juxtaposition expressions - Monomials # FIXME
+## Not parsed with the correct precedence
+
 2x^2 - .3x
 1.5x^2 - .5x
 2^2x
@@ -91,11 +141,6 @@ Program(
 
 ==>
 Program(
-  JuxtapositionExpression(IntegerLiteral, Identifier),
-  JuxtapositionExpression(IntegerLiteral, IndexExpression(Identifier, VectorExpression(Identifier))),
-  JuxtapositionExpression(IntegerLiteral, CallExpression(Identifier, Arguments(Identifier))),
-  JuxtapositionExpression(IntegerLiteral, FieldExpression(Identifier, Identifier)),
-  JuxtapositionExpression(IntegerLiteral, NsStringLiteral(Identifier)),
   LineComment,
   BinaryExpression(
     BinaryExpression(
@@ -129,7 +174,7 @@ Program(
         BinaryExpression(Identifier,IntegerLiteral)
       )
     )
-  ),
+  )
 )
 
 
@@ -160,6 +205,8 @@ x = batch_size == 1 ?
   rand(10) :
   rand(10, batch_size)
 
+y -> y ? x : 10
+
 ==>
 Program(
   Assignment(
@@ -168,6 +215,14 @@ Program(
       BinaryExpression(Identifier, IntegerLiteral),
       CallExpression(Identifier, Arguments(IntegerLiteral)),
       CallExpression(Identifier, Arguments(IntegerLiteral, Identifier))
+    )
+  ),
+  ArrowFunctionExpression(
+    Identifier,
+    TernaryExpression(
+      Identifier,
+      Identifier,
+      IntegerLiteral,
     )
   )
 )
