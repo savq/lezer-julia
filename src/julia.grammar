@@ -106,19 +106,23 @@ simple-statement {
 }
 
 Condition { expr _t* }
-ElseIfClause  { kw<'elseif'> Condition block? }
-ElseClause    { kw<'else'> _t* block? }
-CatchClause   { kw<'catch'> _t* block? } // TODO: ExceptionCapture
-FinallyClause { kw<'finally'> _t* block? }
+ElseIfClause [closedBy='end else elseif']{ kw<'elseif'> Condition block? }
+CatchClause  [closedBy='end else finally']{ kw<'catch'> _t* block? } // TODO: ExceptionCapture
+ElseClause   [closedBy='end']{ kw<'else'> _t* block? }
+FinallyClause[closedBy='end']{ kw<'finally'> _t* block? }
 
 compound-statement {
-  ( BeginStatement { kw<'begin'> _t* block? end }
-  | QuoteStatement { kw<'quote'> _t* block? end }
-  | WhileStatement { kw<'while'> Condition block? end }
-  | ForStatement { kw<'for'> sep1<',', ForBinding> ~gen-or-for _t* block? end }
-  | LetStatement { kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t+ block? end }
-  | IfStatement  { kw<'if'> Condition block? ElseIfClause* ElseClause? end }
-  | TryStatement { kw<'try'> _t* block? (CatchClause ElseClause?)? FinallyClause? end }
+  ( BeginStatement[closedBy='end']{ kw<'begin'> _t* block? end }
+  | QuoteStatement[closedBy='end']{ kw<'quote'> _t* block? end }
+  | WhileStatement[closedBy='end']{ kw<'while'> Condition block? end }
+  | ForStatement  [closedBy='end']{ kw<'for'> sep1<',', ForBinding> ~gen-or-for _t* block? end }
+  | LetStatement  [closedBy='end']{ kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t+ block? end }
+  | IfStatement[closedBy='end else elseif'] {
+      kw<'if'> Condition block? ElseIfClause* ElseClause? end
+    }
+  | TryStatement[closedBy='end catch else finally'] {
+      kw<'try'> _t* block? (CatchClause ElseClause?)? FinallyClause? end
+    }
   )
 }
 
@@ -126,12 +130,18 @@ TypeHead { primary-expr | BinaryExpression }
 
 // TODO: Fix anonymous functions
 definition {
-  ( AbstractDefinition { kw<'abstract'> kw<'type'> TypeHead end }
-  | PrimitiveDefinition { kw<'primitive'> kw<'type'> TypeHead IntegerLiteral end }
-  | StructDefinition { kw<'mutable'>? kw<'struct'> TypeHead (_t+ block?)? end } // TODO: Allow skipping terminator
-  | ModuleDefinition { (kw<'module'> | kw<'baremodule'>) Identifier _t* block? end }
-  | MacroDefinition { kw<'macro'> Signature { CallExpression } _t* block? end }
-  | FunctionDefinition { kw<'function'> (Signature { Identifier } | Signature { !sig (CallExpression | TupleExpression | BinaryExpression) } _t* block?) end }
+  ( AbstractDefinition [closedBy='end']{ kw<'abstract'> kw<'type'> TypeHead end }
+  | PrimitiveDefinition[closedBy='end']{ kw<'primitive'> kw<'type'> TypeHead IntegerLiteral end }
+  | StructDefinition   [closedBy='end']{ kw<'mutable'>? kw<'struct'> TypeHead (_t+ block?)? end } // TODO: Allow skipping terminator
+  | ModuleDefinition   [closedBy='end']{ (kw<'module'> | kw<'baremodule'>) Identifier _t* block? end }
+  | MacroDefinition    [closedBy='end']{ kw<'macro'> Signature { CallExpression } _t* block? end }
+  | FunctionDefinition [closedBy='end']{
+      kw<'function'>
+      ( Signature { Identifier }
+      | Signature { !sig (CallExpression | TupleExpression | BinaryExpression) } _t* block?
+      )
+      end
+    }
   )
 }
 
@@ -194,7 +204,7 @@ array {
 }
 
 
-DoClause { kw<'do'> Parameters { sep1<',', Identifier | operation>? } _t+ block? end }
+DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation>? } _t+ block? end }
 
 CallExpression {
   // FIXME: Should broadcast dot be visible?
@@ -486,6 +496,11 @@ string {
   _ws { @whitespace+ }
 
   @precedence { block-comment-start, LineComment }
+
+  // For detectDelim to work
+  '(' ')' '[' ']' '{' '}'
 }
+
+@detectDelim
 
 // vim:set lisp:
