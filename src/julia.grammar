@@ -501,6 +501,8 @@ string {
   '(' ')' '[' ']' '{' '}'
 }
 
+@external propSource juliaHighlighting from "./highlight.js"
+
 @detectDelim
 
 // vim:set lisp:
