@@ -1,5 +1,5 @@
 import { ExternalTokenizer } from "@lezer/lr";
-import * as terms from "./_parser.terms.js";
+import * as terms from "./julia.grammar.terms"; // Not a real file. "linked" by rollup
 
 // UNICODE CODEPOINTS
 

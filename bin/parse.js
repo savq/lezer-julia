@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import process from "node:process";
 import readline from "node:readline/promises";
-import { parser } from "../src/_parser.js";
+import { parser } from "../dist/index.js";
 
 function echo(s) {
   process.stdout.write(s);

@@ -1,19 +1,14 @@
-import { nodeResolve } from "@rollup/plugin-node-resolve";
+import { lezer } from "@lezer/generator/rollup"
 
 export default {
-  input: process.env.ROLLUP_IN,
-  output: [
-    {
-      format: "cjs",
-      file: process.env.ROLLUP_OUT + ".cjs",
-    },
-    {
-      format: "es",
-      file: process.env.ROLLUP_OUT + ".es.js",
-    },
-  ],
-  external(id) {
-    return !/^[\.\/]/.test(id);
-  },
-  plugins: [nodeResolve()],
-};
+  input: "./src/julia.grammar",
+  output: [{
+    format: "es",
+    file: "./dist/index.js"
+  }, {
+    format: "cjs",
+    file: "./dist/index.cjs"
+  }],
+  external: ["@lezer/lr", "@lezer/highlight"],
+  plugins: [lezer()]
+}
