@@ -1,28 +1,34 @@
 # lezer-julia
 
-This is a [Julia][] grammar for the [lezer][] parser system.
+This is a [Julia](https://julialang.org) grammar for the
+[lezer](https://lezer.codemirror.net) parser system.
 
-The grammar was initially ported from [tree-sitter-julia][] using
-[lezer-parser/import-tree-sitter][] tool.
+The grammar was initially based on [tree-sitter-julia](https://github.com/tree-sitter/tree-sitter-julia).
+
+The code is licensed under an MIT license.
+
 
 ## Contributing
 
-Initializing dev environment:
-
+To initialize your development environment:
 ```
 yarn install
-make
+```
+This will install dependencies and build the parser.
+
+
+To rebuild the parser after changing the grammar or the tokenizer:
+```
+yarn run prepare
+```
+If the build crashes with a GC related error, run `export NODE_OPTIONS="--max-old-space-size=8192"` and try again.
+
+
+To test the parser:
+```
+yarn test
 ```
 
-> If you crash and it looks like there is too little memory, trying running `export NODE_OPTIONS="--max-old-space-size=8192"` before running `make`
 
-Running tests:
-
-```
-make test
-```
-
-[lezer]: https://lezer.codemirror.net/
-[julia]: https://julialang.org
-[tree-sitter-julia]: https://github.com/tree-sitter/tree-sitter-julia
-[lezer-parser/import-tree-sitter]: https://github.com/lezer-parser/import-tree-sitter
+The same commands should also work fine with `npm` or `pnpm` instead of `yarn`.
+The repository also includes a makefile for convenience.
