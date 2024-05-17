@@ -6,7 +6,7 @@ export const juliaHighlighting = styleTags({
 
   Identifier: t.variableName,
   // TODO: typeName
-  // TODO: propertyName
+  "Field/Identifier": t.propertyName,
   "MacroIdentifier!": t.macroName,
   "Symbol!": t.atom,
 

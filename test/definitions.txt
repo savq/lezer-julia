@@ -171,7 +171,7 @@ Program(
   FunctionDefinition(function, Signature(CallExpression(Identifier, Arguments(Identifier))), Identifier, end),
   FunctionDefinition(
     function,
-    Signature(CallExpression(FieldExpression(Identifier, Identifier), Arguments(BinaryExpression(Identifier, Identifier)))),
+    Signature(CallExpression(FieldExpression(Identifier, Field(Identifier)), Arguments(BinaryExpression(Identifier, Identifier)))),
     ReturnStatement(return, IntegerLiteral),
     end,
   ),
@@ -383,7 +383,7 @@ Program(
     Signature(
       CallExpression(
         Identifier,
-        Arguments(BinaryExpression(Identifier, FieldExpression(Identifier, Identifier))),
+        Arguments(BinaryExpression(Identifier, FieldExpression(Identifier, Field(Identifier)))),
       )
     )
     end
@@ -467,7 +467,7 @@ Program(
   ),
   MacroDefinition(
     macro,
-    Signature(CallExpression(FieldExpression(Identifier, Identifier), Arguments)),
+    Signature(CallExpression(FieldExpression(Identifier, Field(Identifier)), Arguments)),
     end
   )
 )

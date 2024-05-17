@@ -159,7 +159,7 @@ primary-expr {
   | ParenExpression
   | TupleExpression
   | AdjointExpression { primary-expr !primary immediateQuote "'" }
-  | FieldExpression { primary-expr !dot immediateDot '.' (Identifier | Symbol | QuoteExpression | string) }
+  | FieldExpression { primary-expr !dot immediateDot '.' Field { Identifier | Symbol | QuoteExpression | string } }
   | IndexExpression { primary-expr !primary immediateBracket array }
   | ParametrizedExpression { primary-expr !primary immediateBrace BraceExpression }
   | CallExpression

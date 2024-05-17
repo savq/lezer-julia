@@ -59,21 +59,21 @@ Base.r"foo"
 
 ==>
 Program(
-  FieldExpression(Identifier, Identifier),
+  FieldExpression(Identifier, Field(Identifier)),
   FieldExpression(
     FieldExpression(
       FieldExpression(
         Identifier,
-        Identifier,
+        Field(Identifier),
       ),
-      Identifier,
+      Field(Identifier),
     )
-    Identifier,
+    Field(Identifier),
   ),
-  FieldExpression(Identifier, Symbol(Operator)),
-  FieldExpression(Identifier, QuoteExpression(ParenExpression(Operator))),
-  FieldExpression(Identifier, StringLiteral)
-  FieldExpression(Identifier, NsStringLiteral(Identifier))
+  FieldExpression(Identifier, Field(Symbol(Operator))),
+  FieldExpression(Identifier, Field(QuoteExpression(ParenExpression(Operator)))),
+  FieldExpression(Identifier, Field(StringLiteral)),
+  FieldExpression(Identifier, Field(NsStringLiteral(Identifier))),
 
   FieldExpression(
     ParenExpression(
@@ -81,15 +81,15 @@ Program(
         CallExpression(
           FieldExpression(
             IndexExpression(Identifier, VectorExpression(IntegerLiteral)),
-            Identifier
+            Field(Identifier)
           ),
           Arguments
         ),
-        Identifier
-      ),
+        Field(Identifier)
+      )
     ),
-    Identifier
-  ),
+    Field(Identifier)
+  )
 )
 
 
@@ -101,9 +101,9 @@ obj.end
 
 ==>
 Program(
-  FieldExpression(Identifier, Identifier),
-  FieldExpression(Identifier, Identifier),
-  FieldExpression(Identifier, Identifier),
+  FieldExpression(Identifier, Field(Identifier)),
+  FieldExpression(Identifier, Field(Identifier)),
+  FieldExpression(Identifier, Field(Identifier)),
 )
 
 
@@ -359,8 +359,8 @@ $f[1, 2]
 ==>
 Program(
   InterpExpression(Identifier),
-  FieldExpression(InterpExpression(Identifier), Identifier),
-  InterpExpression(ParenExpression(FieldExpression(Identifier, Identifier))),
+  FieldExpression(InterpExpression(Identifier), Field(Identifier)),
+  InterpExpression(ParenExpression(FieldExpression(Identifier, Field(Identifier)))),
   CallExpression(InterpExpression(Identifier), Arguments(Identifier)),
   IndexExpression(InterpExpression(Identifier), VectorExpression(IntegerLiteral, IntegerLiteral)),
 )

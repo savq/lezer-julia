@@ -103,7 +103,7 @@ Program(
     Arguments(
       ArrowFunctionExpression(
         Identifier,
-        Assignment(FieldExpression(Identifier, Identifier), BoolLiteral),
+        Assignment(FieldExpression(Identifier, Field(Identifier)), BoolLiteral),
       ),
       Identifier,
     )
@@ -126,7 +126,7 @@ Program(
   JuxtapositionExpression(IntegerLiteral, Identifier),
   JuxtapositionExpression(IntegerLiteral, IndexExpression(Identifier, VectorExpression(Identifier))),
   JuxtapositionExpression(IntegerLiteral, CallExpression(Identifier, Arguments(Identifier))),
-  JuxtapositionExpression(IntegerLiteral, FieldExpression(Identifier, Identifier)),
+  JuxtapositionExpression(IntegerLiteral, FieldExpression(Identifier, Field(Identifier))),
   JuxtapositionExpression(IntegerLiteral, NsStringLiteral(Identifier)),
 )
 

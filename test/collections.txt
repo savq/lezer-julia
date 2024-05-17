@@ -52,7 +52,7 @@ Program(
   TupleExpression(Identifier, Identifier),
   TupleExpression(NamedField(Identifier, IntegerLiteral)),
   TupleExpression(NamedField(Identifier, IntegerLiteral), NamedField(Identifier, IntegerLiteral)),
-  TupleExpression(Identifier, FieldExpression(Identifier, Identifier))
+  TupleExpression(Identifier, FieldExpression(Identifier, Field(Identifier)))
 )
 
 
