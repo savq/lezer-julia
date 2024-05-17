@@ -357,15 +357,15 @@ string {
   ( StringLiteral
   | CommandLiteral
   | NsStringLiteral {
-      ( Identifier immediateDoubleQuote ns<'"', str1-content, '\\"'>
-      | Identifier immediateDoubleQuote ns<'"""', str3-content, '\\"'>
-      )
+      Identifier
+      immediateDoubleQuote
+      (ns<'"', str1-content, '\\"'> | ns<'"""', str3-content, '\\"'>)
       (!juxt immediateIdentifier Identifier)?
     }
   | NsCommandLiteral {
-      ( Identifier immediateBackquote ns<'`', cmd1-content, '\\`'>
-      | Identifier immediateBackquote ns<'```', cmd3-content, '\\`'>
-      )
+      Identifier
+      immediateBackquote
+      (ns<'`', cmd1-content, '\\`'> | ns<'```', cmd3-content, '\\`'>)
       (!juxt immediateIdentifier Identifier)?
     }
   )
@@ -379,8 +379,8 @@ string {
   ns<delim, content, esc> { _s<delim, content | '$' | '\\' | [@name=EscapeSequence]{ '\\\\' | esc }> }
 
   // Commands support the same interpolations as InterpExpression.
-  str-interp { '$' (Identifier | Operator | parens<expr>) }
-  cmd-interp { '$' (Identifier | Operator | BraceExpression | ParenExpression | TupleExpression | array) }
+  str-interp { [@name='$']{ '$' } (Identifier | Operator | parens<expr>) }
+  cmd-interp { [@name='$']{ '$' } (Identifier | Operator | BraceExpression | ParenExpression | TupleExpression | array) }
 
   StringLiteral { str<'"', str1-content | str-interp> | str<'"""', str3-content | str-interp> }
   CommandLiteral { str<'`', cmd1-content | cmd-interp> | str<'```', cmd3-content | cmd-interp> }

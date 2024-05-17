@@ -8,12 +8,14 @@ export const juliaHighlighting = styleTags({
   // TODO: typeName
   "Field/Identifier": t.propertyName,
   "MacroIdentifier!": t.macroName,
+  "NsStringLiteral/Identifier": t.macroName,
+  "NsCommandLiteral/Identifier": t.macroName,
   "Symbol!": t.atom,
 
   StringLiteral: t.string,
-  CommandLiteral: t.string,
+  CommandLiteral: t.special(t.string),
   NsStringLiteral: t.string,
-  NsCommandLiteral: t.string,
+  NsCommandLiteral: t.special(t.string),
   CharLiteral: t.character,
   EscapeSequence: t.escape,
   IntegerLiteral: t.integer,
@@ -43,6 +45,11 @@ export const juliaHighlighting = styleTags({
   "in isa where": t.operatorKeyword,
 
   // TODO: Operators
+
+  // String interpolation tokens
+  "StringLiteral/$ CommandLiteral/$": t.special(t.bracket),
+  "StringLiteral/ParenExpression/( CommandLiteral/ParenExpression/(": t.special(t.bracket),
+  "StringLiteral/ParenExpression/) CommandLiteral/ParenExpression/)": t.special(t.bracket),
 
   "( )": t.paren,
   "[ ]": t.squareBracket,
