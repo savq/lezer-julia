@@ -1,7 +1,6 @@
 @precedence {
   quote @left
   dot @left
-  primary @right
   where @left // Inner `where`
   decl @left
   power @right
@@ -27,7 +26,6 @@
   simple @right
   mat
   macro
-  sig @right // FIXME
 }
 
 @skip { _ws | LineComment | BlockComment }
@@ -138,7 +136,7 @@ definition {
   | FunctionDefinition [closedBy='end']{
       kw<'function'>
       ( Signature { Identifier }
-      | Signature { !sig (CallExpression | TupleExpression | BinaryExpression) } _t* block?
+      | Signature { !simple (CallExpression | TupleExpression | BinaryExpression) } _t* block?
       )
       end
     }
@@ -158,10 +156,10 @@ primary-expr {
   | BraceExpression
   | ParenExpression
   | TupleExpression
-  | AdjointExpression { primary-expr !primary immediateQuote "'" }
+  | AdjointExpression { primary-expr immediateQuote "'" }
   | FieldExpression { primary-expr !dot immediateDot '.' Field { Identifier | Symbol | QuoteExpression | string } }
-  | IndexExpression { primary-expr !primary immediateBracket array }
-  | ParametrizedExpression { primary-expr !primary immediateBrace BraceExpression }
+  | IndexExpression { primary-expr immediateBracket array }
+  | ParametrizedExpression { primary-expr immediateBrace BraceExpression }
   | CallExpression
   | ClosedMacrocallExpression
   | InterpExpression
@@ -190,7 +188,7 @@ TupleExpression { tuple<expr | binding<'NamedField'>> }
 
 // NOTE: binding `in` is a keyword, membership `in` is a function
 ForBinding { kw<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kw<'in'>) expr }
-GenFor { kw<'for'> sep1<!tup ',', ForBinding> }
+GenFor { kw<'for'> sep1<(!tup ','), ForBinding> }
 GenFilter { kw<'if'> expr }
 Generator { expr !simple GenFor ~gen-or-for (GenFor | GenFilter)* }
 
@@ -209,7 +207,7 @@ DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation
 CallExpression {
   // FIXME: Should broadcast dot be visible?
   (primary-expr (immediateDot '.')? | Operator)
-  !primary immediateParen
+  immediateParen
   '('
   Arguments { sep<',', expr | binding<'KwArg'> | Generator> }
   KeywordArguments { ';' sep<',', expr | binding<'KwArg'>> }?
@@ -219,7 +217,6 @@ CallExpression {
 
 ClosedMacrocallExpression[@name=MacrocallExpression] {
   (MacroIdentifier | [@name=FieldExpression]{ primary-expr immediateDot '.' MacroIdentifier })
-  !primary
   ( immediateBracket array
   | immediateBrace BraceExpression
   | immediateParen '(' Arguments { sep<',', expr | binding<'KwArg'>> } ')'
