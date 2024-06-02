@@ -251,7 +251,7 @@ QuoteExpression[@dynamicPrecedence=1] {
   | immediateBracket array
   | immediateAt ClosedMacrocallExpression
   // | immediateAt OpenMacrocallExpression // TODO
-  | parens<SyntacticOperator>
+  | immediateParen parens<SyntacticOperator>
   )
 }
 
