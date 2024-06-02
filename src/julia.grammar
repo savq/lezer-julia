@@ -44,7 +44,7 @@ OpenTuple { expr (!tup ',' expr)+ }
 // Assignments inside blocks, including top-level.
 OpenAssignment[@name=Assignment] {
   (primary-expr | operation | Operator | OpenTuple)
-  !assignment (eq-operator | assignment-operator | tilde-operator) !assignment
+  !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
   top-level
 }
 
@@ -52,7 +52,7 @@ OpenAssignment[@name=Assignment] {
 binding<alias> {
   [@name={alias}] {
       (primary-expr | operation | Operator)
-      !assignment (eq-operator | assignment-operator | tilde-operator) !assignment
+      !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
       (expr | binding<'Assignment'>)
   }
 }
@@ -343,7 +343,7 @@ SyntacticOperator[@name=Operator] {
   | '?'
   | '->'
   | assignment-operator
-  | eq-operator
+  | compound-assignment-operator
   )
 }
 
@@ -434,10 +434,10 @@ string {
   // Binary syntactic operators (broadcast dot, but no suffixes)
   lazy-and-operator { bdot<'&&'> }
   lazy-or-operator { bdot<'||'> }
-  eq-operator { bdot<'='> }
-  assignment-operator { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
+  assignment-operator { bdot<'='> }
+  compound-assignment-operator { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
 
-  @precedence { assignment-operator, unary-plus-operator }
+  @precedence { compound-assignment-operator, unary-plus-operator }
 
 
   // NUMBERS
