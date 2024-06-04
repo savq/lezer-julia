@@ -215,8 +215,10 @@ CallExpression {
   DoClause?
 }
 
+macro-head { MacroIdentifier | [@name=FieldExpression]{ primary-expr immediateDot '.' MacroIdentifier } }
+
 ClosedMacrocallExpression[@name=MacrocallExpression] {
-  (MacroIdentifier | [@name=FieldExpression]{ primary-expr immediateDot '.' MacroIdentifier })
+  macro-head
   ( immediateBracket array
   | immediateBrace BraceExpression
   | immediateParen '(' Arguments { sep<',', expr | binding<'KwArg'>> } ')'
@@ -225,7 +227,7 @@ ClosedMacrocallExpression[@name=MacrocallExpression] {
 }
 
 OpenMacrocallExpression[@name=MacrocallExpression] {
-  (MacroIdentifier | [@name=FieldExpression]{ primary-expr immediateDot '.' MacroIdentifier })
+  macro-head
   MacroArguments { macro-arg[@dynamicPrecedence=-1] { (!macro top-level) }+ }?
 }
 
