@@ -154,7 +154,7 @@ function combineSurrogates(input, offset) {
   return s;
 }
 
-export const Identifier = new ExternalTokenizer(
+const tokenizeIdentifier = (term) => new ExternalTokenizer(
   (input, _stack) => {
     let offset = 0;
     let eat = 1;
@@ -204,10 +204,14 @@ export const Identifier = new ExternalTokenizer(
       }
     }
     if (offset !== 0) {
-      input.acceptToken(terms.Identifier, offset);
+      input.acceptToken(term, offset);
     }
-  }
-);
+  },
+  { extend: true },
+)
+
+export const Identifier = tokenizeIdentifier(terms.Identifier);
+export const word = tokenizeIdentifier(terms.word);
 
 // NEWLINE TERMINATORS
 

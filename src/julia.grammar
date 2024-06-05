@@ -75,12 +75,13 @@ expr {
 // STATEMENTS
 
 // Allow keywords as identifiers when necessary.
-kw[@dynamicPrecedence=1]<term> { @extend[@name={term},group='keyword']<Identifier, term> }
+kw<term> { @specialize[@name={term},group='keyword']<Identifier, term> }
+kwid[@dynamicPrecedence=1]<term> { @extend[@name={term},group='keyword']<Identifier, term> }
 
 end { kw<'end'> }
 
 ImportPath { ('.'+ immediateIdentifier)? Identifier (!dot immediateDot '.' Identifier)* }
-ImportAlias { importable kw<'as'> exportable }
+ImportAlias { importable kwid<'as'> exportable }
 
 exportable { Identifier | MacroIdentifier | Operator | parens<exportable> }
 importable { ImportPath | MacroIdentifier | Operator | parens<exportable> }
@@ -126,9 +127,9 @@ TypeHead { primary-expr | BinaryExpression }
 
 // TODO: Fix anonymous functions
 definition {
-  ( AbstractDefinition [closedBy='end']{ kw<'abstract'> kw<'type'> TypeHead end }
-  | PrimitiveDefinition[closedBy='end']{ kw<'primitive'> kw<'type'> TypeHead IntegerLiteral end }
-  | StructDefinition   [closedBy='end']{ kw<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
+  ( AbstractDefinition [closedBy='end']{ kwid<'abstract'> kwid<'type'> TypeHead end }
+  | PrimitiveDefinition[closedBy='end']{ kwid<'primitive'> kwid<'type'> TypeHead IntegerLiteral end }
+  | StructDefinition   [closedBy='end']{ kwid<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
   | ModuleDefinition   [closedBy='end']{ (kw<'module'> | kw<'baremodule'>) Identifier _t? block? end }
   | MacroDefinition    [closedBy='end']{ kw<'macro'> Signature { CallExpression } _t? block? end }
   | FunctionDefinition [closedBy='end']{
@@ -155,7 +156,7 @@ primary-expr {
   | ParenExpression
   | TupleExpression
   | AdjointExpression { primary-expr immediateQuote "'" }
-  | FieldExpression { primary-expr !dot immediateDot '.' Field { Identifier | Symbol | QuoteExpression | string } }
+  | FieldExpression { primary-expr !dot immediateDot '.' Field { Symbol | QuoteExpression | string | Word } }
   | IndexExpression { primary-expr immediateBracket array }
   | ParametrizedExpression { primary-expr immediateBrace BraceExpression }
   | CallExpression
@@ -185,7 +186,7 @@ tuple<x> {
 TupleExpression { tuple<expr | binding<'NamedField'>> }
 
 // NOTE: binding `in` is a keyword, membership `in` is a function
-ForBinding { kw<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kw<'in'>) expr }
+ForBinding { kwid<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kwid<'in'>) expr }
 GenFor { kw<'for'> sep1<(!tup ','), ForBinding> }
 GenFilter { kw<'if'> expr }
 Generator { expr !simple GenFor ~gen-or-for (GenFor | GenFilter)* }
@@ -257,7 +258,7 @@ QuoteExpression[@dynamicPrecedence=1] {
 
 Symbol {
   ':' !quote
-  ( immediateIdentifier Identifier
+  ( immediateIdentifier Word
   | Operator // TODO: immediateOperator?
   | SyntacticOperator
   )
@@ -277,7 +278,7 @@ operation {
 }
 
 BinaryExpression {
-  ( expr !where      kw<'where'> !where expr
+  ( expr !where      kwid<'where'> !where expr
   | expr !decl       '::' expr
   | expr !power      power-operator !power expr
   | expr !bitshift   bitshift-operator !bitshift expr
@@ -331,7 +332,7 @@ Operator {
 }
 
 // TODO: membership operators should NOT be highlighted as keywords.
-membership-operator { kw<'in'> | kw<'isa'> }
+membership-operator { kwid<'in'> | kwid<'isa'> }
 
 // Operators that cannot be used as identifiers
 SyntacticOperator[@name=Operator] {
@@ -385,6 +386,7 @@ string {
   // Rules that should be tokens, but aren't...
   BlockComment { block-comment-start (block-comment-content | '#' | '=' | BlockComment)* '=#' }
   MacroIdentifier { '@' (Identifier | Operator | SyntacticOperator) }
+  Word[@name=Identifier]{ word }
 }
 
 // immediateIdentifier must be listed _before_ identifier.
@@ -401,6 +403,7 @@ string {
   immediateQuote,
   immediateIdentifier
 }
+@external tokens word from "./tokens.js" { word }
 @external tokens Identifier from "./tokens.js" { Identifier }
 
 @external tokens newline from "./tokens.js" { newline }
