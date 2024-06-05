@@ -30,11 +30,9 @@
 
 @skip { _ws | LineComment | BlockComment }
 
-@top Program { _t* block? }
+@top Program { block? }
 
-// blocks don't include a terminator at the start because some statements
-// require them (e.g. LetStatement) and others don't (e.g. BeginStatement).
-block { top-level (_t+ top-level)* _t* }
+block { top-level (_t top-level)* _t? }
 
 top-level { expr | OpenAssignment | OpenTuple }
 
@@ -103,23 +101,23 @@ simple-statement {
   )
 }
 
-Condition { expr _t* }
+Condition { expr _t? }
 ElseIfClause [closedBy='end else elseif']{ kw<'elseif'> Condition block? }
-CatchClause  [closedBy='end else finally']{ kw<'catch'> _t* block? } // TODO: ExceptionCapture
-ElseClause   [closedBy='end']{ kw<'else'> _t* block? }
-FinallyClause[closedBy='end']{ kw<'finally'> _t* block? }
+CatchClause  [closedBy='end else finally']{ kw<'catch'> block? } // TODO: ExceptionCapture
+ElseClause   [closedBy='end']{ kw<'else'> block? }
+FinallyClause[closedBy='end']{ kw<'finally'> block? }
 
 compound-statement {
-  ( BeginStatement[closedBy='end']{ kw<'begin'> _t* block? end }
-  | QuoteStatement[closedBy='end']{ kw<'quote'> _t* block? end }
+  ( BeginStatement[closedBy='end']{ kw<'begin'> block? end }
+  | QuoteStatement[closedBy='end']{ kw<'quote'> block? end }
   | WhileStatement[closedBy='end']{ kw<'while'> Condition block? end }
-  | ForStatement  [closedBy='end']{ kw<'for'> sep1<',', ForBinding> ~gen-or-for _t* block? end }
-  | LetStatement  [closedBy='end']{ kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t+ block? end }
+  | ForStatement  [closedBy='end']{ kw<'for'> sep1<',', ForBinding> ~gen-or-for _t? block? end }
+  | LetStatement  [closedBy='end']{ kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t block? end }
   | IfStatement[closedBy='end else elseif'] {
       kw<'if'> Condition block? ElseIfClause* ElseClause? end
     }
   | TryStatement[closedBy='end catch else finally'] {
-      kw<'try'> _t* block? (CatchClause ElseClause?)? FinallyClause? end
+      kw<'try'> block? (CatchClause ElseClause?)? FinallyClause? end
     }
   )
 }
@@ -130,13 +128,13 @@ TypeHead { primary-expr | BinaryExpression }
 definition {
   ( AbstractDefinition [closedBy='end']{ kw<'abstract'> kw<'type'> TypeHead end }
   | PrimitiveDefinition[closedBy='end']{ kw<'primitive'> kw<'type'> TypeHead IntegerLiteral end }
-  | StructDefinition   [closedBy='end']{ kw<'mutable'>? kw<'struct'> TypeHead (_t+ block?)? end } // TODO: Allow skipping terminator
-  | ModuleDefinition   [closedBy='end']{ (kw<'module'> | kw<'baremodule'>) Identifier _t* block? end }
-  | MacroDefinition    [closedBy='end']{ kw<'macro'> Signature { CallExpression } _t* block? end }
+  | StructDefinition   [closedBy='end']{ kw<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
+  | ModuleDefinition   [closedBy='end']{ (kw<'module'> | kw<'baremodule'>) Identifier _t? block? end }
+  | MacroDefinition    [closedBy='end']{ kw<'macro'> Signature { CallExpression } _t? block? end }
   | FunctionDefinition [closedBy='end']{
       kw<'function'>
       ( Signature { Identifier }
-      | Signature { !simple (CallExpression | TupleExpression | BinaryExpression) } _t* block?
+      | Signature { !simple (CallExpression | TupleExpression | BinaryExpression) } _t? block?
       )
       end
     }
@@ -202,7 +200,7 @@ array {
 }
 
 
-DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation>? } _t+ block? end }
+DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation>? } _t block? end }
 
 CallExpression {
   // FIXME: Should broadcast dot be visible?
@@ -404,7 +402,9 @@ string {
   immediateIdentifier
 }
 @external tokens Identifier from "./tokens.js" { Identifier }
-@external tokens terminator from "./tokens.js" { _t }
+
+@external tokens newline from "./tokens.js" { newline }
+_t { newline | semicolon }
 
 @tokens {
   // OPERATORS
@@ -487,14 +487,19 @@ string {
   cmd3-content { (cmd1-content | '`' (cmd1-content | '`' cmd1-content))+ }
 
 
-  // COMMENTS & WHITESPACE
+  // COMMENTS
 
   LineComment { '#' ![=\n]? ![\n]* }
   block-comment-content { ![#=] }
   block-comment-start { '#=' }
-  _ws { @whitespace+ }
 
   @precedence { block-comment-start, LineComment }
+
+
+  // OTHER TOKENS
+
+  _ws { @whitespace+ }
+  semicolon { ';'+ }
 
   // For detectDelim to work
   '(' ')' '[' ']' '{' '}'

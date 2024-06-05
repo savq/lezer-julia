@@ -115,7 +115,7 @@ function isIdentifierStartCharExtra(s, c) {
 }
 
 function isIdentifierStartChar(input, offset) {
-  let c = input.peek(offset);
+  const c = input.peek(offset);
   if (
     (c >= CHAR_A && c <= CHAR_Z) ||
     (c >= CHAR_a && c <= CHAR_z) ||
@@ -125,7 +125,7 @@ function isIdentifierStartChar(input, offset) {
   } else if (c < 0xa1 || c > 0x10ffff) {
     return 0;
   } else {
-    let s = combineSurrogates(input, offset);
+    const s = combineSurrogates(input, offset);
     if (isIdentifierStartCharExtra(s, c)) {
       return s.length;
     } else {
@@ -142,33 +142,34 @@ function combineSurrogates(input, offset) {
   let c = input.peek(offset);
   let s = String.fromCodePoint(c);
   while (true) {
-    let nc = input.peek(offset + eat);
+    const nc = input.peek(offset + eat);
     // Break if c and nc are not surrogate pairs
     if (!(0xd800 <= c && c <= 0xdbff && 0xdc00 <= nc && nc <= 0xdfff)) {
       break;
     }
-    s = s + String.fromCodePoint(nc);
     c = nc;
-    eat = eat + 1;
+    s += String.fromCodePoint(c);
+    eat += 1;
   }
   return s;
 }
 
-export const Identifier = new ExternalTokenizer((input, stack) => {
-  let start = true;
-  let ok = true;
-  let offset = 0;
-  let eat = 1;
-  while (true) {
+export const Identifier = new ExternalTokenizer(
+  (input, _stack) => {
+    let offset = 0;
+    let eat = 1;
+
     let c = input.peek(offset);
-    if (c === -1) break;
-    if (start) {
-      start = false;
-      eat = isIdentifierStartChar(input, offset);
-      if (eat === 0) {
-        break;
-      }
-    } else {
+    if (c === -1) return;
+
+    eat = isIdentifierStartChar(input, offset);
+    if (eat === 0) return;
+
+    while (true) {
+      offset += eat;
+      eat = 1;
+      c = input.peek(offset);
+      if (c === -1) break;
       if (
         (c >= CHAR_A && c <= CHAR_Z) ||
         (c >= CHAR_a && c <= CHAR_z) ||
@@ -180,7 +181,7 @@ export const Identifier = new ExternalTokenizer((input, stack) => {
       } else if (c < 0xa1 || c > 0x10ffff) {
         break;
       } else {
-        let s = combineSurrogates(input, offset);
+        const s = combineSurrogates(input, offset);
         eat = s.length;
         if (isIdentifierStartCharExtra(s, c)) {
           // accept
@@ -202,36 +203,26 @@ export const Identifier = new ExternalTokenizer((input, stack) => {
         }
       }
     }
-    offset = offset + eat;
-    eat = 1;
+    if (offset !== 0) {
+      input.acceptToken(terms.Identifier, offset);
+    }
   }
-  if (offset !== 0) {
-    input.acceptToken(terms.Identifier, offset);
-  }
-});
+);
 
-// TERMINATOR
+// NEWLINE TERMINATORS
 
-export const terminator = new ExternalTokenizer((input, stack) => {
-  // Consume multiple semicolons as a single token (for `ncat`).
-  let offset = 0;
-  while (input.peek(offset) === CHAR_SEMICOLON) {
-    offset += 1;
+export const newline = new ExternalTokenizer(
+  (input, stack) => {
+    let offset = 0;
+    while (input.peek(offset) === CHAR_NEWLINE) {
+      offset += 1;
+    }
+    if (offset >= 1 && stack.canShift(terms.newline)) {
+      input.acceptToken(terms.newline, offset);
+      return;
+    }
   }
-  if (offset >= 1 && stack.canShift(terms._t)) {
-    input.acceptToken(terms._t, offset);
-    return;
-  }
-
-  offset = 0;
-  while (input.peek(offset) === CHAR_NEWLINE) {
-    offset += 1;
-  }
-  if (offset >= 1 && stack.canShift(terms._t)) {
-    input.acceptToken(terms._t, offset);
-    return;
-  }
-});
+);
 
 // LAYOUT TOKENIZERS
 
