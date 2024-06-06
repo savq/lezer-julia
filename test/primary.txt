@@ -132,10 +132,10 @@ xs[end - 1]
 
 ==>
 Program(
-  IndexExpression(Identifier, VectorExpression(Identifier)),
-  IndexExpression(Identifier, VectorExpression(BinaryExpression(Identifier, IntegerLiteral))),
-  IndexExpression(Identifier, VectorExpression(Identifier)),
-  IndexExpression(Identifier, VectorExpression(BinaryExpression(Identifier, IntegerLiteral))),
+  IndexExpression(Identifier, VectorExpression(begin)),
+  IndexExpression(Identifier, VectorExpression(BinaryExpression(begin, IntegerLiteral))),
+  IndexExpression(Identifier, VectorExpression(end)),
+  IndexExpression(Identifier, VectorExpression(BinaryExpression(end, IntegerLiteral))),
 )
 
 

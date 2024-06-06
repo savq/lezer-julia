@@ -41,36 +41,42 @@ OpenTuple { expr (!tup ',' expr)+ }
 
 // Assignments inside blocks, including top-level.
 OpenAssignment[@name=Assignment] {
-  (primary-expr | operation | Operator | OpenTuple)
+  (primary-expr | operation<expr> | Operator | OpenTuple)
   !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
   top-level
 }
 
 // Assignments inside brackets cannot contain OpenTuples.
-binding<alias> {
+_binding<alias, expr> {
   [@name={alias}] {
-      (primary-expr | operation | Operator)
+      (primary-expr | operation<expr> | Operator)
       !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
-      (expr | binding<'Assignment'>)
+      (expr | _binding<'Assignment', expr>)
   }
 }
+binding<alias> { _binding<alias, expr> }
+binding-idx<alias> { _binding<alias, expr-idx> }
 
 // Almost everything else is an expression.
-expr {
-  ( simple-statement
-  | compound-statement
-  | definition
-  | primary-expr
-  | operation
+expression<expr> {
+  ( primary-expr
+  | operation<expr>
   | OpenMacrocallExpression
   | ArrowFunctionExpression
   | JuxtapositionExpression
-  | TernaryExpression
+  | TernaryExpression<expr>
   | Operator ~op-as-id
   | FloatLiteral
   | IntegerLiteral
   )
 }
+
+// Expression in "normal" context
+expr { expression<expr> | simple-statement | compound-statement | definition }
+
+// Expressions inside arrays
+expr-idx { expression<expr-idx> | kw<'begin'> | kw<'end'> }
+
 
 // STATEMENTS
 
@@ -112,7 +118,7 @@ compound-statement {
   ( BeginStatement[closedBy='end']{ kw<'begin'> block? end }
   | QuoteStatement[closedBy='end']{ kw<'quote'> block? end }
   | WhileStatement[closedBy='end']{ kw<'while'> Condition block? end }
-  | ForStatement  [closedBy='end']{ kw<'for'> sep1<',', ForBinding> ~gen-or-for _t? block? end }
+  | ForStatement  [closedBy='end']{ kw<'for'> sep1<',', ForBinding> _t? block? end }
   | LetStatement  [closedBy='end']{ kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t block? end }
   | IfStatement[closedBy='end else elseif'] {
       kw<'if'> Condition block? ElseIfClause* ElseClause? end
@@ -123,7 +129,7 @@ compound-statement {
   )
 }
 
-TypeHead { primary-expr | BinaryExpression }
+TypeHead { primary-expr | BinaryExpression<expr> }
 
 // TODO: Fix anonymous functions
 definition {
@@ -135,7 +141,7 @@ definition {
   | FunctionDefinition [closedBy='end']{
       kw<'function'>
       ( Signature { Identifier }
-      | Signature { !simple (CallExpression | TupleExpression | BinaryExpression) } _t? block?
+      | Signature { !simple (CallExpression | TupleExpression | BinaryExpression<expr>) } _t? block?
       )
       end
     }
@@ -170,7 +176,7 @@ sep<delim, rule> { (rule (delim rule)* delim?)? }
 sep1<delim, rule> { rule (delim rule)* }
 
 BraceExpression { '{' sep<',', expr | binding<'Assignment'>> '}' }
-ParenExpression { '(' sep1<';', (expr | binding<'Assignment'> | Generator)> ')' }
+ParenExpression { '(' sep1<';', (expr | binding<'Assignment'> | Generator<expr>)> ')' }
 
 // Parentheses where multiple expressions are not allowed.
 parens[@name=ParenExpression]<x> { '(' x ')' }
@@ -189,26 +195,26 @@ TupleExpression { tuple<expr | binding<'NamedField'>> }
 ForBinding { kwid<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kwid<'in'>) expr }
 GenFor { kw<'for'> sep1<(!tup ','), ForBinding> }
 GenFilter { kw<'if'> expr }
-Generator { expr !simple GenFor ~gen-or-for (GenFor | GenFilter)* }
+Generator<expr> { expr !simple GenFor (GenFor | GenFilter)* }
 
-MatrixRow { (!mat expr)+ }
+MatrixRow { (!mat expr-idx)+ }
 
 array {
-  ( ComprehensionExpression { '[' Generator ']' }
+  ( ComprehensionExpression { '[' Generator<expr-idx> ']' }
   | MatrixExpression { '[' MatrixRow (_t MatrixRow)* _t? ']' }
-  | VectorExpression { '[' sep<',', (!vec (expr | binding<'Assignment'>))> ']' }
+  | VectorExpression { '[' sep<',', (!vec (expr-idx | binding-idx<'Assignment'>))> ']' }
   )
 }
 
 
-DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation>? } _t block? end }
+DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
 
 CallExpression {
   // FIXME: Should broadcast dot be visible?
   (primary-expr (immediateDot '.')? | Operator)
   immediateParen
   '('
-  Arguments { sep<',', expr | binding<'KwArg'> | Generator> }
+  Arguments { sep<',', expr | binding<'KwArg'> | Generator<expr>> }
   KeywordArguments { ';' sep<',', expr | binding<'KwArg'>> }?
   ')'
   DoClause?
@@ -267,17 +273,17 @@ Symbol {
 // OPERATIONS
 // TODO: Make operators visible.
 
-operation {
+operation<expr> {
   ( SplatExpression { expr !colon '...' }
   | UnaryExpression {
       ('::' | tilde-operator | type-comparison-operator | unary-operator | unary-plus-operator)
       !unary expr
     }
-  | BinaryExpression
+  | BinaryExpression<expr>
   )
 }
 
-BinaryExpression {
+BinaryExpression<expr> {
   ( expr !where      kwid<'where'> !where expr
   | expr !decl       '::' expr
   | expr !power      power-operator !power expr
@@ -307,7 +313,7 @@ JuxtapositionExpression {
   (!juxt immediateIdentifier primary-expr)*
 }
 
-TernaryExpression { expr !ternary '?' !ternary expr !ternary ':' !ternary expr }
+TernaryExpression<expr> { expr !ternary '?' !ternary expr !ternary ':' !ternary expr }
 
 
 Operator {

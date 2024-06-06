@@ -22,7 +22,10 @@ export const juliaHighlighting = styleTags({
   FloatLiteral: t.float,
   BoolLiteral: t.bool,
 
-  "begin BeginStatement/end": t.keyword,
+  // begin/end indices
+  "begin end": t.constant(t.variableName),
+
+  "BeginStatement/begin BeginStatement/end": t.keyword,
   "quote QuoteStatement/end": t.keyword,
   "let LetStatement/end": t.keyword,
 
