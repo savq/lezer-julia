@@ -360,34 +360,27 @@ SyntacticOperator[@name=Operator] {
 string {
   ( StringLiteral
   | CommandLiteral
-  | NsStringLiteral {
-      Identifier
-      immediateDoubleQuote
-      (ns<'"', str1-content, '\\"'> | ns<'"""', str3-content, '\\"'>)
-      (!juxt immediateIdentifier Identifier)?
-    }
-  | NsCommandLiteral {
-      Identifier
-      immediateBackquote
-      (ns<'`', cmd1-content, '\\`'> | ns<'```', cmd3-content, '\\`'>)
-      (!juxt immediateIdentifier Identifier)?
-    }
+  | NsStringLiteral { Identifier immediateDoubleQuote ns-str (!juxt immediateIdentifier Word)? }
+  | NsCommandLiteral { Identifier immediateBackquote ns-cmd (!juxt immediateIdentifier Word)? }
   )
 }
 
 @skip {} {
-  // Non-standard string literals don't have interpolations,
-  // and only have the most basic escape sequences.
+  // Non-standard string literals don't have interpolations, and only have basic escape sequences.
   _s<delim, content> { delim (content)* delim }
-  str<delim, content> { _s<delim, content | EscapeSequence> }
+  s<delim, content, interp> { _s<delim, content | [@name='$']{ '$' } interp | EscapeSequence> }
   ns<delim, content, esc> { _s<delim, content | '$' | '\\' | [@name=EscapeSequence]{ '\\\\' | esc }> }
 
   // Commands support the same interpolations as InterpExpression.
-  str-interp { [@name='$']{ '$' } (Identifier | Operator | parens<expr>) }
-  cmd-interp { [@name='$']{ '$' } (Identifier | Operator | BraceExpression | ParenExpression | TupleExpression | array) }
+  str-interp { Identifier | parens<expr> }
+  cmd-interp { Identifier | BraceExpression | ParenExpression | TupleExpression | array }
 
-  StringLiteral { str<'"', str1-content | str-interp> | str<'"""', str3-content | str-interp> }
-  CommandLiteral { str<'`', cmd1-content | cmd-interp> | str<'```', cmd3-content | cmd-interp> }
+  // Strings can be single or triple quoted
+  StringLiteral { s<'"', str1-content, str-interp> | s<'"""', str3-content, str-interp> }
+  CommandLiteral { s<'`', cmd1-content, cmd-interp> | s<'```', cmd3-content, cmd-interp> }
+
+  ns-str { ns<'"', str1-content, '\\"'> | ns<'"""', str3-content, '\\"'> }
+  ns-cmd { ns<'`', cmd1-content, '\\`'> | ns<'```', cmd3-content, '\\`'> }
 
   // Rules that should be tokens, but aren't...
   BlockComment { block-comment-start (block-comment-content | '#' | '=' | BlockComment)* '=#' }
