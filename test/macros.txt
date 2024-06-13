@@ -17,8 +17,8 @@ Program(
   MacrocallExpression(
     MacroIdentifier(Identifier),
     BraceExpression(
-      BinaryExpression(Identifier, Identifier),
-      BinaryExpression(Identifier, Identifier),
+      BinaryExpression(Identifier, Type(Identifier)),
+      BinaryExpression(Identifier, Type(Identifier)),
     ),
   ),
 )

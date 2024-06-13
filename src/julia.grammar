@@ -275,17 +275,15 @@ Symbol {
 
 operation<expr> {
   ( SplatExpression { expr !colon '...' }
-  | UnaryExpression {
-      ('::' | tilde-operator | type-comparison-operator | unary-operator | unary-plus-operator)
-      !unary expr
-    }
+  | UnaryExpression { (tilde-operator | type-comparison-operator | unary-operator | unary-plus-operator) !unary expr }
+  | [@name=UnaryExpression] { '::' !unary Type { expr } }
   | BinaryExpression<expr>
   )
 }
 
 BinaryExpression<expr> {
-  ( expr !where      kwid<'where'> !where expr
-  | expr !decl       '::' expr
+  ( expr !where      kwid<'where'> !where Type { expr }
+  | expr !decl       '::' Type { expr }
   | expr !power      power-operator !power expr
   | expr !bitshift   bitshift-operator !bitshift expr
   | expr !rational   rational-operator !rational expr

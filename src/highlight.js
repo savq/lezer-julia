@@ -5,7 +5,7 @@ export const juliaHighlighting = styleTags({
   BlockComment: t.blockComment,
 
   Identifier: t.variableName,
-  // TODO: typeName
+  "Type/...": t.typeName,
   "Field/Identifier": t.propertyName,
   "MacroIdentifier!": t.macroName,
   "NsStringLiteral/Identifier": t.macroName,

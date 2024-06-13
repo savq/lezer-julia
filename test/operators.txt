@@ -162,8 +162,8 @@ Program(
 Program(
   QuoteExpression(ParenExpression(Operator)),
   QuoteExpression(ParenExpression(Operator)),
-  QuoteExpression(ParenExpression(UnaryExpression(Operator))),
-  QuoteExpression(ParenExpression(UnaryExpression(UnaryExpression(Operator)))),
+  QuoteExpression(ParenExpression(UnaryExpression(Type(Operator)))),
+  QuoteExpression(ParenExpression(UnaryExpression(Type(UnaryExpression(Type(Operator)))))),
 )
 
 

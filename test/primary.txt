@@ -41,7 +41,7 @@ where where where
 ==>
 Program(
   Assignment(Identifier, Identifier),
-  BinaryExpression(Identifier, where, Identifier),
+  BinaryExpression(Identifier, where, Type(Identifier)),
 )
 
 
@@ -289,7 +289,7 @@ Program(
     Arguments(Identifier),
     DoClause(
       do,
-      Parameters(BinaryExpression(Identifier, Identifier))
+      Parameters(BinaryExpression(Identifier, Type(Identifier))),
       end
     )
   )

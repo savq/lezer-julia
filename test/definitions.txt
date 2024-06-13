@@ -68,7 +68,7 @@ struct MyInt; field::Int end
 ==>
 Program(
   StructDefinition(struct, TypeHead(Identifier), end),
-  StructDefinition(struct, TypeHead(Identifier), BinaryExpression(Identifier, Identifier), end),
+  StructDefinition(struct, TypeHead(Identifier), BinaryExpression(Identifier, Type(Identifier)), end),
 )
 
 
@@ -85,7 +85,7 @@ Program(
     mutable, struct,
     TypeHead(Identifier),
     Identifier,
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, Type(Identifier)),
     end
   ),
 )
@@ -103,8 +103,8 @@ Program(
   StructDefinition(
     struct,
     TypeHead(ParametrizedExpression(Identifier, BraceExpression(Identifier))),
-    BinaryExpression(Identifier, Identifier),
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, Type(Identifier)),
+    BinaryExpression(Identifier, Type(Identifier)),
     end
   ),
 )
@@ -127,8 +127,8 @@ Program(
         Identifier
       )
     ),
-    BinaryExpression(Identifier, Identifier),
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, Type(Identifier)),
+    BinaryExpression(Identifier, Type(Identifier)),
     end
   ),
 )
@@ -145,7 +145,7 @@ Program(
   StructDefinition(
     mutable, struct,
     TypeHead(BinaryExpression(Identifier, Identifier)),
-    BinaryExpression(Identifier, ParametrizedExpression(Identifier, BraceExpression(Identifier))),
+    BinaryExpression(Identifier, Type(ParametrizedExpression(Identifier, BraceExpression(Identifier)))),
     end
   ),
 )
@@ -171,7 +171,12 @@ Program(
   FunctionDefinition(function, Signature(CallExpression(Identifier, Arguments(Identifier))), Identifier, end),
   FunctionDefinition(
     function,
-    Signature(CallExpression(FieldExpression(Identifier, Field(Identifier)), Arguments(BinaryExpression(Identifier, Identifier)))),
+    Signature(
+      CallExpression(
+        FieldExpression(Identifier, Field(Identifier)),
+        Arguments(BinaryExpression(Identifier, Type(Identifier)))
+      )
+    ),
     ReturnStatement(return, IntegerLiteral),
     end,
   ),
@@ -209,7 +214,7 @@ end
 Program(
   FunctionDefinition(
     function,
-    Signature(CallExpression(ParenExpression(BinaryExpression(Identifier, Identifier)), Arguments)),
+    Signature(CallExpression(ParenExpression(BinaryExpression(Identifier, Type(Identifier))), Arguments)),
     end,
   )
 )
@@ -288,7 +293,7 @@ Program(
       CallExpression(Identifier, Arguments),
     ),
     UnaryExpression(
-      Identifier,
+      Type(Identifier),
     ),
     end,
   ),
@@ -298,7 +303,7 @@ Program(
         CallExpression(Identifier, Arguments),
     ),
     UnaryExpression(
-      Identifier,
+      Type(Identifier),
     ),
     Identifier,
     end,
@@ -322,10 +327,12 @@ Program(
         CallExpression(Identifier, Arguments),
     )
     UnaryExpression(
-      BinaryExpression(
-        Identifier,
-        where,
-        Identifier,
+      Type(
+        BinaryExpression(
+          Identifier,
+          where,
+          Type(Identifier),
+        )
       )
     )
     end
@@ -333,13 +340,15 @@ Program(
   FunctionDefinition(
     function,
     Signature(
-      CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Identifier))),
+      CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Type(Identifier)))),
     )
     UnaryExpression(
-      BinaryExpression(
-        Identifier,
-        where,
-        BraceExpression(BinaryExpression(Identifier, Identifier), Identifier),
+      Type(
+        BinaryExpression(
+          Identifier,
+          where,
+          Type(BraceExpression(BinaryExpression(Identifier, Identifier), Identifier)),
+        )
       )
     ),
     end
@@ -361,8 +370,8 @@ Program(
       CallExpression(
         Identifier,
         Arguments(
-          BinaryExpression(Identifier, Identifier),
-          UnaryExpression(Identifier)
+          BinaryExpression(Identifier, Type(Identifier)),
+          UnaryExpression(Type(Identifier))
         )
       )
     )
@@ -383,7 +392,7 @@ Program(
     Signature(
       CallExpression(
         Identifier,
-        Arguments(BinaryExpression(Identifier, FieldExpression(Identifier, Field(Identifier)))),
+        Arguments(BinaryExpression(Identifier, Type(FieldExpression(Identifier, Field(Identifier))))),
       )
     )
     end
@@ -455,7 +464,7 @@ macro Mod.mac() end
 Program(
   MacroDefinition(
     macro,
-    Signature(CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Identifier)))),
+    Signature(CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Type(Identifier))))),
     CallExpression(Identifier, Arguments(Identifier)),
     end
   ),

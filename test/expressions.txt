@@ -40,11 +40,13 @@ Program(
   )
   Assignment(
     BinaryExpression(
-      CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Identifier))),
-      BinaryExpression(
-        Identifier
-        where,
-        BraceExpression(Identifier),
+      CallExpression(Identifier, Arguments(BinaryExpression(Identifier, Type(Identifier)))),
+      Type(
+        BinaryExpression(
+          Identifier,
+          where,
+          Type(BraceExpression(Identifier)),
+        )
       )
     )
     Identifier,
@@ -59,10 +61,10 @@ x::Vector{T} where T
 
 ==>
 Program(
-  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(Identifier, Type(Identifier)),
   BinaryExpression(
     Identifier,
-    BinaryExpression(ParametrizedExpression(Identifier, BraceExpression(Identifier)), where, Identifier),
+    Type(BinaryExpression(ParametrizedExpression(Identifier, BraceExpression(Identifier)), where, Type(Identifier)))
   )
 )
 
