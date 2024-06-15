@@ -29,10 +29,10 @@ Program(
 
 ==>
 Program(
-  TupleExpression(NamedField(Identifier, IntegerLiteral)),
+  TupleExpression(KwArg(Identifier, IntegerLiteral)),
   ParenExpression(Assignment(Identifier, IntegerLiteral)),
   LineComment,
-  TupleExpression(NamedField(Identifier, IntegerLiteral), NamedField(Identifier, IntegerLiteral))
+  TupleExpression(KwArg(Identifier, IntegerLiteral), KwArg(Identifier, IntegerLiteral))
 )
 
 
@@ -47,12 +47,12 @@ Program(
 
 ==>
 Program(
-  TupleExpression,
-  TupleExpression(Identifier),
-  TupleExpression(Identifier, Identifier),
-  TupleExpression(NamedField(Identifier, IntegerLiteral)),
-  TupleExpression(NamedField(Identifier, IntegerLiteral), NamedField(Identifier, IntegerLiteral)),
-  TupleExpression(Identifier, FieldExpression(Identifier, Field(Identifier)))
+  TupleExpression(KeywordArguments),
+  TupleExpression(KeywordArguments(Identifier)),
+  TupleExpression(KeywordArguments(Identifier, Identifier)),
+  TupleExpression(KeywordArguments(KwArg(Identifier, IntegerLiteral))),
+  TupleExpression(KeywordArguments(KwArg(Identifier, IntegerLiteral), KwArg(Identifier, IntegerLiteral))),
+  TupleExpression(KeywordArguments(Identifier, FieldExpression(Identifier, Field(Identifier)))),
 )
 
 

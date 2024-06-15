@@ -131,7 +131,6 @@ compound-statement {
 
 TypeHead { primary-expr | BinaryExpression<expr> }
 
-// TODO: Fix anonymous functions
 definition {
   ( AbstractDefinition [closedBy='end']{ kwid<'abstract'> kwid<'type'> TypeHead end }
   | PrimitiveDefinition[closedBy='end']{ kwid<'primitive'> kwid<'type'> TypeHead IntegerLiteral end }
@@ -176,20 +175,23 @@ sep<delim, rule> { (rule (delim rule)* delim?)? }
 sep1<delim, rule> { rule (delim rule)* }
 
 BraceExpression { '{' sep<',', expr | binding<'Assignment'>> '}' }
-ParenExpression { '(' sep1<';', (expr | binding<'Assignment'> | Generator<expr>)> ')' }
+ParenExpression[@dynamicPrecedence=1] { '(' sep1<';', (expr | binding<'Assignment'> | Generator<expr>) ~tup-or-par> ')' }
 
 // Parentheses where multiple expressions are not allowed.
 parens[@name=ParenExpression]<x> { '(' x ')' }
 
-tuple<x> {
+tuple {
   '('
-  ( (x ',')
-  | (x (',' x)+ ','?)
-  | ';' sep<',', x>
-  )?
+  sep<',', expr | binding<'KwArg'> | Generator<expr>>
+  ~tup-or-par
+  KeywordArguments { ';' sep<',', expr | binding<'KwArg'>> }?
   ')'
 }
-TupleExpression { tuple<expr | binding<'NamedField'>> }
+
+// Tuples and arguments are parsed the same, but used in different contexts.
+Arguments { tuple }
+TupleExpression { tuple }
+
 
 // NOTE: binding `in` is a keyword, membership `in` is a function
 ForBinding { kwid<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kwid<'in'>) expr }
@@ -210,13 +212,8 @@ array {
 DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
 
 CallExpression {
-  // FIXME: Should broadcast dot be visible?
   (primary-expr (immediateDot '.')? | Operator)
-  immediateParen
-  '('
-  Arguments { sep<',', expr | binding<'KwArg'> | Generator<expr>> }
-  KeywordArguments { ';' sep<',', expr | binding<'KwArg'>> }?
-  ')'
+  immediateParen Arguments
   DoClause?
 }
 
@@ -226,7 +223,7 @@ ClosedMacrocallExpression[@name=MacrocallExpression] {
   macro-head
   ( immediateBracket array
   | immediateBrace BraceExpression
-  | immediateParen '(' Arguments { sep<',', expr | binding<'KwArg'>> } ')'
+  | immediateParen Arguments
   )
   DoClause?
 }

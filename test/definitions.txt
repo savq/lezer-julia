@@ -237,7 +237,7 @@ Program(
 # Function definitions - Anonymous functions
 
 function fix2(f, x)
-    return function(y,) # FIXME: Trailing comma
+    return function(y)
         f(x, y)
     end
 end
@@ -252,7 +252,6 @@ Program(
       FunctionDefinition(
         function,
         Signature(TupleExpression(Identifier)),
-        LineComment,
         CallExpression(Identifier, Arguments(Identifier, Identifier)),
         end,
       )
@@ -427,7 +426,7 @@ Program(
   FunctionDefinition(
     function,
     Signature(
-      CallExpression(Identifier, Arguments, KeywordArguments(Identifier, Identifier))
+      CallExpression(Identifier, Arguments(KeywordArguments(Identifier, Identifier)))
     ),
     end
   )

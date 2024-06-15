@@ -220,18 +220,23 @@ h(; x, y)
 Program(
   CallExpression(
     Identifier,
-    Arguments(Identifier),
-    KeywordArguments(KwArg(Identifier, Identifier))
+    Arguments(
+      Identifier,
+      KeywordArguments(KwArg(Identifier, Identifier))
+    ),
   ),
   CallExpression(
     Identifier,
-    Arguments(Identifier),
-    KeywordArguments(Identifier)
+    Arguments(
+      Identifier,
+      KeywordArguments(Identifier)
+    ),
   ),
   CallExpression(
     Identifier,
-    Arguments,
-    KeywordArguments(Identifier, Identifier)
+    Arguments(
+      KeywordArguments(Identifier, Identifier)
+    ),
   ),
 )
 

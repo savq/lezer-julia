@@ -71,8 +71,9 @@ Program(
 
 # Arrow function expressions
 
-x -> x^2
-(x,y,z) -> 2 * x + y - z
+x -> x ^ 2
+(x) -> x + 1
+(x, y, z) -> 2 * x + y - z
 () -> (sleep(0.1); i += 1; l)
 foreach(c -> c.queued = true, cells)
 
@@ -80,6 +81,10 @@ foreach(c -> c.queued = true, cells)
 Program(
   ArrowFunctionExpression(
     Identifier,
+    BinaryExpression(Identifier, IntegerLiteral),
+  ),
+  ArrowFunctionExpression(
+    TupleExpression(Identifier),
     BinaryExpression(Identifier, IntegerLiteral),
   ),
   ArrowFunctionExpression(
