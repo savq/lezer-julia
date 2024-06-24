@@ -114,7 +114,7 @@ CatchClause  [closedBy='end else finally']{ kw<'catch'> block? } // TODO: Except
 ElseClause   [closedBy='end']{ kw<'else'> block? }
 FinallyClause[closedBy='end']{ kw<'finally'> block? }
 
-compound-statement {
+compound-statement[@isGroup=CompoundStatement] {
   ( BeginStatement[closedBy='end']{ kw<'begin'> block? end }
   | QuoteStatement[closedBy='end']{ kw<'quote'> block? end }
   | WhileStatement[closedBy='end']{ kw<'while'> Condition block? end }
@@ -131,7 +131,7 @@ compound-statement {
 
 TypeHead { primary-expr | BinaryExpression<expr> }
 
-definition {
+definition[@isGroup=Definition] {
   ( AbstractDefinition [closedBy='end']{ kwid<'abstract'> kwid<'type'> TypeHead end }
   | PrimitiveDefinition[closedBy='end']{ kwid<'primitive'> kwid<'type'> TypeHead IntegerLiteral end }
   | StructDefinition   [closedBy='end']{ kwid<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
@@ -209,7 +209,7 @@ array {
 }
 
 
-DoClause[closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
+DoClause[group=CompoundStatement,closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
 
 CallExpression {
   (primary-expr (immediateDot '.')? | Operator)
