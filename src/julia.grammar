@@ -109,21 +109,21 @@ simple-statement {
 }
 
 Condition { expr _t? }
-ElseIfClause [closedBy='end else elseif']{ kw<'elseif'> Condition block? }
-CatchClause  [closedBy='end else finally']{ kw<'catch'> block? } // TODO: ExceptionCapture
-ElseClause   [closedBy='end']{ kw<'else'> block? }
-FinallyClause[closedBy='end']{ kw<'finally'> block? }
+ElseIfClause { kw<'elseif'> Condition block? }
+CatchClause  { kw<'catch'> block? } // TODO: ExceptionCapture
+ElseClause   { kw<'else'> block? }
+FinallyClause{ kw<'finally'> block? }
 
 compound-statement[@isGroup=CompoundStatement] {
-  ( BeginStatement[closedBy='end']{ kw<'begin'> block? end }
-  | QuoteStatement[closedBy='end']{ kw<'quote'> block? end }
-  | WhileStatement[closedBy='end']{ kw<'while'> Condition block? end }
-  | ForStatement  [closedBy='end']{ kw<'for'> sep1<',', ForBinding> _t? block? end }
-  | LetStatement  [closedBy='end']{ kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t block? end }
-  | IfStatement[closedBy='end else elseif'] {
+  ( BeginStatement { kw<'begin'> block? end }
+  | QuoteStatement { kw<'quote'> block? end }
+  | WhileStatement { kw<'while'> Condition block? end }
+  | ForStatement { kw<'for'> sep1<',', ForBinding> _t? block? end }
+  | LetStatement { kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t block? end }
+  | IfStatement {
       kw<'if'> Condition block? ElseIfClause* ElseClause? end
     }
-  | TryStatement[closedBy='end catch else finally'] {
+  | TryStatement {
       kw<'try'> block? (CatchClause ElseClause?)? FinallyClause? end
     }
   )
@@ -132,12 +132,12 @@ compound-statement[@isGroup=CompoundStatement] {
 TypeHead { primary-expr | BinaryExpression<expr> }
 
 definition[@isGroup=Definition] {
-  ( AbstractDefinition [closedBy='end']{ kwid<'abstract'> kwid<'type'> TypeHead end }
-  | PrimitiveDefinition[closedBy='end']{ kwid<'primitive'> kwid<'type'> TypeHead IntegerLiteral end }
-  | StructDefinition   [closedBy='end']{ kwid<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
-  | ModuleDefinition   [closedBy='end']{ (kw<'module'> | kw<'baremodule'>) Identifier _t? block? end }
-  | MacroDefinition    [closedBy='end']{ kw<'macro'> Signature { CallExpression } _t? block? end }
-  | FunctionDefinition [closedBy='end']{
+  ( AbstractDefinition { kwid<'abstract'> kwid<'type'> TypeHead end }
+  | PrimitiveDefinition { kwid<'primitive'> kwid<'type'> TypeHead IntegerLiteral end }
+  | StructDefinition { kwid<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
+  | ModuleDefinition { (kw<'module'> | kw<'baremodule'>) Identifier _t? block? end }
+  | MacroDefinition { kw<'macro'> Signature { CallExpression } _t? block? end }
+  | FunctionDefinition {
       kw<'function'>
       ( Signature { Identifier }
       | Signature { !simple (CallExpression | TupleExpression | BinaryExpression<expr>) } _t? block?
@@ -209,7 +209,7 @@ array {
 }
 
 
-DoClause[group=CompoundStatement,closedBy='end']{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
+DoClause[group=CompoundStatement]{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
 
 CallExpression {
   (primary-expr (immediateDot '.')? | Operator)
