@@ -5,18 +5,12 @@ import process from "node:process";
 import readline from "node:readline/promises";
 import { parser } from "../dist/index.js";
 
-function echo(s) {
-  process.stdout.write(s);
-}
-
-function printNode(input, n, depth) {
-  echo(`${" ".repeat(depth * 2)} ${n.name}`);
-  if (n.node.firstChild) {
-    echo(` ${n.from}..${n.to}`);
-  } else {
-    echo(`: ${input.slice(n.from, n.to)}`);
-  }
-  echo("\n");
+function printNode(input, n, depth, indentUnit = 2) {
+  // If node is terminal, show content, else show range
+  const content = n.node.firstChild === null
+    ? `: ${input.slice(n.from, n.to)}`
+    : ` ${n.from}..${n.to}`;
+  console.log(" ".repeat(depth * indentUnit) + n.name + content);
 }
 
 function printTree(input) {
