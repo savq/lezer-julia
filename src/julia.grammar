@@ -371,11 +371,11 @@ string {
   cmd-interp { Identifier | BraceExpression | ParenExpression | TupleExpression | array }
 
   // Strings can be single or triple quoted
-  StringLiteral { s<'"', str1-content, str-interp> | s<'"""', str3-content, str-interp> }
-  CommandLiteral { s<'`', cmd1-content, cmd-interp> | s<'```', cmd3-content, cmd-interp> }
+  StringLiteral  { s<str1-quote, str1-content, str-interp> | s<str3-quote, str3-content, str-interp> }
+  CommandLiteral { s<cmd1-quote, cmd1-content, cmd-interp> | s<cmd3-quote, cmd3-content, cmd-interp> }
 
-  ns-str { ns<'"', str1-content, '\\"'> | ns<'"""', str3-content, '\\"'> }
-  ns-cmd { ns<'`', cmd1-content, '\\`'> | ns<'```', cmd3-content, '\\`'> }
+  ns-str { ns<str1-quote, str1-content, '\\"'> | ns<str3-quote, str3-content, '\\"'> }
+  ns-cmd { ns<cmd1-quote, cmd1-content, '\\`'> | ns<cmd3-quote, cmd3-content, '\\`'> }
 
   // Rules that should be tokens, but aren't...
   BlockComment { block-comment-start (block-comment-content | '#' | '=' | BlockComment)* '=#' }
@@ -477,6 +477,11 @@ _t { newline | semicolon }
   }
 
   CharLiteral { "'" (![\\'] | EscapeSequence) "'" }
+
+  str1-quote[@name='"', group=QuotationMark]{ '"' }
+  cmd1-quote[@name='`', group=QuotationMark]{ '`' }
+  str3-quote[@name='"""', group=QuotationMark]{ '"""' }
+  cmd3-quote[@name='```', group=QuotationMark]{ '```' }
 
   str1-content { !["$\\] }
   cmd1-content { ![`$\\] }

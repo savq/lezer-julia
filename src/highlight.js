@@ -11,19 +11,13 @@ export const juliaHighlighting = styleTags({
   "NsStringLiteral/Identifier": t.macroName,
   "NsCommandLiteral/Identifier": t.macroName,
   "Symbol!": t.atom,
+  "begin end": t.constant(t.variableName), // begin/end indices
 
-  StringLiteral: t.string,
-  CommandLiteral: t.special(t.string),
-  NsStringLiteral: t.string,
-  NsCommandLiteral: t.special(t.string),
   CharLiteral: t.character,
   EscapeSequence: t.escape,
   IntegerLiteral: t.integer,
   FloatLiteral: t.float,
   BoolLiteral: t.bool,
-
-  // begin/end indices
-  "begin end": t.constant(t.variableName),
 
   "BeginStatement/begin BeginStatement/end": t.keyword,
   "quote QuoteStatement/end": t.keyword,
@@ -47,12 +41,26 @@ export const juliaHighlighting = styleTags({
 
   "in isa where": t.operatorKeyword,
 
-  // TODO: Operators
+  /// String content
+  StringLiteral: t.string,
+  CommandLiteral: t.special(t.string),
+  NsStringLiteral: t.string,
+  NsCommandLiteral: t.special(t.string),
 
-  // String interpolation tokens
-  "StringLiteral/$ CommandLiteral/$": t.special(t.bracket),
-  "StringLiteral/ParenExpression/( CommandLiteral/ParenExpression/(": t.special(t.bracket),
-  "StringLiteral/ParenExpression/) CommandLiteral/ParenExpression/)": t.special(t.bracket),
+  /// String quotation marks
+  'StringLiteral/"\\""    StringLiteral/"\\"\\"\\""': t.string,
+  "CommandLiteral/`       CommandLiteral/```": t.special(t.string),
+  'NsStringLiteral/"\\""  NsStringLiteral/"\\"\\"\\""': t.special(t.macroName),
+  "NsCommandLiteral/`     NsCommandLiteral/```": t.special(t.macroName),
+
+  /// String interpolations
+  "StringLiteral/$": t.special(t.bracket),
+  "CommandLiteral/$": t.special(t.bracket),
+  "StringLiteral/ParenExpression/( StringLiteral/ParenExpression/)": t.special(t.bracket),
+  "CommandLiteral/ParenExpression/( CommandLiteral/ParenExpression/)": t.special(t.bracket),
+  "CommandLiteral/VectorExpression/[ CommandLiteral/VectorExpression/]": t.special(t.bracket),
+
+  // TODO: Operators
 
   "( )": t.paren,
   "[ ]": t.squareBracket,
