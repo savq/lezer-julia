@@ -1,0 +1,240 @@
+# Unary operators
+
++a
+-b
+√9
+-A'         # adjoint > unary
+!p === !(p) # unary > call
+1 ++ +2
+
+==>
+Program(
+  UnaryExpression(Identifier),
+  UnaryExpression(Identifier),
+  UnaryExpression(IntegerLiteral),
+  UnaryExpression(AdjointExpression(Identifier)), LineComment,
+  BinaryExpression(UnaryExpression(Identifier), UnaryExpression(ParenExpression(Identifier))), LineComment,
+  BinaryExpression(IntegerLiteral, UnaryExpression(IntegerLiteral)),
+)
+
+
+# Binary arithmetic operators
+
+x^2
+-x^2                # power > unary
+a // b
+a + b
+a ++ 1 × b ⥌ 2      # (++ a (× 1 (⥌ b 2)))
+A \ (v × w)
+
+==>
+Program(
+  BinaryExpression(Identifier, IntegerLiteral),
+  UnaryExpression(BinaryExpression(Identifier, IntegerLiteral)), LineComment,
+  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(Identifier, BinaryExpression(IntegerLiteral, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
+  BinaryExpression(Identifier, ParenExpression(BinaryExpression(Identifier, Identifier))),
+)
+
+
+# Binary arithmetic operators - operations spanning multiple lines
+
+1 +
+2
+
+==>
+Program(
+  BinaryExpression(
+    IntegerLiteral,
+    IntegerLiteral,
+  )
+)
+
+
+# Operator broadcasting
+
+a .* b .+ c
+.~[x]
+
+==>
+Program(
+  BinaryExpression(
+    BinaryExpression(Identifier, Identifier),
+    Identifier
+  )
+  UnaryExpression(VectorExpression(Identifier)),
+)
+
+
+# Operator suffixes
+
+x +′ y
+a^p ≡ₚ a
+
+==>
+Program(
+  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(
+    BinaryExpression(Identifier, Identifier),
+    Identifier
+  )
+)
+
+
+# Binary bitwise operators
+
+a & b | c
+(x >>> 16, x >>> 8, x) .& 0xff
+
+==>
+Program(
+  BinaryExpression(BinaryExpression(Identifier, Identifier), Identifier),
+  BinaryExpression(
+    TupleExpression(
+      BinaryExpression(Identifier, IntegerLiteral),
+      BinaryExpression(Identifier, IntegerLiteral),
+      Identifier,
+    ),
+    IntegerLiteral
+  )
+)
+
+
+# Binary arrow-like operators
+
+Dict(b => c, d => e)
+
+x |>
+  f |>
+  g
+
+a → b ⇶ c ⭄ d
+
+==>
+Program(
+  CallExpression(
+    Identifier,
+    Arguments(
+      BinaryExpression(Identifier, Identifier),
+      BinaryExpression(Identifier, Identifier),
+    ),
+  ),
+  BinaryExpression(
+    BinaryExpression(
+      Identifier,
+      Identifier,
+    ),
+    Identifier,
+  ),
+  BinaryExpression(
+    Identifier,
+    BinaryExpression(
+      Identifier,
+      BinaryExpression(Identifier, Identifier),
+    )
+  )
+)
+
+
+# Binary ellipsis operators
+
+1:10
+x:y+1
+# 1..10 # TODO: Fix conflict with ImportPath: BinaryExpression(IntegerLiteral, IntegerLiteral)
+
+==>
+Program(
+  BinaryExpression(IntegerLiteral, IntegerLiteral),
+  BinaryExpression(Identifier, BinaryExpression(Identifier, IntegerLiteral)),
+  LineComment,
+)
+
+
+# Colon quines
+
+:(:)
+:(::)
+:(:::)
+:(:::::)
+
+==>
+Program(
+  QuoteExpression(ParenExpression(Operator)),
+  QuoteExpression(ParenExpression(Operator)),
+  QuoteExpression(ParenExpression(UnaryExpression(Type(Operator)))),
+  QuoteExpression(ParenExpression(UnaryExpression(Type(UnaryExpression(Type(Operator)))))),
+)
+
+
+# Binary comparison operators
+
+a === 1
+a! != 0
+
+## NOT an assignment
+a!= 1
+
+## Chained comparisons are parsed as a single expression in Julia.  So this isn't 100% correct.
+A ⊆ B ⊆ C
+x ≥ 0 ≥ z
+
+==>
+Program(
+  BinaryExpression(Identifier, IntegerLiteral),
+  BinaryExpression(Identifier, IntegerLiteral),
+  LineComment,
+  BinaryExpression(Identifier, IntegerLiteral),
+  LineComment,
+  BinaryExpression(
+    BinaryExpression(Identifier, Identifier),
+    Identifier
+  ),
+  BinaryExpression(
+    BinaryExpression(Identifier, IntegerLiteral),
+    Identifier
+  )
+)
+
+
+# binary comparison operators - Types
+
+Bool <: Integer
+
+==>
+Program(
+    BinaryExpression(Identifier, Identifier),
+)
+
+
+# Operators as values
+
+!
+.!
+
+x = +
+⪯ = .≤
+foo(^, ÷, -)
+
+==>
+Program(
+  Operator,
+  Operator,
+  Assignment(Identifier, Operator),
+  Assignment(Operator, Operator),
+  CallExpression(Identifier, Arguments(Operator, Operator, Operator)),
+)
+
+
+# Operators as values - function and macro names
+
++(1, 2)
+.*(xs, ys)
+@>:
+
+==>
+Program(
+  CallExpression(Operator, Arguments(IntegerLiteral, IntegerLiteral)),
+  CallExpression(Operator, Arguments(Identifier, Identifier)),
+  MacrocallExpression(MacroIdentifier(Operator)),
+)

@@ -1,63 +1,60 @@
 #!/usr/bin/env node
 
-import { inspect } from "util";
-import * as fs from "fs";
-import { Tree } from "@lezer/common";
-import { parser } from "../src/_parser.js";
+import fs from "node:fs";
+import process from "node:process";
+import readline from "node:readline/promises";
+import { parser } from "../dist/index.js";
 
-function printTree(tree, input, from = 0, to = input.length) {
-  let out = "";
-  const c = tree.cursor();
-  const childPrefixes = [];
+function printNode(input, n, depth, indentUnit = 2) {
+  // If node is terminal, show content, else show range
+  const content = n.node.firstChild === null
+    ? `: ${input.slice(n.from, n.to)}`
+    : ` ${n.from}..${n.to}`;
+  console.log(" ".repeat(depth * indentUnit) + n.name + content);
+}
+
+function printTree(input) {
+  const tree = parser.parse(input);
+  const cursor = tree.cursor();
+  let depth = -1;
+  cursor.iterate(
+    (node) => {
+      printNode(input, node, depth += 1);
+      return true;
+    },
+    () => depth -= 1,
+  );
+}
+
+async function repl() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  let lines = [];
+  let prompt = "> ";
   for (;;) {
-    const { type } = c;
-    const cfrom = c.from;
-    const cto = c.to;
-    let leave = false;
-    if (cfrom <= to && cto >= from) {
-      if (!type.isAnonymous) {
-        leave = true;
-        if (!type.isTop) {
-          out += "\n" + childPrefixes.join("");
-          if (c.nextSibling() && c.prevSibling()) {
-            out += " ?? ";
-            childPrefixes.push(" ?  ");
-          } else {
-            out += " ?? ";
-            childPrefixes.push("    ");
-          }
-        }
-        out += type.name;
-      }
-      const isLeaf = !c.firstChild();
-      if (!type.isAnonymous) {
-        const hasRange = cfrom !== cto;
-        out += ` ${
-          hasRange ? `[${inspect(cfrom)}..${inspect(cto)}]` : inspect(cfrom)
-        }`;
-        if (isLeaf && hasRange) {
-          out += `: ${inspect(input.slice(cfrom, cto))}`;
-        }
-      }
-      if (!isLeaf || type.isTop) continue;
-    }
-    for (;;) {
-      if (leave) childPrefixes.pop();
-      leave = c.type.isAnonymous;
-      if (c.nextSibling()) break;
-      if (!c.parent()) return out;
-      leave = true;
+    const input = await rl.question(prompt);
+    if (input != "") {
+      lines.push(input);
+      prompt = "… ";
+    } else if (lines.length > 0) {
+      printTree(lines.join("\n"));
+      lines = [];
+      prompt = "> ";
     }
   }
 }
 
-function hlerror(s) {
-  return `\u001b[31m${s}\u001b[39m`;
+function main() {
+  if (process.argv.length < 3) {
+    repl();
+  } else {
+    const path = process.argv[2];
+    const input = fs.readFileSync(path, "utf-8");
+    printTree(input);
+  }
 }
 
-const NEWLINE = "\n".codePointAt(0);
-
-let filename = process.argv[2];
-let input = fs.readFileSync(filename, "utf8");
-let tree = parser.configure({ strict: true }).parse(input);
-console.log(printTree(tree, input));
+main();

@@ -1,874 +1,514 @@
 @precedence {
-  immediate
+  quote @left
   dot @left
-  prefix
-  postfix
-  interp @left
-  transpose
-  typeonlyascription @left
-  typeascription @left
-  coeff
-  call
-  power @left
+  where @left // Inner `where`
+  decl @left
+  power @right
+  unary @right
+  juxt @right
   bitshift @left
+  rational @left
   times @left
   plus @left
   colon @left
-  pipe @left
-  pipeback @right
-  contains @left
-  band @right
-  bor @right
+  pipe-right @left
+  pipe-left @right
+  comparison @left
+  lazy-and @right
+  lazy-or @right
+  arrow @right
   ternary @right
   pair @right
-  forbinding
-  letbindinglist
-  baretuple
-  assign @right
-  arrow @right
-  regular1
-  right0 @right
-  regular0
-  regular-1
-  right-2 @right
-  regular-2
+  afunc @right
+  vec
+  tup // Comma outside parentheses (OpenTuple)
+  assignment @right
+  simple @right
+  mat
+  macro
 }
 
-@top SourceFile {
-  expressionList<e, pe> | ""
+@skip { _ws | LineComment | BlockComment }
+
+@top Program { block? }
+
+block { top-level (_t top-level)* _t? }
+
+top-level { expr | OpenAssignment | OpenTuple }
+
+// OpenTuples cannot be nested, so they're not considered expressions.
+OpenTuple { expr (!tup ',' expr)+ }
+
+// Assignments inside blocks, including top-level.
+OpenAssignment[@name=Assignment] {
+  (primary-expr | operation<expr> | Operator | OpenTuple)
+  !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
+  top-level
 }
 
-@skip { whitespace | Comment | BlockComment }
+// Assignments inside brackets cannot contain OpenTuples.
+_binding<alias, expr> {
+  [@name={alias}] {
+      (primary-expr | operation<expr> | Operator)
+      !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
+      (expr | _binding<'Assignment', expr>)
+  }
+}
+binding<alias> { _binding<alias, expr> }
+binding-idx<alias> { _binding<alias, expr-idx> }
 
-// TOP LEVEL
-
-expressionList<e, pe> {
-  !right0
-  terminator* ~possibly_more_expressions
-  !right0 
-  // TODO Get rid of FunctionAssignmentExpression
-  (e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)?
-  (
-    !right0 terminator+ ~possibly_more_expressions
-    (!right0 e ~id | BareTupleExpression<e> | AssignmentExpression<e> | FunctionAssignmentExpression)
-  )*
-  terminator* ~possibly_more_expressions
+// Almost everything else is an expression.
+expression<expr> {
+  ( primary-expr
+  | operation<expr>
+  | OpenMacrocallExpression
+  | ArrowFunctionExpression
+  | JuxtapositionExpression
+  | TernaryExpression<expr>
+  | Operator ~op-as-id
+  | FloatLiteral
+  | IntegerLiteral
+  )
 }
 
-BareTupleExpression<e> {
-  e (!baretuple "," e)+
-}
+// Expression in "normal" context
+expr { expression<expr> | simple-statement | compound-statement | definition }
 
-AssignmentExpression<e> {
-  ((e | BareTupleExpression<e>)
-  !assign (assignOperator | "=")
-  (e | AssignmentExpression<e> | BareTupleExpression<e>))
-}
+// Expressions inside arrays
+expr-idx { expression<expr-idx> | kw<'begin'> | kw<'end'> }
 
-FunctionAssignmentExpression {
-  CallExpression<e, pe>
-  (kw<"where"> TypeArgumentList<e>)?
-  !assign (assignOperator | "=")
-  !assign (e | BareTupleExpression<e>)
-}
 
 // STATEMENTS
 
-statement {
-  IfStatement |
-  TryStatement |
-  ForStatement |
-  WhileStatement |
-  LetStatement |
-  ConstStatement |
-  GlobalStatement |
-  LocalStatement |
-  QuoteStatement |
-  BreakStatement |
-  ContinueStatement |
-  ReturnStatement |
-  ImportStatement |
-  ExportStatement
-}
+// Allow keywords as identifiers when necessary.
+kw<term> { @specialize[@name={term},group='keyword']<Identifier, term> }
+kwid[@dynamicPrecedence=1]<term> { @extend[@name={term},group='keyword']<Identifier, term> }
 
-IfStatement[closedBy="end else elseif"] {
-  IfClause { kw<"if"> e }
-    expressionList<e, pe>
-  ElseifClause*
-  ElseClause?
-  end
-}
+end { kw<'end'> }
 
-ElseifClause[closedBy="end else elseif"] {
-  IfClause { kw<"elseif"> e }
-    expressionList<e, pe>
-}
+ImportPath { ('.'+ immediateIdentifier)? Identifier (!dot immediateDot '.' Identifier)* }
+ImportAlias { importable kwid<'as'> exportable }
 
-ElseClause[closedBy="end"] {
-  kw<"else">
-    expressionList<e, pe>
-}
+exportable { Identifier | MacroIdentifier | Operator | parens<exportable> }
+importable { ImportPath | MacroIdentifier | Operator | parens<exportable> }
 
-TryStatement[closedBy="end catch else finally"] {
-  kw<"try">
-    expressionList<e, pe>
-  CatchClause?
-  TryElseClause?
-  FinallyClause?
-  end
-}
+import-list { sep1<(!tup ','), (importable | ImportAlias)> }
+SelectedImport[@dynamicPrecedence=1] { ImportPath immediateColon ':' import-list }
 
-CatchClause[closedBy="end else finally"] {
-  kw<"catch"> CatchBinding { Identifier ~id }? !regular1
-    expressionList<e, pe>
-}
-
-TryElseClause[closedBy="finally end"] {
-    kw<"else">
-      expressionList<e, pe>
-}
-
-FinallyClause[closedBy="end"] {
-  kw<"finally">
-    expressionList<e, pe>
-}
-
-ForStatement[closedBy="end"] {
-  !regular0 kw<"for"> ForBinding<e, pe> ("," ForBinding<e, pe>)*
-    expressionList<e, pe>
-  end
-}
-
-WhileStatement[closedBy="end"] {
-  !regular0 kw<"while"> !regular0 WhileBinding { e } !regular0
-    expressionList<e, pe>
-  end
-}
-
-BreakStatement {
-  kw<"break">
-}
-
-ContinueStatement {
-  kw<"continue">
-}
-
-ReturnStatement {
-  kw<"return"> (!right-2 (e | BareTupleExpression<e>))?
-}
-
-VariableDeclaration {
-  ((Identifier | InterpolationExpression | (CallExpression<e,pe> (kw<"where"> TypeArgumentList<e>)?)) (!right0 "=" e)?)
-}
-
-LetStatement[closedBy="end"] {
-  kw<"let"> LetBinding { VariableDeclaration !letbindinglist ("," VariableDeclaration)* }? terminator
-    expressionList<e, pe>
-  end
-}
-
-ConstStatement {
-  kw<"const"> AssignmentExpression<e>
-}
-
-GlobalStatement {
-  kw<"global"> (
-    global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
-    Identifier ~variabledeclaration |
-    InterpolationExpression ~variabledeclaration
+simple-statement {
+  ( BreakStatement { kw<'break'> }
+  | ContinueStatement { kw<'continue'> }
+  | ReturnStatement { kw<'return'> (!simple top-level)? }
+  | ConstStatement  { kw<'const'>  !simple OpenAssignment }
+  | GlobalStatement { kw<'global'> !simple top-level }
+  | LocalStatement  { kw<'local'>  !simple top-level }
+  | ExportStatement { kw<'export'> !simple sep1<(!tup ','), exportable> }
+  | ImportStatement { (kw<'import'> | kw<'using'>) !simple (import-list | SelectedImport) }
+  // TODO: `public`
   )
 }
 
-LocalStatement {
-  kw<"local"> (
-    global_assignment[@dynamicPrecedence=10] { AssignmentExpression<e> } |
-    Identifier ~variabledeclaration |
-    InterpolationExpression ~variabledeclaration
+Condition { expr _t? }
+ElseIfClause { kw<'elseif'> Condition block? }
+CatchClause  { kw<'catch'> block? } // TODO: ExceptionCapture
+ElseClause   { kw<'else'> block? }
+FinallyClause{ kw<'finally'> block? }
+
+compound-statement[@isGroup=CompoundStatement] {
+  ( BeginStatement { kw<'begin'> block? end }
+  | QuoteStatement { kw<'quote'> block? end }
+  | WhileStatement { kw<'while'> Condition block? end }
+  | ForStatement { kw<'for'> sep1<',', ForBinding> _t? block? end }
+  | LetStatement { kw<'let'> sep1<',', LetBinding { binding<'Assignment'> | Identifier }>? _t block? end }
+  | IfStatement {
+      kw<'if'> Condition block? ElseIfClause* ElseClause? end
+    }
+  | TryStatement {
+      kw<'try'> block? (CatchClause ElseClause?)? FinallyClause? end
+    }
   )
 }
 
-QuoteStatement[closedBy="end"] {
-  kw<"quote"> !right-2
-    expressionList<e, pe>
-  end
+TypeHead { primary-expr | BinaryExpression<expr> }
+
+definition[@isGroup=Definition] {
+  ( AbstractDefinition { kwid<'abstract'> kwid<'type'> TypeHead end }
+  | PrimitiveDefinition { kwid<'primitive'> kwid<'type'> TypeHead IntegerLiteral end }
+  | StructDefinition { kwid<'mutable'>? kw<'struct'> TypeHead (_t block?)? end } // TODO: Allow skipping terminator
+  | ModuleDefinition { (kw<'module'> | kw<'baremodule'>) Identifier _t? block? end }
+  | MacroDefinition { kw<'macro'> Signature { CallExpression } _t? block? end }
+  | FunctionDefinition {
+      kw<'function'>
+      ( Signature { Identifier }
+      | Signature { !simple (CallExpression | TupleExpression | BinaryExpression<expr>) } _t? block?
+      )
+      end
+    }
+  )
 }
 
-ImportStatement {
-  !right0 (kw<"using"> | kw<"import">)
-  !right0 (Import | SelectedImport)
+
+// PRIMARY EXPRESSIONS
+
+primary-expr {
+  ( Identifier
+  | BoolLiteral { @specialize<Identifier, 'true' | 'false'> }
+  | CharLiteral
+  | Symbol
+  | string
+  | array
+  | BraceExpression
+  | ParenExpression
+  | TupleExpression
+  | AdjointExpression { primary-expr immediateQuote "'" }
+  | FieldExpression { primary-expr !dot immediateDot '.' Field { Symbol | QuoteExpression | string | Word } }
+  | IndexExpression { primary-expr immediateBracket array }
+  | ParametrizedExpression { primary-expr immediateBrace BraceExpression }
+  | CallExpression
+  | ClosedMacrocallExpression
+  | InterpExpression
+  | QuoteExpression
+  )
 }
 
-Import {
-  (Identifier | ScopedIdentifier | RenamedIdentifier)
-  (!right0 "," (Identifier | ScopedIdentifier | RenamedIdentifier))*
+sep<delim, rule> { (rule (delim rule)* delim?)? }
+sep1<delim, rule> { rule (delim rule)* }
+
+BraceExpression { '{' sep<',', expr | binding<'Assignment'>> '}' }
+ParenExpression[@dynamicPrecedence=1] { '(' sep1<';', (expr | binding<'Assignment'> | Generator<expr>) ~tup-or-par> ')' }
+
+// Parentheses where multiple expressions are not allowed.
+parens[@name=ParenExpression]<x> { '(' x ')' }
+
+tuple {
+  '('
+  sep<',', expr | binding<'KwArg'> | Generator<expr>>
+  ~tup-or-par
+  KeywordArguments { ';' sep<',', expr | binding<'KwArg'>> }?
+  ')'
 }
 
-SelectedImport[@dynamicPrecedence=1] {
-  (Identifier | ScopedIdentifier)
-  !immediate immediateColon ":"
-  list {
-    (RenamedImport | Identifier | MacroIdentifier | Operator)
-    (!right0 "," !right0 (RenamedImport | Identifier | MacroIdentifier | Operator))*
-  }
+// Tuples and arguments are parsed the same, but used in different contexts.
+Arguments { tuple }
+TupleExpression { tuple }
+
+
+// NOTE: binding `in` is a keyword, membership `in` is a function
+ForBinding { kwid<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kwid<'in'>) expr }
+GenFor { kw<'for'> sep1<(!tup ','), ForBinding> }
+GenFilter { kw<'if'> expr }
+Generator<expr> { expr !simple GenFor (GenFor | GenFilter)* }
+
+MatrixRow { (!mat expr-idx)+ }
+
+array {
+  ( ComprehensionExpression { '[' Generator<expr-idx> ']' }
+  | MatrixExpression { '[' MatrixRow (_t MatrixRow)* _t? ']' }
+  | VectorExpression { '[' sep<',', (!vec (expr-idx | binding-idx<'Assignment'>))> ']' }
+  )
 }
 
-RenamedIdentifier {
-  (Identifier | ScopedIdentifier) kw<"as"> Identifier
-}
 
-RenamedImport {
-  (Identifier | ScopedIdentifier | MacroIdentifier | Operator) kw<"as"> (Identifier | MacroIdentifier | Operator)
-}
+DoClause[group=CompoundStatement]{ kw<'do'> Parameters { sep1<',', Identifier | operation<expr>>? } _t block? end }
 
-ExportStatement {
-  kw<"export"> (Identifier | MacroIdentifier) (!right0 "," (Identifier | MacroIdentifier))*
-}
-
-// DEFINITIONS
-
-definition {
-  PrimitiveDefinition |
-  AbstractDefinition |
-  StructDefinition |
-  ModuleDefinition |
-  BareModuleDefinition |
-  MacroDefinition |
-  FunctionDefinition
-}
-
-FunctionDefinition[closedBy="end"] {
-  !regular0
-  kw<"function">
-  Definition {
-    TypedExpression<CallExpression<e, pe>> |
-    CallExpression {
-      pe
-      !call immediateParen
-      !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
-    } |
-    [@dynamicPrecedence=10] { ArgumentList<e, pe> } |
-    Identifier ~id
-  }
-  (kw<"where"> TypeParameters { Identifier | TypeArgumentList<e> } )?
-  expressionList<e, pe>
-  end
-}
-
-MacroDefinition[closedBy="end"] {
-  kw<"macro"> Definition { definitionHead } immediateParen ArgumentList<e, pe>
-    expressionList<e, pe>
-  end
-}
-
-PrimitiveDefinition[closedBy="end"] {
-  kw<"primitive"> kw<"type"> Definition { pe } Number end
-}
-
-AbstractDefinition[closedBy="end"] {
-  kw<"abstract"> kw<"type"> Definition { pe } end
-}
-
-StructDefinition[closedBy="end"] {
-  kw<"mutable">? kw<"struct"> Definition { pe } !regular0
-    expressionList<e, pe>
-  end
-}
-
-ModuleDefinition[closedBy="end"] {
-  kw<"module"> Definition { Identifier }
-    expressionList<e, pe>
-  end
-}
-
-BareModuleDefinition[closedBy="end"] {
-  kw<"baremodule"> Definition { Identifier }
-    expressionList<e, pe>
-  end
-}
-
-// TODO Get rid of this? Only used in MacroDefinition, and not
-// .... sure if it is even useful to have there (lots of things are technically allowed in macro names)
-definitionHead {
-  InterpolationExpression |
-  FieldExpression<definitionHead> |
-  SubscriptExpression<definitionHead> |
-  QuoteExpression |
-  ParameterizedIdentifier<e, definitionHead> |
-  Identifier ~id |
-  ParenthesizedExpression<definitionHead> |
-  Operator ~op
-}
-
-// EXPRESSIONS
-
-e {
-  statement |
-  definition |
-  CompoundExpression |
-  // TODO Move this to pe?
-  MacroExpression<e, pe> |
-  // TODO Move this to pe?
-  UnaryExpression<e> |
-  // TODO Move this to pe?
-  BinaryExpression<e> |
-  TernaryExpression<e> |
-  FunctionExpression<e, pe> |
-  // TODO Move this to pe?
-  CoefficientExpression<e> |
-  // TODO Move this to pe?
-  TransposeExpression<e> |
-  // TODO Move this to pe?
-  SpreadExpression<e> |
-  pe
-}
-
-meta_programming<e, pe> {
-  PrefixedString |
-  MacroExpression<e, pe> |
-  InterpolationExpression
-}
-
-pe {
-  InterpolationExpression ~variabledeclaration |
-  FieldExpression<pe> |
-  SubscriptExpression<pe> |
-  Symbol |
-  QuoteExpression |
-  CallExpression<e, pe> |
-  Identifier ~id ~variabledeclaration |
-  boolean |
-  Character |
-  Number ~afternumber |
-  String |
-  TripleString |
-  CommandString |
-  PrefixedString |
-  ParenthesizedExpression<e> |
-  TupleExpression<e, pe> |
-  ArrayExpression<e> |
-  ArrayComprehensionExpression<e, pe> |
-  MatrixExpression<e> |
-  GeneratorExpression<e, pe> |
-  TypedExpression<pe> |
-  SubtypedExpression<pe> |
-  ParameterizedIdentifier<e, pe> |
-  Operator ~op
-}
-
-ParameterizedIdentifier<e, pe> {
-  pe
-  !immediate immediateBrace !immediate
-  TypeArgumentList<e>
-}
-
-TypeArgumentList[closedBy="}"]<e> {
-  "{" (e | LonelyType) ("," (e | LonelyType))* ","? "}"
-}
-
-FieldName { word }
-
-FieldExpression<pe> {
-  pe
-  !immediate immediateDot !dot "." !dot
-  (FieldName | QuoteExpression | InterpolationExpression)
-}
-
-SubscriptExpression[closedBy="]"]<pe> {
-  pe !immediate immediateBracket "["
-    (
-      ListCompherension<s_e, s_pe> |
-      // GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
-      (s_e |
-       AssignmentExpression {
-         s_e !assign (assignOperator | "=") s_e
-       })
-      ("," (s_e |
-            AssignmentExpression {
-              s_e !assign (assignOperator | "=") s_e
-            }))*
-    )?
-    ","?
-  "]"
-}
-
-s_e {
-  statement |
-  definition |
-  // CompoundExpression |
-  MacroExpression<s_e, s_pe> |
-  UnaryExpression<s_e> |
-  BinaryExpression<s_e> |
-  TernaryExpression<s_e> |
-  FunctionExpression<s_e, s_pe> |
-  CoefficientExpression<s_e> |
-  TransposeExpression<s_e> |
-  SpreadExpression<s_e> |
-  s_pe
-}
-
-s_pe {
-  InterpolationExpression |
-  FieldExpression<s_pe> |
-  SubscriptExpression<s_pe> |
-  Symbol |
-  QuoteExpression |
-  CallExpression<s_e, s_pe> |
-  Identifier ~id |
-  boolean |
-  Character |
-  Number ~afternumber |
-  String |
-  TripleString |
-  CommandString |
-  PrefixedString |
-  ParenthesizedExpression<s_e> |
-  TupleExpression<s_e, s_pe> |
-  ArrayExpression<s_e> |
-  ArrayComprehensionExpression<s_e, s_pe> |
-  MatrixExpression<s_e> |
-  GeneratorExpression<s_e, s_pe> |
-  TypedExpression<s_pe> |
-  ParameterizedIdentifier<s_e, s_pe> |
-  Operator ~op |
-  kw<"begin"> |
-  kw<"end">
-}
-
-SpreadExpression<pe> {
-  pe !dot "..."
-}
-
-TernaryExpression<e> {
-  e
-  !ternary ternary1 !ternary
-  e
-  !ternary ternary2 !ternary
-  e
-}
-
-TypePart[@name="Type"] { pe }
-TypedExpression<pe> {
-  pe !typeascription operator<"::"> !typeascription TypePart
-}
-
-SubtypedExpression<pe> {
-  pe !typeascription operator<"<:"> !typeascription pe
-}
-
-// I guess there might be more thing "coeffecientable",
-// but for now this is the list
-Coefficient {
-  CallExpression {
-    Identifier
-    !call immediateParen
-    !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
-  } |
-  Identifier |
-  FieldExpression<Identifier> |
-  InterpolationExpression |
-  PrefixedString |
-  ParenthesizedExpression<e> |
-  TupleExpression<e, pe>
-}
-CoefficientExpression[@dynamicPrecedence=5]<e> {
-  (Number ~afternumber | TransposeExpression<e>)
-  !coeff
-  (nowhitespace | immediateParen) ~paren_after_expression Coefficient
-}
-
-CompoundExpression[closedBy="end"] {
-  kw<"begin">
-    expressionList<e, pe>
-  end
-}
-
-CallExpression<e, pe> {
-  pe
-  !call BroadcastDot { immediateDot "." }?
-  (nowhitespace | immediateParen) ~paren_after_expression
-  !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+CallExpression {
+  (primary-expr (immediateDot '.')? | Operator)
+  immediateParen Arguments
   DoClause?
 }
 
-DoClause[closedBy="end"] {
-  kw<"do"> 
-  (
-    DoClauseArguments { doArg<e, pe> ~id ("," doArg<e, pe> ~id)* } |
-    terminator
+macro-head { MacroIdentifier | [@name=FieldExpression]{ primary-expr immediateDot '.' MacroIdentifier } }
+
+ClosedMacrocallExpression[@name=MacrocallExpression] {
+  macro-head
+  ( immediateBracket array
+  | immediateBrace BraceExpression
+  | immediateParen Arguments
   )
-  ~possibly_more_expressions
-  expressionList<e, pe>
-  end
+  DoClause?
 }
 
-doArg<e,pe> { e ~id | LonelyType }
-
-ListCompherension<e, pe> {
-  e ~id comprehensionClause<e, pe> ~generator
+OpenMacrocallExpression[@name=MacrocallExpression] {
+  macro-head
+  MacroArguments { macro-arg[@dynamicPrecedence=-1] { (!macro top-level) }+ }?
 }
 
-
-LonelyType {
-  (operator<"::"> | operator<"<:">) !typeonlyascription TypePart
-}
-
-//////////
-// Quoting and interpolation
-//////////
-
-InterpolationExpression[@dynamicPrecedence=2] {
-  "$" !interp (nowhitespace | immediateParen) pe
-}
-
-Symbol[@dynamicPrecedence=10] {
-  ":" !interp (nowhitespace | immediateParen) SymbolName { word }
-}
-
-QuoteExpression[@dynamicPrecedence=2] {
-  ":" !interp (nowhitespace | immediateParen) pe
-}
-
-
-////////////
-// Tuples, arguments and ParenthesizedExpression
-////////////
-ArgumentList[closedBy=")"]<e, pe> {
-  "("
-  (tuple_section<e,pe>? ~args_or_tuple Parameters<e,pe>*)?
-  ")" ~afterclosingparen
-}
-
-ParenthesizedExpression[closedBy=")"]<e> {
-  "("
-  list_expression<e> ~inline-block-or-tuple (";" list_expression<e>)* ";"?
-  ")"
-}
-
-TupleExpression<e, pe> {
-  "("
-  (tuple_section_with_comma<e,pe>? ~args_or_tuple Parameters<e,pe>*)?
-  ")"
-}
-
-Parameters<e,pe> {
-  ";" tuple_section<e,pe>?
-}
-tuple_section_with_comma<e,pe> {
-    list_expression<e> "," ListCompherension<e,pe>? |
-    list_expression<e> ("," list_expression<e>)+ ("," ListCompherension<e,pe>?)?
-}
-tuple_section<e,pe> {
-    ListCompherension<e, pe> ~generator-or-tuple |
-    list_expression<e>
-    ~inline-block-or-tuple
-    ("," list_expression<e>)*
-    ("," ListCompherension<e, pe>?)?
-}
-
-list_expression<e> { e | AssignmentExpression_without_bare_tuple<e> | LonelyType }
-
-AssignmentExpression_without_bare_tuple[@name=AssignmentExpression]<e> {
-  e ~id !assign (assignOperator | "=") !assign e
-}
-
-
-
-//////////////
-// Macros!
-/////////////
-
-MacroExpression<e, pe> {
-  (MacroIdentifier | MacroFieldExpression<pe>)
-  (
-    !right0 immediateParen args[@dynamicPrecedence=1] { ArgumentList<e, pe> } DoClause? | // @use_memo([]) do; ... end
-    !immediate immediateBrace !immediate TypeArgumentList<e> | // @NamedTuple{x::Int}
-    MacroArgumentList<e> // Lame, normal macro call pfffft
-  )?
-}
-
-MacroFieldExpression<pe> {
-  pe !immediate immediateDot !dot "." !dot MacroIdentifier |
-  MacroIdentifier !immediate immediateDot !dot "." !dot MacroFieldName { word }
-}
-
-MacroIdentifier {
-  !regular0 "@" MacroName { word | Operator | Operator[group="operator"] { "." } }
-}
-
-MacroArgumentList<e> {
-  (!regular-2 (e | AssignmentExpression<e> | BareTupleExpression<e>))+
-}
-
-
-// TODO Rename to and merge with `AssignmentExpression_without_bare_tuple`
-function_expression_assignment[@name="AssignmentExpression"]<e> {
-  e
-  !assign (assignOperator | "=")
-  (e | function_expression_assignment<e>)
-}
-
-FunctionExpression<e, pe> {
-  (Identifier ~id | ArgumentList<e, pe>)
-  !arrow "->"
-  (e | function_expression_assignment<e>)
-}
-
-contains_operator { kw<"in"> | kw<"isa"> }
-colon_operator { ":" }
-
-BinaryExpression<e> {
-  e !power powerOperator !power e |
-  e !bitshift bitshiftOperator !bitshift e |
-  e !pair pairOperator !pair e |
-  e !colon colon_operator !colon e |
-  e !times timesOperator !times e |
-  e !plus ("$" | plusOperator) !plus e |
-  e !arrow arrowOperator e |
-  e !pipeback pipe_ltr e |
-  e !pipe pipe_rtl e |
-  e !contains (contains_operator | comparisonOperator) !contains e |
-  e !bor "||" e |
-  e !band "&&" e
-}
-
-UnaryExpression<e> {
-  Operator { unaryOperatorExtra | plusminus } ~op !prefix e
-}
-
-Operator[group="operator"] {
-  !regular0 (
-    "$" |
-    "=" |
-    bitshiftOperator |
-    unaryOperatorExtra |
-    assignOperator |
-    plusOperator |
-    timesOperator |
-    powerOperator |
-    comparisonOperator |
-    arrowOperator |
-    contains_operator |
-    pipe_ltr |
-    pipe_rtl |
-    colon_operator
+// Interpolations don't require immediate* rules
+InterpExpression[@dynamicPrecedence=1] {
+  '$' !quote
+  ( Identifier
+  | Operator
+  | BraceExpression
+  | ParenExpression
+  | TupleExpression
+  | array
+  | ClosedMacrocallExpression
+  // | OpenMacrocallExpression
   )
 }
 
-ArrayExpression[closedBy="]"]<e> {
-  !regular0 "[" "]" |
-  !regular0 "["
-  !regular0 e
-  ("," e)*?
-  (!regular0 ",")?
-  !regular0 "]"
+QuoteExpression[@dynamicPrecedence=1] {
+  ':' !quote
+  ( immediateBrace BraceExpression
+  | immediateParen ParenExpression
+  | immediateParen TupleExpression
+  | immediateBracket array
+  | immediateAt ClosedMacrocallExpression
+  // | immediateAt OpenMacrocallExpression // TODO
+  | immediateParen parens<SyntacticOperator>
+  )
 }
 
-MatrixExpression[closedBy="]"]<e> {
-  "["
-  !regular-1
-  MatrixRow<e>
-  (";" MatrixRow<e>)* 
-  (!regular-1 ";")?
-  !regular-1
-  "]"
+Symbol {
+  ':' !quote
+  ( immediateIdentifier Word
+  | Operator // TODO: immediateOperator?
+  | SyntacticOperator
+  )
 }
 
-MatrixRow<e> {
-  (!regular-1 e)+
+// OPERATIONS
+// TODO: Make operators visible.
+
+operation<expr> {
+  ( SplatExpression { expr !colon '...' }
+  | UnaryExpression { (tilde-operator | type-comparison-operator | unary-operator | unary-plus-operator) !unary expr }
+  | [@name=UnaryExpression] { '::' !unary Type { expr } }
+  | BinaryExpression<expr>
+  )
 }
 
-ArrayComprehensionExpression[closedBy="]"]<e, pe> {
-  "[" !regular0 e !regular0 comprehensionClause<e, pe> "]"
+BinaryExpression<expr> {
+  ( expr !where      kwid<'where'> !where Type { expr }
+  | expr !decl       '::' Type { expr }
+  | expr !power      power-operator !power expr
+  | expr !bitshift   bitshift-operator !bitshift expr
+  | expr !rational   rational-operator !rational expr
+  | expr !times      times-operator !times expr
+  | expr !plus       (plus-operator | unary-plus-operator | '$') !plus expr
+  | expr !colon      (ellipsis-operator | ':') !colon expr
+  | expr !pipe-right pipe-right-operator !pipe-right expr
+  | expr !pipe-left  pipe-left-operator !pipe-left expr
+  | expr !comparison (comparison-operator | type-comparison-operator | membership-operator) !comparison expr
+  | expr !lazy-and   lazy-and-operator expr
+  | expr !lazy-or    lazy-or-operator expr
+  | expr !arrow      arrow-operator !arrow expr
+  | expr !pair       pair-operator !pair expr
+  )
 }
 
-GeneratorExpression[closedBy=")"]<e, pe> {
-  "(" ListCompherension<e, pe> ~generator-or-tuple ")" ~afterclosingparen
+ArrowFunctionExpression { (Identifier | TupleExpression) !afunc '->' !afunc (expr | binding<'Assignment'>) }
+
+// JuxtapositionExpression is non-associative
+// TODO: Handle monomials like 3x^2 with the correct precedence
+JuxtapositionExpression {
+  ( (IntegerLiteral | FloatLiteral) ((!juxt immediateIdentifier primary-expr) | (!juxt immediateParen primary-expr))
+  | primary-expr (!juxt immediateIdentifier primary-expr)
+  )
+  (!juxt immediateIdentifier primary-expr)*
 }
 
-comprehensionClause<e, pe> {
-  ForClause<e, pe> (ForClause<e, pe> | IfClause<e, pe>)*
+TernaryExpression<expr> { expr !ternary '?' !ternary expr !ternary ':' !ternary expr }
+
+
+Operator {
+  ( tilde-operator
+  | type-comparison-operator
+  | unary-operator
+  | unary-plus-operator
+  | power-operator
+  | bitshift-operator
+  | rational-operator
+  | times-operator
+  | plus-operator
+  | ellipsis-operator
+  | '$'
+  | ':'
+  | pipe-right-operator
+  | pipe-left-operator
+  | comparison-operator
+  | arrow-operator
+  | pair-operator
+  )
 }
 
-IfClause<e, pe> {
-  kw<"if"> e
+// TODO: membership operators should NOT be highlighted as keywords.
+membership-operator { kwid<'in'> | kwid<'isa'> }
+
+// Operators that cannot be used as identifiers
+SyntacticOperator[@name=Operator] {
+  ( '.'
+  | '::'
+  | '...'
+  | lazy-and-operator
+  | lazy-or-operator
+  | '?'
+  | '->'
+  | assignment-operator
+  | compound-assignment-operator
+  )
 }
 
-ForClause<e, pe> {
-    kw<"for"> ForBinding<e, pe> (!forbinding "," ForBinding<e, pe>)*
-}
 
-ForBinding<e, pe> {
-  (Identifier ~id | TupleExpression<e, pe>) AssignOperator { kw<"in"> | operator<"="> | operator<"∈"> } e
-}
+// STRINGS
 
-ScopedIdentifier {
-  "." !dot ScopedIdentifier |
-  (Identifier | ScopedIdentifier)? !dot "." !dot Identifier
-}
-
-// Even though it is technically "just an unary expression",
-// I'm keeping this separate because it needs immediateSingleQuote
-// and because I don't feel like rewriting tests
-TransposeExpression<e> {
-  e !transpose immediateSingleQuote "'"
+string {
+  ( StringLiteral
+  | CommandLiteral
+  | NsStringLiteral { Identifier immediateDoubleQuote ns-str (!juxt immediateIdentifier Word)? }
+  | NsCommandLiteral { Identifier immediateBackquote ns-cmd (!juxt immediateIdentifier Word)? }
+  )
 }
 
 @skip {} {
-  String {
-    '"' (stringContent | stringInterpolation)* '"'
-  }
-  TripleString {
-    '"""' (tripleStringContent | stringInterpolation)* '"""'
-  }
-  CommandString {
-    "`" (commandStringContent | stringInterpolation)* "`"
-  }
+  // Non-standard string literals don't have interpolations, and only have basic escape sequences.
+  _s<delim, content> { delim (content)* delim }
+  s<delim, content, interp> { _s<delim, content | [@name='$']{ '$' } interp | EscapeSequence> }
+  ns<delim, content, esc> { _s<delim, content | '$' | '\\' | [@name=EscapeSequence]{ '\\\\' | esc }> }
 
-  StringWithoutInterpolation[@name="String"] {
-    '"' stringContentWithoutInterpolation '"'
-  }
-  TripleStringWithoutInterpolation[@name="TripleString"] {
-    '"""' tripleStringContentWithoutInterpolation '"""'
-  }
-  CommandStringWithoutInterpolation[@name="CommandString"] {
-    "`" commandStringContentWithoutInterpolation "`"
-  }
+  // Commands support the same interpolations as InterpExpression.
+  str-interp { Identifier | parens<expr> }
+  cmd-interp { Identifier | BraceExpression | ParenExpression | TupleExpression | array }
+
+  // Strings can be single or triple quoted
+  StringLiteral  { s<str1-quote, str1-content, str-interp> | s<str3-quote, str3-content, str-interp> }
+  CommandLiteral { s<cmd1-quote, cmd1-content, cmd-interp> | s<cmd3-quote, cmd3-content, cmd-interp> }
+
+  ns-str { ns<str1-quote, str1-content, '\\"'> | ns<str3-quote, str3-content, '\\"'> }
+  ns-cmd { ns<cmd1-quote, cmd1-content, '\\`'> | ns<cmd3-quote, cmd3-content, '\\`'> }
+
+  // Rules that should be tokens, but aren't...
+  BlockComment { block-comment-start (block-comment-content | '#' | '=' | BlockComment)* '=#' }
+  MacroIdentifier { '@' (Identifier | Operator | SyntacticOperator) }
+  Word[@name=Identifier]{ word }
 }
 
-stringInterpolation {
-  operator<"$"> Identifier |
-  operator<"$"> immediateParen operator<"("> !regular1 e !regular1 operator<")">
-}
-
-PrefixFieldExpression[@name=FieldEpxression] {
-  PrefixFieldExpression
-  !immediate immediateDot !dot "." !dot
-  FieldName
-}
-PrefixedString {
-  Prefix { Identifier | PrefixFieldExpression }
-  !immediate
-  
-  (immediateDoubleQuote StringWithoutInterpolation |
-  immediateDoubleQuote TripleStringWithoutInterpolation |
-  immediateBackquote CommandStringWithoutInterpolation)
-}
-
-plusOperator {
-  "." !immediate nowhitespace (plusOperatorExtra | plusminus) |
-  (plusOperatorExtra | plusminus)
-}
-
-operator<term> { [@name={term},group="operator"]{ term } } 
-
-end { kw<"end"> }
-kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
-boolean { @specialize[@name=BooleanLiteral]<Identifier, "true" | "false"> }
-
-@external tokens layoutExtra from "./tokens.js" {
-  immediateParen,
+// immediateIdentifier must be listed _before_ identifier.
+// The order of external tokens matters!
+@external tokens immediate from "./tokens.js" {
+  immediateDot,
   immediateColon,
+  immediateAt,
   immediateBrace,
   immediateBracket,
-  immediateSingleQuote,
-  immediateDoubleQuote,
+  immediateParen,
   immediateBackquote,
-  immediateDot,
-  nowhitespace
+  immediateDoubleQuote,
+  immediateQuote,
+  immediateIdentifier
 }
-
-terminator { newline | ";" }
-
-@external tokens newline from "./tokens.js" { newline }
-
-// So this is a tricky one... to have `word` for fieldnames and symbols
-// but `Identifier` for Identifiers *and keywords*, I now have two tokens that are generated the same way...
-// The trick is having `word` earlier in this list, so when it has to chose between `word` or `Identifier`,
-// it will always take the `word` first.
 @external tokens word from "./tokens.js" { word }
 @external tokens Identifier from "./tokens.js" { Identifier }
 
-@external tokens BlockComment from "./tokens.js" { BlockComment }
-@external tokens tripleStringContent from "./tokens.js" { tripleStringContent }
-@external tokens stringContent from "./tokens.js" { stringContent }
-@external tokens commandStringContent from "./tokens.js" { commandStringContent }
-@external tokens tripleStringContentWithoutInterpolation from "./tokens.js" { tripleStringContentWithoutInterpolation }
-@external tokens stringContentWithoutInterpolation from "./tokens.js" { stringContentWithoutInterpolation }
-@external tokens commandStringContentWithoutInterpolation from "./tokens.js" { commandStringContentWithoutInterpolation }
+@external tokens newline from "./tokens.js" { newline }
+_t { newline | semicolon }
 
 @tokens {
-  whitespace {
-    " " | "\t" | "\n"
+  // OPERATORS
+
+  bdot<tokens> { '.'? tokens } // Broadcasting dot
+
+  suffix { $[²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁᵂᵃᵇᵈᵉᵍᵏᵐᵒᵖᵗᵘᵛᵝᵞᵟᵠᵡᵢᵣᵤᵥᵦᵧᵨᵩᵪᶜᶠᶥᶦᶫᶰᶸᶻᶿ′″‴‵‶‷⁗⁰ⁱ⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₕₖₗₘₙₚₛₜⱼⱽ] }
+  op<tokens> { bdot<tokens> suffix? }
+
+  // Unary prefix operators
+  tilde-operator { op<'~'> } // unary / assignment
+  type-comparison-operator { op<'<:' | '>:'> } // unary / comparison
+  unary-operator { op<'!' | $[¬√∛∜]> }
+  unary-plus-operator { op<$[-+] | $[±∓]> }
+
+  // Binary operators
+  power-operator { op<'^' | $[↑↓⇵⟰⟱⤈⤉⤊⤋⤒⤓⥉⥌⥍⥏⥑⥔⥕⥘⥙⥜⥝⥠⥡⥣⥥⥮⥯￪￬]> }
+  bitshift-operator { op<'<<' | '>>' | '>>>'> }
+  rational-operator { op<'//'> }
+  times-operator { op<$[*/%&\\] | $[⌿÷··⋅∘×∩∧⊗⊘⊙⊚⊛⊠⊡⊓∗∙∤⅋≀⊼⋄⋆⋇⋉⋊⋋⋌⋏⋒⟑⦸⦼⦾⦿⧶⧷⨇⨰⨱⨲⨳⨴⨵⨶⨷⨸⨻⨼⨽⩀⩃⩄⩋⩍⩎⩑⩓⩕⩘⩚⩜⩞⩟⩠⫛⊍▷⨝⟕⟖⟗⨟]> }
+  plus-operator { op<'++' | '|' | $[−¦⊕⊖⊞⊟∪∨⊔∔∸≏⊎⊻⊽⋎⋓⟇⧺⧻⨈⨢⨣⨤⨥⨦⨧⨨⨩⨪⨫⨬⨭⨮⨹⨺⩁⩂⩅⩊⩌⩏⩐⩒⩔⩖⩗⩛⩝⩡⩢⩣]> }
+  ellipsis-operator { op<$[…⁝⋮⋱⋰⋯]> } // TODO: `..` conflicts with ImportPath
+  pipe-right-operator { op<'|>'> }
+  pipe-left-operator { op<'<|'> }
+  comparison-operator { op<'>=' | '<=' | '==' | '===' | '!=' | '!==' | $[><] | $[≥≤≡≠≢∈∉∋∌⊆⊈⊂⊄⊊∝∊∍∥∦∷∺∻∽∾≁≃≂≄≅≆≇≈≉≊≋≌≍≎≐≑≒≓≖≗≘≙≚≛≜≝≞≟≣≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊃⊅⊇⊉⊋⊏⊐⊑⊒⊜⊩⊬⊮⊰⊱⊲⊳⊴⊵⊶⊷⋍⋐⋑⋕⋖⋗⋘⋙⋚⋛⋜⋝⋞⋟⋠⋡⋢⋣⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋲⋳⋴⋵⋶⋷⋸⋹⋺⋻⋼⋽⋾⋿⟈⟉⟒⦷⧀⧁⧡⧣⧤⧥⩦⩧⩪⩫⩬⩭⩮⩯⩰⩱⩲⩳⩵⩶⩷⩸⩹⩺⩻⩼⩽⩾⩿⪀⪁⪂⪃⪄⪅⪆⪇⪈⪉⪊⪋⪌⪍⪎⪏⪐⪑⪒⪓⪔⪕⪖⪗⪘⪙⪚⪛⪜⪝⪞⪟⪠⪡⪢⪣⪤⪥⪦⪧⪨⪩⪪⪫⪬⪭⪮⪯⪰⪱⪲⪳⪴⪵⪶⪷⪸⪹⪺⪻⪼⪽⪾⪿⫀⫁⫂⫃⫄⫅⫆⫇⫈⫉⫊⫋⫌⫍⫎⫏⫐⫑⫒⫓⫔⫕⫖⫗⫘⫙⫷⫸⫹⫺⊢⊣⟂⫪⫫]> }
+  arrow-operator { op<'-->' | '<--' | '<-->' | $[←→↔↚↛↞↠↢↣↦↤↮⇎⇍⇏⇐⇒⇔⇴⇶⇷⇸⇹⇺⇻⇼⇽⇾⇿⟵⟶⟷⟹⟺⟻⟼⟽⟾⟿⤀⤁⤂⤃⤄⤅⤆⤇⤌⤍⤎⤏⤐⤑⤔⤕⤖⤗⤘⤝⤞⤟⤠⥄⥅⥆⥇⥈⥊⥋⥎⥐⥒⥓⥖⥗⥚⥛⥞⥟⥢⥤⥦⥧⥨⥩⥪⥫⥬⥭⥰⧴⬱⬰⬲⬳⬴⬵⬶⬷⬸⬹⬺⬻⬼⬽⬾⬿⭀⭁⭂⭃⥷⭄⥺⭇⭈⭉⭊⭋⭌￩￫⇜⇝↜↝↩↪↫↬↼↽⇀⇁⇄⇆⇇⇉⇋⇌⇚⇛⇠⇢↷↶↺↻]> }
+  pair-operator { op<'=>'> }
+
+  // Binary syntactic operators (broadcast dot, but no suffixes)
+  lazy-and-operator { bdot<'&&'> }
+  lazy-or-operator { bdot<'||'> }
+  assignment-operator { bdot<'='> }
+  compound-assignment-operator { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
+
+  @precedence { compound-assignment-operator, unary-plus-operator }
+
+
+  // NUMBERS
+
+  numeral<n> { n (n | '_' n)* }
+  dec { $[0-9] }
+  hex { $[0-9A-Fa-f] }
+  exp { $[Eef] $[+-]? dec+ }
+  hex-exp { 'p' $[+-]? dec+ }
+
+  FloatLiteral {
+    numeral<dec> ('.' numeral<dec>? exp? | exp)
+    | '.' numeral<dec> exp?
+    | '0x' numeral<hex> '.'? numeral<hex>? hex-exp
+    | '0x.' numeral<hex> hex-exp
   }
-  Comment {
-    "#" ![\n]*
+
+  IntegerLiteral {
+    numeral<dec>
+    | '0b' numeral<$[01]>
+    | '0o' numeral<$[0-7]>
+    | '0x' numeral<hex>
   }
-  Number {
-    (
-      "0" $[xX] $[0-9a-fA-F] $[0-9a-fA-F_]* |
-      $[0-9] $[0-9_]* "."? ($[0-9] $[0-9_]*)? |
-      "." $[0-9] $[0-9_]*
+
+  @precedence { FloatLiteral, '.', IntegerLiteral } // dot vs decimals, and floats vs integers
+
+
+  // CHARACTERS & STRING CONTENT
+
+  EscapeSequence {
+    '\\'
+    ( $[uU] hex (hex (hex hex?)?)?
+    | 'x' hex hex
+    | $[0-7] $[0-7] $[0-7]
+    | ![xuU]
+    | '\\'
     )
-    ($[eE] ("-" | "+")? $[0-9]+)?
-  }
-  powerOperator {
-    "."? ("^" | "↑" | "↓" | "⇵" | "⟰" | "⟱" | "⤈" | "⤉" | "⤊" | "⤋" | "⤒" | "⤓" | "⥉" | "⥌" | "⥍" | "⥏" | "⥑" | "⥔" | "⥕" | "⥘" | "⥙" | "⥜" | "⥝" | "⥠" | "⥡" | "⥣" | "⥥" | "⥮" | "⥯" | "￪" | "￬")
-  }
-  timesOperator {
-    "."? ("*" | "/" | "÷" | "%" | "&" | "⋅" | "∘" | "×" | "\\" | "∩" | "∧" | "⊗" | "⊘" | "⊙" | "⊚" | "⊛" | "⊠" | "⊡" | "⊓" | "∗" | "∙" | "∤" | "⅋" | "≀" | "⊼" | "⋄" | "⋆" | "⋇" | "⋉" | "⋊" | "⋋" | "⋌" | "⋏" | "⋒" | "⟑" | "⦸" | "⦼" | "⦾" | "⦿" | "⧶" | "⧷" | "⨇" | "⨰" | "⨱" | "⨲" | "⨳" | "⨴" | "⨵" | "⨶" | "⨷" | "⨸" | "⨻" | "⨼" | "⨽" | "⩀" | "⩃" | "⩄" | "⩋" | "⩍" | "⩎" | "⩑" | "⩓" | "⩕" | "⩘" | "⩚" | "⩜" | "⩞" | "⩟" | "⩠" | "⫛" | "⊍" | "▷" | "⨝" | "⟕" | "⟖" | "⟗")
-  }
-  plusOperatorExtra {
-    "."? ("|||" | "⊕" | "⊖" | "⊞" | "⊟" | "|++|" | "∪" | "∨" | "⊔" | "±" | "∓" | "∔" | "∸" | "≂" | "≏" | "⊎" | "⊻" | "⊽" | "⋎" | "⋓" | "⧺" | "⧻" | "⨈" | "⨢" | "⨣" | "⨤" | "⨥" | "⨦" | "⨧" | "⨨" | "⨩" | "⨪" | "⨫" | "⨬" | "⨭" | "⨮" | "⨹" | "⨺" | "⩁" | "⩂" | "⩅" | "⩊" | "⩌" | "⩏" | "⩐" | "⩒" | "⩔" | "⩖" | "⩗" | "⩛" | "⩝" | "⩡" | "⩢" | "⩣")
-  }
-  arrowOperator {
-    "."?  ("-->" | "←" | "→" | "↔" | "↚" | "↛" | "↞" | "↠" | "↢" | "↣" | "↦" | "↤" | "↮" | "⇎" | "⇍" | "⇏" | "⇐" | "⇒" | "⇔" | "⇴" | "⇶" | "⇷" | "⇸" | "⇹" | "⇺" | "⇻" | "⇼" | "⇽" | "⇾" | "⇿" | "⟵" | "⟶" | "⟷" | "⟹" | "⟺" | "⟻" | "⟼" | "⟽" | "⟾" | "⟿" | "⤀" | "⤁" | "⤂" | "⤃" | "⤄" | "⤅" | "⤆" | "⤇" | "⤌" | "⤍" | "⤎" | "⤏" | "⤐" | "⤑" | "⤔" | "⤕" | "⤖" | "⤗" | "⤘" | "⤝" | "⤞" | "⤟" | "⤠" | "⥄" | "⥅" | "⥆" | "⥇" | "⥈" | "⥊" | "⥋" | "⥎" | "⥐" | "⥒" | "⥓" | "⥖" | "⥗" | "⥚" | "⥛" | "⥞" | "⥟" | "⥢" | "⥤" | "⥦" | "⥧" | "⥨" | "⥩" | "⥪" | "⥫" | "⥬" | "⥭" | "⥰" | "⧴" | "⬱" | "⬰" | "⬲" | "⬳" | "⬴" | "⬵" | "⬶" | "⬷" | "⬸" | "⬹" | "⬺" | "⬻" | "⬼" | "⬽" | "⬾" | "⬿" | "⭀" | "⭁" | "⭂" | "⭃" | "⭄" | "⭇" | "⭈" | "⭉" | "⭊" | "⭋" | "⭌" | "￩" | "￫" | "⇜" | "⇝" | "↜" | "↝" | "↩" | "↪" | "↫" | "↬" | "↼" | "↽" | "⇀" | "⇁" | "⇄" | "⇆" | "⇇" | "⇉" | "⇋" | "⇌" | "⇚" | "⇛" | "⇠" | "⇢")
-  }
-  bitshiftOperator {
-    "."? (">>" | "<<" | ">>>")
-  }
-  pairOperator {
-    "."? "=>"
-  }
-  comparisonOperator {
-    "."?  ("<:" | ">" | "<" | ">=" | "≥" | "<=" | "≤" | "==" | "===" | "≡" | "!=" | "≠" | "!==" | "≢" | "∈" | "∉" | "∋" | "∌" | "⊆" | "⊈" | "⊂" | "⊄" | "⊊" | "∝" | "∊" | "∍" | "∥" | "∦" | "∷" | "∺" | "∻" | "∽" | "∾" | "≁" | "≃" | "≂" | "≄" | "≅" | "≆" | "≇" | "≈" | "≉" | "≊" | "≋" | "≌" | "≍" | "≎" | "≐" | "≑" | "≒" | "≓" | "≖" | "≗" | "≘" | "≙" | "≚" | "≛" | "≜" | "≝" | "≞" | "≟" | "≣" | "≦" | "≧" | "≨" | "≩" | "≪" | "≫" | "≬" | "≭" | "≮" | "≯" | "≰" | "≱" | "≲" | "≳" | "≴" | "≵" | "≶" | "≷" | "≸" | "≹" | "≺" | "≻" | "≼" | "≽" | "≾" | "≿" | "⊀" | "⊁" | "⊃" | "⊅" | "⊇" | "⊉" | "⊋" | "⊏" | "⊐" | "⊑" | "⊒" | "⊜" | "⊩" | "⊬" | "⊮" | "⊰" | "⊱" | "⊲" | "⊳" | "⊴" | "⊵" | "⊶" | "⊷" | "⋍" | "⋐" | "⋑" | "⋕" | "⋖" | "⋗" | "⋘" | "⋙" | "⋚" | "⋛" | "⋜" | "⋝" | "⋞" | "⋟" | "⋠" | "⋡" | "⋢" | "⋣" | "⋤" | "⋥" | "⋦" | "⋧" | "⋨" | "⋩" | "⋪" | "⋫" | "⋬" | "⋭" | "⋲" | "⋳" | "⋴" | "⋵" | "⋶" | "⋷" | "⋸" | "⋹" | "⋺" | "⋻" | "⋼" | "⋽" | "⋾" | "⋿" | "⟈" | "⟉" | "⟒" | "⦷" | "⧀" | "⧁" | "⧡" | "⧣" | "⧤" | "⧥" | "⩦" | "⩧" | "⩪" | "⩫" | "⩬" | "⩭" | "⩮" | "⩯" | "⩰" | "⩱" | "⩲" | "⩳" | "⩵" | "⩶" | "⩷" | "⩸" | "⩹" | "⩺" | "⩻" | "⩼" | "⩽" | "⩾" | "⩿" | "⪀" | "⪁" | "⪂" | "⪃" | "⪄" | "⪅" | "⪆" | "⪇" | "⪈" | "⪉" | "⪊" | "⪋" | "⪌" | "⪍" | "⪎" | "⪏" | "⪐" | "⪑" | "⪒" | "⪓" | "⪔" | "⪕" | "⪖" | "⪗" | "⪘" | "⪙" | "⪚" | "⪛" | "⪜" | "⪝" | "⪞" | "⪟" | "⪠" | "⪡" | "⪢" | "⪣" | "⪤" | "⪥" | "⪦" | "⪧" | "⪨" | "⪩" | "⪪" | "⪫" | "⪬" | "⪭" | "⪮" | "⪯" | "⪰" | "⪱" | "⪲" | "⪳" | "⪴" | "⪵" | "⪶" | "⪷" | "⪸" | "⪹" | "⪺" | "⪻" | "⪼" | "⪽" | "⪾" | "⪿" | "⫀" | "⫁" | "⫂" | "⫃" | "⫄" | "⫅" | "⫆" | "⫇" | "⫈" | "⫉" | "⫊" | "⫋" | "⫌" | "⫍" | "⫎" | "⫏" | "⫐" | "⫑" | "⫒" | "⫓" | "⫔" | "⫕" | "⫖" | "⫗" | "⫘" | "⫙" | "⫷" | "⫸" | "⫹" | "⫺" | "⊢" | "⊣" | "⟂")
-  }
-  assignOperator {
-    ":=" | "."? ("~" | "=" | "+=" | "-=" | "*=" | "/=" | "//=" | "|=|" | "^=" | "÷=" | "%=" | "<<=" | ">>=" | ">>>=" | "||=|" | "&=" | "⊻=" | "≔" | "⩴" | "≕")
-  }
-  unaryOperatorExtra {
-    "."? (">:" | "!" | "~" | "¬" | "√" | "∛" | "∜")
-  }
-  plusminus {
-    "."? ("+" | "-" | "|")
-  }
-  Character {
-    "'" ("\\" !['] | ![']) "'"
   }
 
-  pipe_ltr[@name="pipe<"] { "<|" | ".<|" }
-  pipe_rtl[@name="pipe>"] { "|>" | ".|>" }
+  CharLiteral { "'" (![\\'] | EscapeSequence) "'" }
 
-  ternary1 {
-    whitespace+ "?" whitespace+
-  }
-  ternary2 {
-    whitespace+ ":" whitespace+
-  }
-  @precedence {
-    Number,
-    pipe_ltr,
-    pipe_rtl,
-    // <: and < will fight over two should be chosen,
-    // and if possible it should always be <: (not gonna have a range expression with `<` sadly)
-    "<:",
-    comparisonOperator,
-    "=",
-    assignOperator,
-    unaryOperatorExtra,
-    plusOperatorExtra,
-    ".",
-    ternary1,
-    ternary2,
-    whitespace
-  }
+  str1-quote[@name='"', group=QuotationMark]{ '"' }
+  cmd1-quote[@name='`', group=QuotationMark]{ '`' }
+  str3-quote[@name='"""', group=QuotationMark]{ '"""' }
+  cmd3-quote[@name='```', group=QuotationMark]{ '```' }
+
+  str1-content { !["$\\] }
+  cmd1-content { ![`$\\] }
+  str3-content { (str1-content | '"' (str1-content | '"' str1-content))+ }
+  cmd3-content { (cmd1-content | '`' (cmd1-content | '`' cmd1-content))+ }
+
+
+  // COMMENTS
+
+  LineComment { '#' ![=\n]? ![\n]* }
+  block-comment-content { ![#=] }
+  block-comment-start { '#=' }
+
+  @precedence { block-comment-start, LineComment }
+
+
+  // OTHER TOKENS
+
+  _ws { @whitespace+ }
+  semicolon { ';'+ }
+
+  // For detectDelim to work
+  '(' ')' '[' ']' '{' '}'
 }
+
+@external propSource juliaHighlighting from "./highlight.js"
+
+@detectDelim
+
+// vim:set lisp:
