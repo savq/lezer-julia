@@ -12,7 +12,7 @@ Program(
   UnaryExpression(Identifier),
   UnaryExpression(Identifier),
   UnaryExpression(IntegerLiteral),
-  UnaryExpression(AdjointExpression(Identifier)), LineComment,
+  UnaryExpression(AdjointExpression(Identifier), LineComment),
   BinaryExpression(UnaryExpression(Identifier), UnaryExpression(ParenExpression(Identifier))), LineComment,
   BinaryExpression(IntegerLiteral, UnaryExpression(IntegerLiteral)),
 )
@@ -30,7 +30,7 @@ A \ (v × w)
 ==>
 Program(
   BinaryExpression(Identifier, IntegerLiteral),
-  UnaryExpression(BinaryExpression(Identifier, IntegerLiteral)), LineComment,
+  UnaryExpression(BinaryExpression(Identifier, IntegerLiteral, LineComment)),
   BinaryExpression(Identifier, Identifier),
   BinaryExpression(Identifier, Identifier),
   BinaryExpression(Identifier, BinaryExpression(IntegerLiteral, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
