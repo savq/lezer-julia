@@ -38,7 +38,7 @@ Program(
   Assignment(
     CallExpression(Identifier, Arguments(Identifier, Identifier)),
     AssignmentOp,
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, UnaryPlusOp, Identifier),
   )
   Assignment(
     BinaryExpression(
@@ -88,15 +88,17 @@ Program(
   ),
   ArrowFunctionExpression(
     TupleExpression(Identifier),
-    BinaryExpression(Identifier, IntegerLiteral),
+    BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral),
   ),
   ArrowFunctionExpression(
     TupleExpression(Identifier, Identifier, Identifier),
     BinaryExpression(
       BinaryExpression(
         BinaryExpression(IntegerLiteral, Identifier),
+        UnaryPlusOp,
         Identifier
       ),
+      UnaryPlusOp,
       Identifier
     )
   ),
@@ -157,6 +159,7 @@ Program(
       JuxtapositionExpression(IntegerLiteral, Identifier),
       IntegerLiteral
     ),
+    UnaryPlusOp,
     JuxtapositionExpression(FloatLiteral, Identifier)
   ),
   BinaryExpression(
@@ -164,6 +167,7 @@ Program(
       JuxtapositionExpression(FloatLiteral, Identifier),
       IntegerLiteral
     ),
+    UnaryPlusOp,
     JuxtapositionExpression(FloatLiteral, Identifier)
   ),
   BinaryExpression(
@@ -174,14 +178,15 @@ Program(
     BinaryExpression(
       JuxtapositionExpression(
         IntegerLiteral,
-        ParenExpression(BinaryExpression(Identifier,IntegerLiteral))
+        ParenExpression(BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral))
       ),
       IntegerLiteral
     ),
+    UnaryPlusOp,
     JuxtapositionExpression(
       IntegerLiteral,
       ParenExpression(
-        BinaryExpression(Identifier,IntegerLiteral)
+        BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral)
       )
     )
   )

@@ -139,7 +139,7 @@ a "quoted" string"""
 Program(
   StringLiteral,
   StringLiteral(Identifier),
-  StringLiteral(ParenExpression(BinaryExpression(Identifier, Identifier))),
+  StringLiteral(ParenExpression(BinaryExpression(Identifier, UnaryPlusOp, Identifier))),
   StringLiteral(EscapeSequence),
 )
 
@@ -181,7 +181,7 @@ Program(
   CommandLiteral(Identifier),
   CommandLiteral(EscapeSequence, EscapeSequence),
   CommandLiteral(EscapeSequence, EscapeSequence),
-  CommandLiteral(ParenExpression(BinaryExpression(Identifier, Identifier))),
+  CommandLiteral(ParenExpression(BinaryExpression(Identifier, UnaryPlusOp, Identifier))),
   CommandLiteral(EscapeSequence),
 )
 

@@ -327,7 +327,7 @@ export a, b, +, (*)
 ==>
 Program(
   ExportStatement(export, Identifier),
-  ExportStatement(export, Identifier, Identifier, Operator, ParenExpression(Operator)),
+  ExportStatement(export, Identifier, Identifier, Operator(UnaryPlusOp), ParenExpression(Operator)),
 )
 
 
@@ -364,7 +364,7 @@ Program(
   ImportStatement(import, ImportPath(Identifier, Identifier)),
   ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportPath(Identifier), ImportPath(Identifier))),
   ImportStatement(import, SelectedImport(ImportPath(Identifier), MacroIdentifier(Identifier))),
-  ImportStatement(import, SelectedImport(ImportPath(Identifier), Operator(ComparisonOp), Operator))
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), Operator(ComparisonOp), Operator(UnaryPlusOp)))
 )
 
 
@@ -393,7 +393,7 @@ Program(
   ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportAlias(ImportPath(Identifier), as, Identifier))),
   LineComment,
   ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(ImportPath(Identifier, Identifier), as, Identifier))),
-  ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(Operator, as, Operator))),
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), ImportAlias(Operator(UnaryPlusOp), as, Operator(UnaryPlusOp)))),
   ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportAlias(MacroIdentifier(Identifier), as, MacroIdentifier(Identifier))))
 )
 

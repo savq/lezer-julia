@@ -228,6 +228,7 @@ Program(
       Generator(
         BinaryExpression(
           Identifier,
+          UnaryPlusOp,
           Identifier,
         )
         GenFor(for, ForBinding(Identifier, AssignmentOp, Identifier), ForBinding(Identifier, AssignmentOp, Identifier)),

@@ -70,7 +70,7 @@ Program(
     )
     Field(Identifier),
   ),
-  FieldExpression(Identifier, Field(Symbol(Operator))),
+  FieldExpression(Identifier, Field(Symbol(Operator(UnaryPlusOp)))),
   FieldExpression(Identifier, Field(QuoteExpression(ParenExpression(Operator(ComparisonOp))))),
   FieldExpression(Identifier, Field(StringLiteral)),
   FieldExpression(Identifier, Field(NsStringLiteral(Identifier))),
@@ -133,9 +133,9 @@ xs[end - 1]
 ==>
 Program(
   IndexExpression(Identifier, VectorExpression(begin)),
-  IndexExpression(Identifier, VectorExpression(BinaryExpression(begin, IntegerLiteral))),
+  IndexExpression(Identifier, VectorExpression(BinaryExpression(begin, UnaryPlusOp, IntegerLiteral))),
   IndexExpression(Identifier, VectorExpression(end)),
-  IndexExpression(Identifier, VectorExpression(BinaryExpression(end, IntegerLiteral))),
+  IndexExpression(Identifier, VectorExpression(BinaryExpression(end, UnaryPlusOp, IntegerLiteral))),
 )
 
 
@@ -207,7 +207,7 @@ Program(
   CallExpression(Identifier, Arguments(Identifier)),
   CallExpression(Identifier, Arguments(Identifier)),
   CallExpression(Operator, Arguments(Identifier)),
-  UnaryExpression(CallExpression(Identifier, Arguments(Identifier))),
+  UnaryExpression(UnaryOp, CallExpression(Identifier, Arguments(Identifier))),
 )
 
 
@@ -324,7 +324,7 @@ Program(
   QuoteExpression(TupleExpression(Identifier, Identifier)),
   QuoteExpression(VectorExpression(Identifier, Identifier, Identifier)),
 
-  Symbol(Operator),
+  Symbol(Operator(UnaryPlusOp)),
   Symbol(Operator),
   QuoteExpression(ParenExpression(Operator(AssignmentOp))),
 )

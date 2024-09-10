@@ -61,6 +61,7 @@ export const juliaHighlighting = styleTags({
   "CommandLiteral/VectorExpression/[ CommandLiteral/VectorExpression/]": t.special(t.bracket),
 
   // TODO: Finish operators
+  "UnaryOp UnaryPlusOp": t.arithmeticOperator,
   ComparisonOp: t.compareOperator,
   "LazyAndOp LazyOrOp": t.logicOperator,
   'TernaryExpression/"?" TernaryExpression/":"': t.controlOperator,

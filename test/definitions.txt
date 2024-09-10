@@ -200,7 +200,7 @@ Program(
   FunctionDefinition(
     function,
     Signature(CallExpression(Operator, Arguments(Identifier, Identifier))),
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, UnaryPlusOp, Identifier),
     end,
   )
 )

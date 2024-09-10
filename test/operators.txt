@@ -9,12 +9,12 @@
 
 ==>
 Program(
-  UnaryExpression(Identifier),
-  UnaryExpression(Identifier),
-  UnaryExpression(IntegerLiteral),
-  UnaryExpression(AdjointExpression(Identifier), LineComment),
-  BinaryExpression(UnaryExpression(Identifier), ComparisonOp, UnaryExpression(ParenExpression(Identifier))), LineComment,
-  BinaryExpression(IntegerLiteral, UnaryExpression(IntegerLiteral)),
+  UnaryExpression(UnaryPlusOp, Identifier),
+  UnaryExpression(UnaryPlusOp, Identifier),
+  UnaryExpression(UnaryOp, IntegerLiteral),
+  UnaryExpression(UnaryPlusOp, AdjointExpression(Identifier), LineComment),
+  BinaryExpression(UnaryExpression(UnaryOp, Identifier), ComparisonOp, UnaryExpression(UnaryOp, ParenExpression(Identifier))), LineComment,
+  BinaryExpression(IntegerLiteral, UnaryExpression(UnaryPlusOp, IntegerLiteral)),
 )
 
 
@@ -30,9 +30,9 @@ A \ (v × w)
 ==>
 Program(
   BinaryExpression(Identifier, IntegerLiteral),
-  UnaryExpression(BinaryExpression(Identifier, IntegerLiteral, LineComment)),
+  UnaryExpression(UnaryPlusOp, BinaryExpression(Identifier, IntegerLiteral, LineComment)),
   BinaryExpression(Identifier, Identifier),
-  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(Identifier, UnaryPlusOp, Identifier),
   BinaryExpression(Identifier, BinaryExpression(IntegerLiteral, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
   BinaryExpression(Identifier, ParenExpression(BinaryExpression(Identifier, Identifier))),
 )
@@ -47,6 +47,7 @@ Program(
 Program(
   BinaryExpression(
     IntegerLiteral,
+    UnaryPlusOp,
     IntegerLiteral,
   )
 )
@@ -61,6 +62,7 @@ a .* b .+ c
 Program(
   BinaryExpression(
     BinaryExpression(Identifier, Identifier),
+    UnaryPlusOp,
     Identifier
   )
   UnaryExpression(TildeOp, VectorExpression(Identifier)),
@@ -74,7 +76,7 @@ a^p ≡ₚ a
 
 ==>
 Program(
-  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(Identifier, UnaryPlusOp, Identifier),
   BinaryExpression(
     BinaryExpression(Identifier, Identifier),
     ComparisonOp,
@@ -147,7 +149,7 @@ x:y+1
 ==>
 Program(
   BinaryExpression(IntegerLiteral, IntegerLiteral),
-  BinaryExpression(Identifier, BinaryExpression(Identifier, IntegerLiteral)),
+  BinaryExpression(Identifier, BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral)),
   LineComment,
 )
 
@@ -235,11 +237,11 @@ foo(^, ÷, -)
 
 ==>
 Program(
-  Operator,
-  Operator,
-  Assignment(Identifier, AssignmentOp, Operator),
+  Operator(UnaryOp),
+  Operator(UnaryOp),
+  Assignment(Identifier, AssignmentOp, Operator(UnaryPlusOp)),
   Assignment(Operator(ComparisonOp), AssignmentOp, Operator(ComparisonOp)),
-  CallExpression(Identifier, Arguments(Operator, Operator, Operator)),
+  CallExpression(Identifier, Arguments(Operator, Operator, Operator(UnaryPlusOp))),
 )
 
 
@@ -251,7 +253,7 @@ Program(
 
 ==>
 Program(
-  CallExpression(Operator, Arguments(IntegerLiteral, IntegerLiteral)),
+  UnaryExpression(UnaryPlusOp, TupleExpression(IntegerLiteral, IntegerLiteral)),
   CallExpression(Operator, Arguments(Identifier, Identifier)),
   MacrocallExpression(MacroIdentifier(Operator(TypeComparisonOp))),
 )

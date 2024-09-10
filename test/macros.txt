@@ -48,7 +48,7 @@ Program(
   ),
   MacrocallExpression(
     MacroIdentifier(Operator),
-    MacroArguments(BinaryExpression(BinaryExpression(Identifier, Identifier), Identifier))
+    MacroArguments(BinaryExpression(BinaryExpression(Identifier, Identifier), UnaryPlusOp, Identifier))
   ),
   CallExpression(
     Identifier,
@@ -142,7 +142,7 @@ Program(
 Program(
   MacrocallExpression(
     MacroIdentifier(Identifier),
-    MacroArguments(BinaryExpression(Identifier, IntegerLiteral)),
+    MacroArguments(BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral)),
   )
 )
 
@@ -201,6 +201,7 @@ Program(
       MacroIdentifier(Identifier),
       VectorExpression(IntegerLiteral, IntegerLiteral),
     ),
+    UnaryPlusOp,
     IntegerLiteral
   ),
   MacrocallExpression(
@@ -208,10 +209,11 @@ Program(
     MacroArguments(
       BinaryExpression(
         VectorExpression(IntegerLiteral, IntegerLiteral),
+        UnaryPlusOp,
         IntegerLiteral
-      ),
+      )
     )
-  ),
+  )
 )
 
 
@@ -241,7 +243,7 @@ Program(
       )
     ),
     AssignmentOp,
-    BinaryExpression(Identifier, IntegerLiteral),
+    BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral),
   )
   Assignment(
     CallExpression(
@@ -251,6 +253,6 @@ Program(
       )
     ),
     AssignmentOp,
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, UnaryPlusOp, Identifier),
   )
 )
