@@ -314,7 +314,7 @@ return a, b, c
 Program(
   ReturnStatement(return),
   ReturnStatement(return, Identifier),
-  ReturnStatement(return, BinaryExpression(Identifier, Identifier)),
+  ReturnStatement(return, BinaryExpression(Identifier, LazyOrOp, Identifier)),
   ReturnStatement(return, OpenTuple(Identifier, Identifier, Identifier))
 )
 

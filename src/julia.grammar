@@ -290,8 +290,8 @@ BinaryExpression<expr> {
   | expr !pipe-right pipe-right-operator !pipe-right expr
   | expr !pipe-left  pipe-left-operator !pipe-left expr
   | expr !comparison (comparison-operator | type-comparison-operator | membership-operator) !comparison expr
-  | expr !lazy-and   lazy-and-operator expr
-  | expr !lazy-or    lazy-or-operator expr
+  | expr !lazy-and   LazyAndOp expr
+  | expr !lazy-or    LazyOrOp expr
   | expr !arrow      arrow-operator !arrow expr
   | expr !pair       pair-operator !pair expr
   )
@@ -340,8 +340,8 @@ SyntacticOperator[@name=Operator] {
   ( '.'
   | '::'
   | '...'
-  | lazy-and-operator
-  | lazy-or-operator
+  | LazyAndOp
+  | LazyOrOp
   | '?'
   | '->'
   | AssignmentOp
@@ -431,8 +431,8 @@ _t { newline | semicolon }
   pair-operator { op<'=>'> }
 
   // Binary syntactic operators (broadcast dot, but no suffixes)
-  lazy-and-operator { bdot<'&&'> }
-  lazy-or-operator { bdot<'||'> }
+  LazyAndOp { bdot<'&&'> }
+  LazyOrOp { bdot<'||'> }
   AssignmentOp { bdot<'='> }
   UpdateOp { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
 

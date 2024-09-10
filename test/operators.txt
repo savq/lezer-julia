@@ -197,13 +197,27 @@ Program(
 )
 
 
-# binary comparison operators - Types
+# Binary comparison operators - Types
 
 Bool <: Integer
 
 ==>
 Program(
     BinaryExpression(Identifier, Identifier),
+)
+
+
+# Binary logic operators
+
+p && q
+p && q || r
+p .|| q .&& r
+
+==>
+Program(
+    BinaryExpression(Identifier, LazyAndOp, Identifier),
+    BinaryExpression(BinaryExpression(Identifier, LazyAndOp, Identifier), LazyOrOp, Identifier),
+    BinaryExpression(Identifier, LazyOrOp, BinaryExpression(Identifier, LazyAndOp, Identifier)),
 )
 
 
