@@ -436,6 +436,14 @@ _t { newline | semicolon }
   AssignmentOp { bdot<'='> }
   UpdateOp { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
 
+  // Other syntactic operators
+  '.'
+  '::'
+  '...'
+  '?'
+  ':'
+  '->'
+
   @precedence { UpdateOp, unary-plus-operator }
 
 
@@ -503,7 +511,7 @@ _t { newline | semicolon }
   _ws { @whitespace+ }
   semicolon { ';'+ }
 
-  // For detectDelim to work
+  // BRACKETS (for detectDelim to work)
   '(' ')' '[' ']' '{' '}'
 }
 

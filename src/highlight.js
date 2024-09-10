@@ -62,8 +62,12 @@ export const juliaHighlighting = styleTags({
 
   // TODO: Finish operators
   "LazyAndOp LazyOrOp": t.logicOperator,
+  'TernaryExpression/"?" TernaryExpression/":"': t.controlOperator,
   AssignmentOp: t.definitionOperator,
   UpdateOp: t.updateOperator,
+
+  "->": t.definitionOperator,
+  ". ... ::": t.operator,
 
   "( )": t.paren,
   "[ ]": t.squareBracket,
