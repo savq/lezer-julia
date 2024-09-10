@@ -63,7 +63,7 @@ Program(
     BinaryExpression(Identifier, Identifier),
     Identifier
   )
-  UnaryExpression(VectorExpression(Identifier)),
+  UnaryExpression(TildeOp, VectorExpression(Identifier)),
 )
 
 
@@ -220,8 +220,8 @@ foo(^, ÷, -)
 Program(
   Operator,
   Operator,
-  Assignment(Identifier, Operator),
-  Assignment(Operator, Operator),
+  Assignment(Identifier, AssignmentOp, Operator),
+  Assignment(Operator, AssignmentOp, Operator),
   CallExpression(Identifier, Arguments(Operator, Operator, Operator)),
 )
 

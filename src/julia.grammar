@@ -42,7 +42,7 @@ OpenTuple { expr (!tup ',' expr)+ }
 // Assignments inside blocks, including top-level.
 OpenAssignment[@name=Assignment] {
   (primary-expr | operation<expr> | Operator | OpenTuple)
-  !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
+  !assignment (AssignmentOp | UpdateOp | TildeOp) !assignment
   top-level
 }
 
@@ -50,7 +50,7 @@ OpenAssignment[@name=Assignment] {
 _binding<alias, expr> {
   [@name={alias}] {
       (primary-expr | operation<expr> | Operator)
-      !assignment (assignment-operator | compound-assignment-operator | tilde-operator) !assignment
+      !assignment (AssignmentOp | UpdateOp | TildeOp) !assignment
       (expr | _binding<'Assignment', expr>)
   }
 }
@@ -194,7 +194,7 @@ TupleExpression { tuple }
 
 
 // NOTE: binding `in` is a keyword, membership `in` is a function
-ForBinding { kwid<'outer'>? (Identifier | TupleExpression) !assignment ('=' | '∈' | kwid<'in'>) expr }
+ForBinding { kwid<'outer'>? (Identifier | TupleExpression) !assignment AssignmentOp { '=' | '∈' | kwid<'in'> } expr }
 GenFor { kw<'for'> sep1<(!tup ','), ForBinding> }
 GenFilter { kw<'if'> expr }
 Generator<expr> { expr !simple GenFor (GenFor | GenFilter)* }
@@ -272,7 +272,7 @@ Symbol {
 
 operation<expr> {
   ( SplatExpression { expr !colon '...' }
-  | UnaryExpression { (tilde-operator | type-comparison-operator | unary-operator | unary-plus-operator) !unary expr }
+  | UnaryExpression { (TildeOp | type-comparison-operator | unary-operator | unary-plus-operator) !unary expr }
   | [@name=UnaryExpression] { '::' !unary Type { expr } }
   | BinaryExpression<expr>
   )
@@ -312,7 +312,7 @@ TernaryExpression<expr> { expr !ternary '?' !ternary expr !ternary ':' !ternary 
 
 
 Operator {
-  ( tilde-operator
+  ( TildeOp
   | type-comparison-operator
   | unary-operator
   | unary-plus-operator
@@ -344,8 +344,8 @@ SyntacticOperator[@name=Operator] {
   | lazy-or-operator
   | '?'
   | '->'
-  | assignment-operator
-  | compound-assignment-operator
+  | AssignmentOp
+  | UpdateOp
   )
 }
 
@@ -412,7 +412,7 @@ _t { newline | semicolon }
   op<tokens> { bdot<tokens> suffix? }
 
   // Unary prefix operators
-  tilde-operator { op<'~'> } // unary / assignment
+  TildeOp { op<'~'> } // unary / assignment
   type-comparison-operator { op<'<:' | '>:'> } // unary / comparison
   unary-operator { op<'!' | $[¬√∛∜]> }
   unary-plus-operator { op<$[-+] | $[±∓]> }
@@ -433,10 +433,10 @@ _t { newline | semicolon }
   // Binary syntactic operators (broadcast dot, but no suffixes)
   lazy-and-operator { bdot<'&&'> }
   lazy-or-operator { bdot<'||'> }
-  assignment-operator { bdot<'='> }
-  compound-assignment-operator { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
+  AssignmentOp { bdot<'='> }
+  UpdateOp { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
 
-  @precedence { compound-assignment-operator, unary-plus-operator }
+  @precedence { UpdateOp, unary-plus-operator }
 
 
   // NUMBERS

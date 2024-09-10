@@ -410,7 +410,7 @@ Program(
   FunctionDefinition(
     function,
     Signature(
-      CallExpression(Identifier, Arguments(Identifier, KwArg(Identifier, IntegerLiteral)))
+      CallExpression(Identifier, Arguments(Identifier, KwArg(Identifier, AssignmentOp, IntegerLiteral)))
     ),
     OpenTuple(Identifier, Identifier),
     end

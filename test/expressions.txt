@@ -11,15 +11,15 @@ A[i] = new_value
 
 ==>
 Program(
-  Assignment(Identifier, Identifier),
-  Assignment(Identifier, OpenTuple(IntegerLiteral, IntegerLiteral, IntegerLiteral)),
-  Assignment(OpenTuple(Identifier, SplatExpression(Identifier)), Identifier),
+  Assignment(Identifier, AssignmentOp, Identifier),
+  Assignment(Identifier, AssignmentOp, OpenTuple(IntegerLiteral, IntegerLiteral, IntegerLiteral)),
+  Assignment(OpenTuple(Identifier, SplatExpression(Identifier)), AssignmentOp, Identifier),
 
-  Assignment(BinaryExpression(Identifier, Identifier), BinaryExpression(Identifier, Identifier)),
-  Assignment(Identifier, Assignment(Identifier, Identifier)),
-  Assignment(Identifier, Identifier),
+  Assignment(BinaryExpression(Identifier, Identifier), AssignmentOp, BinaryExpression(Identifier, Identifier)),
+  Assignment(Identifier, UpdateOp, Assignment(Identifier, UpdateOp, Identifier)),
+  Assignment(Identifier, UpdateOp, Identifier),
 
-  Assignment(IndexExpression(Identifier, VectorExpression(Identifier)), Identifier),
+  Assignment(IndexExpression(Identifier, VectorExpression(Identifier)), AssignmentOp, Identifier),
 )
 
 # Assignments - Short functions
@@ -32,10 +32,12 @@ id(x::T)::T where {T} = x
 Program(
   Assignment(
     CallExpression(Identifier, Arguments(Identifier)),
+    AssignmentOp,
     Identifier
   ),
   Assignment(
     CallExpression(Identifier, Arguments(Identifier, Identifier)),
+    AssignmentOp,
     BinaryExpression(Identifier, Identifier),
   )
   Assignment(
@@ -49,6 +51,7 @@ Program(
         )
       )
     )
+    AssignmentOp,
     Identifier,
   )
 )
@@ -101,7 +104,7 @@ Program(
     TupleExpression,
     ParenExpression(
       CallExpression(Identifier, Arguments(FloatLiteral)),
-      Assignment(Identifier, IntegerLiteral),
+      Assignment(Identifier, UpdateOp, IntegerLiteral),
       Identifier
     )
   )
@@ -110,7 +113,7 @@ Program(
     Arguments(
       ArrowFunctionExpression(
         Identifier,
-        Assignment(FieldExpression(Identifier, Field(Identifier)), BoolLiteral),
+        Assignment(FieldExpression(Identifier, Field(Identifier)), AssignmentOp, BoolLiteral),
       ),
       Identifier,
     )
@@ -218,6 +221,7 @@ y -> y ? x : 10
 Program(
   Assignment(
     Identifier,
+    AssignmentOp,
     TernaryExpression(
       BinaryExpression(Identifier, IntegerLiteral),
       CallExpression(Identifier, Arguments(IntegerLiteral)),

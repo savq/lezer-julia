@@ -40,7 +40,7 @@ where where where
 
 ==>
 Program(
-  Assignment(Identifier, Identifier),
+  Assignment(Identifier, AssignmentOp, Identifier),
   BinaryExpression(Identifier, where, Type(Identifier)),
 )
 
@@ -119,7 +119,7 @@ Program(
   IndexExpression(Identifier, VectorExpression()),
   IndexExpression(Identifier, VectorExpression(IntegerLiteral, Operator)),
   IndexExpression(StringLiteral, VectorExpression(IntegerLiteral)),
-  IndexExpression(Identifier, VectorExpression(Assignment(Identifier, IntegerLiteral))),
+  IndexExpression(Identifier, VectorExpression(Assignment(Identifier, UpdateOp, IntegerLiteral))),
 ),
 
 
@@ -161,6 +161,7 @@ Program(
   LineComment,
   Assignment(
     BraceExpression(Symbol(Identifier)),
+    TildeOp,
     CallExpression(Identifier, Arguments(IntegerLiteral, IntegerLiteral))
   )
 )
@@ -222,7 +223,7 @@ Program(
     Identifier,
     Arguments(
       Identifier,
-      KeywordArguments(KwArg(Identifier, Identifier))
+      KeywordArguments(KwArg(Identifier, AssignmentOp, Identifier))
     ),
   ),
   CallExpression(
@@ -325,7 +326,7 @@ Program(
 
   Symbol(Operator),
   Symbol(Operator),
-  QuoteExpression(ParenExpression(Operator)),
+  QuoteExpression(ParenExpression(Operator(AssignmentOp))),
 )
 
 
