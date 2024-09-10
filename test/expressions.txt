@@ -223,7 +223,7 @@ Program(
     Identifier,
     AssignmentOp,
     TernaryExpression(
-      BinaryExpression(Identifier, IntegerLiteral),
+      BinaryExpression(Identifier, ComparisonOp, IntegerLiteral),
       CallExpression(Identifier, Arguments(IntegerLiteral)),
       CallExpression(Identifier, Arguments(IntegerLiteral, Identifier))
     )

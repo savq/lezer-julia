@@ -71,7 +71,7 @@ Program(
     Field(Identifier),
   ),
   FieldExpression(Identifier, Field(Symbol(Operator))),
-  FieldExpression(Identifier, Field(QuoteExpression(ParenExpression(Operator)))),
+  FieldExpression(Identifier, Field(QuoteExpression(ParenExpression(Operator(ComparisonOp))))),
   FieldExpression(Identifier, Field(StringLiteral)),
   FieldExpression(Identifier, Field(NsStringLiteral(Identifier))),
 
@@ -153,7 +153,7 @@ $(usertype){T}
 Program(
   ParametrizedExpression(Identifier, BraceExpression(Identifier)),
   ParametrizedExpression(Identifier, BraceExpression(Identifier, Identifier)),
-  ParametrizedExpression(Identifier, BraceExpression(UnaryExpression(Identifier))),
+  ParametrizedExpression(Identifier, BraceExpression(UnaryExpression(TypeComparisonOp, Identifier))),
   ParametrizedExpression(
     InterpExpression(ParenExpression(Identifier)),
     BraceExpression(Identifier)
@@ -346,7 +346,7 @@ Program(
   Symbol(Identifier),
   IfStatement(
     if
-    Condition(BinaryExpression(Identifier, Symbol(Identifier)))
+    Condition(BinaryExpression(Identifier, ComparisonOp, Symbol(Identifier)))
     IntegerLiteral,
     ElseClause(else, IntegerLiteral)
     end

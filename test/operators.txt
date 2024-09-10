@@ -13,7 +13,7 @@ Program(
   UnaryExpression(Identifier),
   UnaryExpression(IntegerLiteral),
   UnaryExpression(AdjointExpression(Identifier), LineComment),
-  BinaryExpression(UnaryExpression(Identifier), UnaryExpression(ParenExpression(Identifier))), LineComment,
+  BinaryExpression(UnaryExpression(Identifier), ComparisonOp, UnaryExpression(ParenExpression(Identifier))), LineComment,
   BinaryExpression(IntegerLiteral, UnaryExpression(IntegerLiteral)),
 )
 
@@ -77,6 +77,7 @@ Program(
   BinaryExpression(Identifier, Identifier),
   BinaryExpression(
     BinaryExpression(Identifier, Identifier),
+    ComparisonOp,
     Identifier
   )
 )
@@ -181,17 +182,19 @@ x ≥ 0 ≥ z
 
 ==>
 Program(
-  BinaryExpression(Identifier, IntegerLiteral),
-  BinaryExpression(Identifier, IntegerLiteral),
+  BinaryExpression(Identifier, ComparisonOp, IntegerLiteral),
+  BinaryExpression(Identifier, ComparisonOp, IntegerLiteral),
   LineComment,
-  BinaryExpression(Identifier, IntegerLiteral),
+  BinaryExpression(Identifier, ComparisonOp, IntegerLiteral),
   LineComment,
   BinaryExpression(
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, ComparisonOp, Identifier),
+    ComparisonOp,
     Identifier
   ),
   BinaryExpression(
-    BinaryExpression(Identifier, IntegerLiteral),
+    BinaryExpression(Identifier, ComparisonOp, IntegerLiteral),
+    ComparisonOp,
     Identifier
   )
 )
@@ -203,7 +206,7 @@ Bool <: Integer
 
 ==>
 Program(
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, TypeComparisonOp, Identifier),
 )
 
 
@@ -235,7 +238,7 @@ Program(
   Operator,
   Operator,
   Assignment(Identifier, AssignmentOp, Operator),
-  Assignment(Operator, AssignmentOp, Operator),
+  Assignment(Operator(ComparisonOp), AssignmentOp, Operator(ComparisonOp)),
   CallExpression(Identifier, Arguments(Operator, Operator, Operator)),
 )
 
@@ -250,5 +253,5 @@ Program(
 Program(
   CallExpression(Operator, Arguments(IntegerLiteral, IntegerLiteral)),
   CallExpression(Operator, Arguments(Identifier, Identifier)),
-  MacrocallExpression(MacroIdentifier(Operator)),
+  MacrocallExpression(MacroIdentifier(Operator(TypeComparisonOp))),
 )

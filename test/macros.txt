@@ -44,7 +44,7 @@ Program(
   )
   MacrocallExpression(
     MacroIdentifier(Identifier),
-    MacroArguments(BinaryExpression(Identifier,Identifier), StringLiteral)
+    MacroArguments(BinaryExpression(Identifier, ComparisonOp, Identifier), StringLiteral)
   ),
   MacrocallExpression(
     MacroIdentifier(Operator),

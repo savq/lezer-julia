@@ -55,7 +55,7 @@ Program(
   WhileStatement(while, Condition(BoolLiteral), end),
   WhileStatement(
     while,
-    Condition(BinaryExpression(Identifier, IntegerLiteral)),
+    Condition(BinaryExpression(Identifier, ComparisonOp, IntegerLiteral)),
     CallExpression(Identifier, Arguments(Identifier)),
     ContinueStatement(continue),
     BreakStatement(break),
@@ -364,7 +364,7 @@ Program(
   ImportStatement(import, ImportPath(Identifier, Identifier)),
   ImportStatement(using, SelectedImport(ImportPath(Identifier), ImportPath(Identifier), ImportPath(Identifier))),
   ImportStatement(import, SelectedImport(ImportPath(Identifier), MacroIdentifier(Identifier))),
-  ImportStatement(import, SelectedImport(ImportPath(Identifier), Operator, Operator))
+  ImportStatement(import, SelectedImport(ImportPath(Identifier), Operator(ComparisonOp), Operator))
 )
 
 

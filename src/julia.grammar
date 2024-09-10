@@ -272,7 +272,7 @@ Symbol {
 
 operation<expr> {
   ( SplatExpression { expr !colon '...' }
-  | UnaryExpression { (TildeOp | type-comparison-operator | unary-operator | unary-plus-operator) !unary expr }
+  | UnaryExpression { (TildeOp | TypeComparisonOp | unary-operator | unary-plus-operator) !unary expr }
   | [@name=UnaryExpression] { '::' !unary Type { expr } }
   | BinaryExpression<expr>
   )
@@ -289,7 +289,7 @@ BinaryExpression<expr> {
   | expr !colon      (ellipsis-operator | ':') !colon expr
   | expr !pipe-right pipe-right-operator !pipe-right expr
   | expr !pipe-left  pipe-left-operator !pipe-left expr
-  | expr !comparison (comparison-operator | type-comparison-operator | membership-operator) !comparison expr
+  | expr !comparison (ComparisonOp | TypeComparisonOp | membership-operator) !comparison expr
   | expr !lazy-and   LazyAndOp expr
   | expr !lazy-or    LazyOrOp expr
   | expr !arrow      arrow-operator !arrow expr
@@ -313,7 +313,7 @@ TernaryExpression<expr> { expr !ternary '?' !ternary expr !ternary ':' !ternary 
 
 Operator {
   ( TildeOp
-  | type-comparison-operator
+  | TypeComparisonOp
   | unary-operator
   | unary-plus-operator
   | power-operator
@@ -326,7 +326,7 @@ Operator {
   | ':'
   | pipe-right-operator
   | pipe-left-operator
-  | comparison-operator
+  | ComparisonOp
   | arrow-operator
   | pair-operator
   )
@@ -413,7 +413,7 @@ _t { newline | semicolon }
 
   // Unary prefix operators
   TildeOp { op<'~'> } // unary / assignment
-  type-comparison-operator { op<'<:' | '>:'> } // unary / comparison
+  TypeComparisonOp { op<'<:' | '>:'> } // unary / comparison
   unary-operator { op<'!' | $[¬√∛∜]> }
   unary-plus-operator { op<$[-+] | $[±∓]> }
 
@@ -426,7 +426,7 @@ _t { newline | semicolon }
   ellipsis-operator { op<$[…⁝⋮⋱⋰⋯]> } // TODO: `..` conflicts with ImportPath
   pipe-right-operator { op<'|>'> }
   pipe-left-operator { op<'<|'> }
-  comparison-operator { op<'>=' | '<=' | '==' | '===' | '!=' | '!==' | $[><] | $[≥≤≡≠≢∈∉∋∌⊆⊈⊂⊄⊊∝∊∍∥∦∷∺∻∽∾≁≃≂≄≅≆≇≈≉≊≋≌≍≎≐≑≒≓≖≗≘≙≚≛≜≝≞≟≣≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊃⊅⊇⊉⊋⊏⊐⊑⊒⊜⊩⊬⊮⊰⊱⊲⊳⊴⊵⊶⊷⋍⋐⋑⋕⋖⋗⋘⋙⋚⋛⋜⋝⋞⋟⋠⋡⋢⋣⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋲⋳⋴⋵⋶⋷⋸⋹⋺⋻⋼⋽⋾⋿⟈⟉⟒⦷⧀⧁⧡⧣⧤⧥⩦⩧⩪⩫⩬⩭⩮⩯⩰⩱⩲⩳⩵⩶⩷⩸⩹⩺⩻⩼⩽⩾⩿⪀⪁⪂⪃⪄⪅⪆⪇⪈⪉⪊⪋⪌⪍⪎⪏⪐⪑⪒⪓⪔⪕⪖⪗⪘⪙⪚⪛⪜⪝⪞⪟⪠⪡⪢⪣⪤⪥⪦⪧⪨⪩⪪⪫⪬⪭⪮⪯⪰⪱⪲⪳⪴⪵⪶⪷⪸⪹⪺⪻⪼⪽⪾⪿⫀⫁⫂⫃⫄⫅⫆⫇⫈⫉⫊⫋⫌⫍⫎⫏⫐⫑⫒⫓⫔⫕⫖⫗⫘⫙⫷⫸⫹⫺⊢⊣⟂⫪⫫]> }
+  ComparisonOp { op<'>=' | '<=' | '==' | '===' | '!=' | '!==' | $[><] | $[≥≤≡≠≢∈∉∋∌⊆⊈⊂⊄⊊∝∊∍∥∦∷∺∻∽∾≁≃≂≄≅≆≇≈≉≊≋≌≍≎≐≑≒≓≖≗≘≙≚≛≜≝≞≟≣≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊃⊅⊇⊉⊋⊏⊐⊑⊒⊜⊩⊬⊮⊰⊱⊲⊳⊴⊵⊶⊷⋍⋐⋑⋕⋖⋗⋘⋙⋚⋛⋜⋝⋞⋟⋠⋡⋢⋣⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋲⋳⋴⋵⋶⋷⋸⋹⋺⋻⋼⋽⋾⋿⟈⟉⟒⦷⧀⧁⧡⧣⧤⧥⩦⩧⩪⩫⩬⩭⩮⩯⩰⩱⩲⩳⩵⩶⩷⩸⩹⩺⩻⩼⩽⩾⩿⪀⪁⪂⪃⪄⪅⪆⪇⪈⪉⪊⪋⪌⪍⪎⪏⪐⪑⪒⪓⪔⪕⪖⪗⪘⪙⪚⪛⪜⪝⪞⪟⪠⪡⪢⪣⪤⪥⪦⪧⪨⪩⪪⪫⪬⪭⪮⪯⪰⪱⪲⪳⪴⪵⪶⪷⪸⪹⪺⪻⪼⪽⪾⪿⫀⫁⫂⫃⫄⫅⫆⫇⫈⫉⫊⫋⫌⫍⫎⫏⫐⫑⫒⫓⫔⫕⫖⫗⫘⫙⫷⫸⫹⫺⊢⊣⟂⫪⫫]> }
   arrow-operator { op<'-->' | '<--' | '<-->' | $[←→↔↚↛↞↠↢↣↦↤↮⇎⇍⇏⇐⇒⇔⇴⇶⇷⇸⇹⇺⇻⇼⇽⇾⇿⟵⟶⟷⟹⟺⟻⟼⟽⟾⟿⤀⤁⤂⤃⤄⤅⤆⤇⤌⤍⤎⤏⤐⤑⤔⤕⤖⤗⤘⤝⤞⤟⤠⥄⥅⥆⥇⥈⥊⥋⥎⥐⥒⥓⥖⥗⥚⥛⥞⥟⥢⥤⥦⥧⥨⥩⥪⥫⥬⥭⥰⧴⬱⬰⬲⬳⬴⬵⬶⬷⬸⬹⬺⬻⬼⬽⬾⬿⭀⭁⭂⭃⥷⭄⥺⭇⭈⭉⭊⭋⭌￩￫⇜⇝↜↝↩↪↫↬↼↽⇀⇁⇄⇆⇇⇉⇋⇌⇚⇛⇠⇢↷↶↺↻]> }
   pair-operator { op<'=>'> }
 
