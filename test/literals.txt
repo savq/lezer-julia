@@ -122,7 +122,7 @@ band = "Interpol"
 Program(
   Assignment(Identifier, AssignmentOp, StringLiteral),
   StringLiteral(Identifier),
-  StringLiteral(ParenExpression(BinaryExpression(IntegerLiteral, Identifier))),
+  StringLiteral(ParenExpression(BinaryExpression(IntegerLiteral, TimesOp, Identifier))),
   StringLiteral(ParenExpression(StringLiteral(ParenExpression(StringLiteral)))),
 )
 

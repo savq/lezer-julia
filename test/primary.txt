@@ -206,7 +206,7 @@ foo!.(ys)
 Program(
   CallExpression(Identifier, Arguments(Identifier)),
   CallExpression(Identifier, Arguments(Identifier)),
-  CallExpression(Operator, Arguments(Identifier)),
+  CallExpression(Operator(TimesOp), Arguments(Identifier)),
   UnaryExpression(UnaryOp, CallExpression(Identifier, Arguments(Identifier))),
 )
 
@@ -401,6 +401,6 @@ Program(
   IndexExpression(AdjointExpression(Identifier), VectorExpression(Identifier)),
   CallExpression(AdjointExpression(Identifier), Arguments(Identifier)),
   AdjointExpression(Symbol(Identifier))
-  BinaryExpression(AdjointExpression(Identifier), Identifier),
+  BinaryExpression(AdjointExpression(Identifier), TimesOp, Identifier),
 )
 

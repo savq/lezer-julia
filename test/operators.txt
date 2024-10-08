@@ -33,8 +33,8 @@ Program(
   UnaryExpression(UnaryPlusOp, BinaryExpression(Identifier, IntegerLiteral, LineComment)),
   BinaryExpression(Identifier, Identifier),
   BinaryExpression(Identifier, UnaryPlusOp, Identifier),
-  BinaryExpression(Identifier, PlusOp, BinaryExpression(IntegerLiteral, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
-  BinaryExpression(Identifier, ParenExpression(BinaryExpression(Identifier, Identifier))),
+  BinaryExpression(Identifier, PlusOp, BinaryExpression(IntegerLiteral, TimesOp, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
+  BinaryExpression(Identifier, TimesOp, ParenExpression(BinaryExpression(Identifier, TimesOp, Identifier))),
 )
 
 
@@ -61,7 +61,7 @@ a .* b .+ c
 ==>
 Program(
   BinaryExpression(
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, TimesOp, Identifier),
     UnaryPlusOp,
     Identifier
   )
@@ -92,13 +92,14 @@ a & b | c
 
 ==>
 Program(
-  BinaryExpression(BinaryExpression(Identifier, Identifier), PlusOp, Identifier),
+  BinaryExpression(BinaryExpression(Identifier, TimesOp, Identifier), PlusOp, Identifier),
   BinaryExpression(
     TupleExpression(
       BinaryExpression(Identifier, IntegerLiteral),
       BinaryExpression(Identifier, IntegerLiteral),
       Identifier,
     ),
+    TimesOp,
     IntegerLiteral
   )
 )
@@ -245,7 +246,7 @@ Program(
   Operator(UnaryOp),
   Assignment(Identifier, AssignmentOp, Operator(UnaryPlusOp)),
   Assignment(Operator(ComparisonOp), AssignmentOp, Operator(ComparisonOp)),
-  CallExpression(Identifier, Arguments(Operator, Operator, Operator(UnaryPlusOp))),
+  CallExpression(Identifier, Arguments(Operator, Operator(TimesOp), Operator(UnaryPlusOp))),
 )
 
 
@@ -258,6 +259,6 @@ Program(
 ==>
 Program(
   UnaryExpression(UnaryPlusOp, TupleExpression(IntegerLiteral, IntegerLiteral)),
-  CallExpression(Operator, Arguments(Identifier, Identifier)),
+  CallExpression(Operator(TimesOp), Arguments(Identifier, Identifier)),
   MacrocallExpression(MacroIdentifier(Operator(TypeComparisonOp))),
 )

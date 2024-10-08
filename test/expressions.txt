@@ -15,7 +15,7 @@ Program(
   Assignment(Identifier, AssignmentOp, OpenTuple(IntegerLiteral, IntegerLiteral, IntegerLiteral)),
   Assignment(OpenTuple(Identifier, SplatExpression(Identifier)), AssignmentOp, Identifier),
 
-  Assignment(BinaryExpression(Identifier, Identifier), AssignmentOp, BinaryExpression(Identifier, Identifier)),
+  Assignment(BinaryExpression(Identifier, TimesOp, Identifier), AssignmentOp, BinaryExpression(Identifier, TimesOp, Identifier)),
   Assignment(Identifier, UpdateOp, Assignment(Identifier, UpdateOp, Identifier)),
   Assignment(Identifier, UpdateOp, Identifier),
 
@@ -94,7 +94,7 @@ Program(
     TupleExpression(Identifier, Identifier, Identifier),
     BinaryExpression(
       BinaryExpression(
-        BinaryExpression(IntegerLiteral, Identifier),
+        BinaryExpression(IntegerLiteral, TimesOp, Identifier),
         UnaryPlusOp,
         Identifier
       ),

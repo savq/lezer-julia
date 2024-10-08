@@ -284,7 +284,7 @@ BinaryExpression<expr> {
   | expr !power      power-operator !power expr
   | expr !bitshift   bitshift-operator !bitshift expr
   | expr !rational   rational-operator !rational expr
-  | expr !times      times-operator !times expr
+  | expr !times      TimesOp !times expr
   | expr !plus       (PlusOp | UnaryPlusOp | Dollar { '$' }) !plus expr
   | expr !colon      (EllipsisOp | Colon { ':' }) !colon expr
   | expr !pipe-right PipeRightOp !pipe-right expr
@@ -319,7 +319,7 @@ Operator {
   | power-operator
   | bitshift-operator
   | rational-operator
-  | times-operator
+  | TimesOp
   | PlusOp
   | EllipsisOp
   | Dollar { '$' }
@@ -421,7 +421,7 @@ _t { newline | semicolon }
   power-operator { op<'^' | $[↑↓⇵⟰⟱⤈⤉⤊⤋⤒⤓⥉⥌⥍⥏⥑⥔⥕⥘⥙⥜⥝⥠⥡⥣⥥⥮⥯￪￬]> }
   bitshift-operator { op<'<<' | '>>' | '>>>'> }
   rational-operator { op<'//'> }
-  times-operator { op<$[*/%&\\] | $[⌿÷··⋅∘×∩∧⊗⊘⊙⊚⊛⊠⊡⊓∗∙∤⅋≀⊼⋄⋆⋇⋉⋊⋋⋌⋏⋒⟑⦸⦼⦾⦿⧶⧷⨇⨰⨱⨲⨳⨴⨵⨶⨷⨸⨻⨼⨽⩀⩃⩄⩋⩍⩎⩑⩓⩕⩘⩚⩜⩞⩟⩠⫛⊍▷⨝⟕⟖⟗⨟]> }
+  TimesOp { op<$[*/%&\\] | $[⌿÷··⋅∘×∩∧⊗⊘⊙⊚⊛⊠⊡⊓∗∙∤⅋≀⊼⋄⋆⋇⋉⋊⋋⋌⋏⋒⟑⦸⦼⦾⦿⧶⧷⨇⨰⨱⨲⨳⨴⨵⨶⨷⨸⨻⨼⨽⩀⩃⩄⩋⩍⩎⩑⩓⩕⩘⩚⩜⩞⩟⩠⫛⊍▷⨝⟕⟖⟗⨟]> }
   PlusOp { op<'++' | '|' | $[−¦⊕⊖⊞⊟∪∨⊔∔∸≏⊎⊻⊽⋎⋓⟇⧺⧻⨈⨢⨣⨤⨥⨦⨧⨨⨩⨪⨫⨬⨭⨮⨹⨺⩁⩂⩅⩊⩌⩏⩐⩒⩔⩖⩗⩛⩝⩡⩢⩣]> }
   EllipsisOp { op<$[…⁝⋮⋱⋰⋯]> } // TODO: `..` conflicts with ImportPath
   PipeRightOp { op<'|>'> }

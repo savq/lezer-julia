@@ -48,7 +48,7 @@ Program(
   ),
   MacrocallExpression(
     MacroIdentifier(Operator),
-    MacroArguments(BinaryExpression(BinaryExpression(Identifier, Identifier), UnaryPlusOp, Identifier))
+    MacroArguments(BinaryExpression(BinaryExpression(Identifier, TimesOp, Identifier), UnaryPlusOp, Identifier))
   ),
   CallExpression(
     Identifier,
