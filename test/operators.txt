@@ -14,7 +14,7 @@ Program(
   UnaryExpression(UnaryOp, IntegerLiteral),
   UnaryExpression(UnaryPlusOp, AdjointExpression(Identifier), LineComment),
   BinaryExpression(UnaryExpression(UnaryOp, Identifier), ComparisonOp, UnaryExpression(UnaryOp, ParenExpression(Identifier))), LineComment,
-  BinaryExpression(IntegerLiteral, UnaryExpression(UnaryPlusOp, IntegerLiteral)),
+  BinaryExpression(IntegerLiteral, PlusOp, UnaryExpression(UnaryPlusOp, IntegerLiteral)),
 )
 
 
@@ -33,7 +33,7 @@ Program(
   UnaryExpression(UnaryPlusOp, BinaryExpression(Identifier, IntegerLiteral, LineComment)),
   BinaryExpression(Identifier, Identifier),
   BinaryExpression(Identifier, UnaryPlusOp, Identifier),
-  BinaryExpression(Identifier, BinaryExpression(IntegerLiteral, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
+  BinaryExpression(Identifier, PlusOp, BinaryExpression(IntegerLiteral, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
   BinaryExpression(Identifier, ParenExpression(BinaryExpression(Identifier, Identifier))),
 )
 
@@ -92,7 +92,7 @@ a & b | c
 
 ==>
 Program(
-  BinaryExpression(BinaryExpression(Identifier, Identifier), Identifier),
+  BinaryExpression(BinaryExpression(Identifier, Identifier), PlusOp, Identifier),
   BinaryExpression(
     TupleExpression(
       BinaryExpression(Identifier, IntegerLiteral),

@@ -199,7 +199,7 @@ end
 Program(
   FunctionDefinition(
     function,
-    Signature(CallExpression(Operator, Arguments(Identifier, Identifier))),
+    Signature(CallExpression(Operator(PlusOp), Arguments(Identifier, Identifier))),
     BinaryExpression(Identifier, UnaryPlusOp, Identifier),
     end,
   )
