@@ -119,22 +119,26 @@ Program(
   CallExpression(
     Identifier,
     Arguments(
-      BinaryExpression(Identifier, Identifier),
-      BinaryExpression(Identifier, Identifier),
+      BinaryExpression(Identifier, PairOp, Identifier),
+      BinaryExpression(Identifier, PairOp, Identifier),
     ),
   ),
   BinaryExpression(
     BinaryExpression(
       Identifier,
+      PipeRightOp,
       Identifier,
     ),
+    PipeRightOp,
     Identifier,
   ),
   BinaryExpression(
     Identifier,
+    ArrowOp,
     BinaryExpression(
       Identifier,
-      BinaryExpression(Identifier, Identifier),
+      ArrowOp,
+      BinaryExpression(Identifier, ArrowOp, Identifier),
     )
   )
 )
