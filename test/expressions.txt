@@ -84,7 +84,7 @@ foreach(c -> c.queued = true, cells)
 Program(
   ArrowFunctionExpression(
     Identifier,
-    BinaryExpression(Identifier, IntegerLiteral),
+    BinaryExpression(Identifier, PowerOp, IntegerLiteral),
   ),
   ArrowFunctionExpression(
     TupleExpression(Identifier),
@@ -157,6 +157,7 @@ Program(
   BinaryExpression(
     BinaryExpression(
       JuxtapositionExpression(IntegerLiteral, Identifier),
+      PowerOp,
       IntegerLiteral
     ),
     UnaryPlusOp,
@@ -165,6 +166,7 @@ Program(
   BinaryExpression(
     BinaryExpression(
       JuxtapositionExpression(FloatLiteral, Identifier),
+      PowerOp,
       IntegerLiteral
     ),
     UnaryPlusOp,
@@ -172,6 +174,7 @@ Program(
   ),
   BinaryExpression(
     IntegerLiteral,
+    PowerOp,
     JuxtapositionExpression(IntegerLiteral, Identifier)
   ),
   BinaryExpression(
@@ -180,6 +183,7 @@ Program(
         IntegerLiteral,
         ParenExpression(BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral))
       ),
+      PowerOp,
       IntegerLiteral
     ),
     UnaryPlusOp,

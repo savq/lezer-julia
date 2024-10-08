@@ -65,7 +65,7 @@ expression<expr> {
   | ArrowFunctionExpression
   | JuxtapositionExpression
   | TernaryExpression<expr>
-  | Operator ~op-as-id
+  | Operator
   | FloatLiteral
   | IntegerLiteral
   )
@@ -268,7 +268,6 @@ Symbol {
 }
 
 // OPERATIONS
-// TODO: Make operators visible.
 
 operation<expr> {
   ( SplatExpression { expr !colon '...' }
@@ -281,9 +280,9 @@ operation<expr> {
 BinaryExpression<expr> {
   ( expr !where      kwid<'where'> !where Type { expr }
   | expr !decl       '::' Type { expr }
-  | expr !power      power-operator !power expr
-  | expr !bitshift   bitshift-operator !bitshift expr
-  | expr !rational   rational-operator !rational expr
+  | expr !power      PowerOp !power expr
+  | expr !bitshift   BitshiftOp !bitshift expr
+  | expr !rational   RationalOp !rational expr
   | expr !times      TimesOp !times expr
   | expr !plus       (PlusOp | UnaryPlusOp | Dollar { '$' }) !plus expr
   | expr !colon      (EllipsisOp | Colon { ':' }) !colon expr
@@ -316,9 +315,9 @@ Operator {
   | TypeComparisonOp
   | UnaryOp
   | UnaryPlusOp
-  | power-operator
-  | bitshift-operator
-  | rational-operator
+  | PowerOp
+  | BitshiftOp
+  | RationalOp
   | TimesOp
   | PlusOp
   | EllipsisOp
@@ -418,9 +417,9 @@ _t { newline | semicolon }
   UnaryPlusOp { op<$[-+] | $[±∓]> }
 
   // Binary operators
-  power-operator { op<'^' | $[↑↓⇵⟰⟱⤈⤉⤊⤋⤒⤓⥉⥌⥍⥏⥑⥔⥕⥘⥙⥜⥝⥠⥡⥣⥥⥮⥯￪￬]> }
-  bitshift-operator { op<'<<' | '>>' | '>>>'> }
-  rational-operator { op<'//'> }
+  PowerOp { op<'^' | $[↑↓⇵⟰⟱⤈⤉⤊⤋⤒⤓⥉⥌⥍⥏⥑⥔⥕⥘⥙⥜⥝⥠⥡⥣⥥⥮⥯￪￬]> }
+  BitshiftOp { op<'<<' | '>>' | '>>>'> }
+  RationalOp { op<'//'> }
   TimesOp { op<$[*/%&\\] | $[⌿÷··⋅∘×∩∧⊗⊘⊙⊚⊛⊠⊡⊓∗∙∤⅋≀⊼⋄⋆⋇⋉⋊⋋⋌⋏⋒⟑⦸⦼⦾⦿⧶⧷⨇⨰⨱⨲⨳⨴⨵⨶⨷⨸⨻⨼⨽⩀⩃⩄⩋⩍⩎⩑⩓⩕⩘⩚⩜⩞⩟⩠⫛⊍▷⨝⟕⟖⟗⨟]> }
   PlusOp { op<'++' | '|' | $[−¦⊕⊖⊞⊟∪∨⊔∔∸≏⊎⊻⊽⋎⋓⟇⧺⧻⨈⨢⨣⨤⨥⨦⨧⨨⨩⨪⨫⨬⨭⨮⨹⨺⩁⩂⩅⩊⩌⩏⩐⩒⩔⩖⩗⩛⩝⩡⩢⩣]> }
   EllipsisOp { op<$[…⁝⋮⋱⋰⋯]> } // TODO: `..` conflicts with ImportPath
@@ -434,7 +433,7 @@ _t { newline | semicolon }
   LazyAndOp { bdot<'&&'> }
   LazyOrOp { bdot<'||'> }
   AssignmentOp { bdot<'='> }
-  UpdateOp { ':=' | '$=' | bdot<(bitshift-operator | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
+  UpdateOp { ':=' | '$=' | bdot<(BitshiftOp | '//' | $[-+*/\\^÷%|&⊻]) '=' | $[≔⩴≕]> }
 
   // Other syntactic operators
   '.'

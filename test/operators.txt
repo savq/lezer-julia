@@ -29,11 +29,11 @@ A \ (v × w)
 
 ==>
 Program(
-  BinaryExpression(Identifier, IntegerLiteral),
-  UnaryExpression(UnaryPlusOp, BinaryExpression(Identifier, IntegerLiteral, LineComment)),
-  BinaryExpression(Identifier, Identifier),
+  BinaryExpression(Identifier, PowerOp, IntegerLiteral),
+  UnaryExpression(UnaryPlusOp, BinaryExpression(Identifier, PowerOp, IntegerLiteral, LineComment)),
+  BinaryExpression(Identifier, RationalOp, Identifier),
   BinaryExpression(Identifier, UnaryPlusOp, Identifier),
-  BinaryExpression(Identifier, PlusOp, BinaryExpression(IntegerLiteral, TimesOp, BinaryExpression(Identifier, IntegerLiteral))), LineComment,
+  BinaryExpression(Identifier, PlusOp, BinaryExpression(IntegerLiteral, TimesOp, BinaryExpression(Identifier, PowerOp, IntegerLiteral))), LineComment,
   BinaryExpression(Identifier, TimesOp, ParenExpression(BinaryExpression(Identifier, TimesOp, Identifier))),
 )
 
@@ -78,7 +78,7 @@ a^p ≡ₚ a
 Program(
   BinaryExpression(Identifier, UnaryPlusOp, Identifier),
   BinaryExpression(
-    BinaryExpression(Identifier, Identifier),
+    BinaryExpression(Identifier, PowerOp, Identifier),
     ComparisonOp,
     Identifier
   )
@@ -95,8 +95,8 @@ Program(
   BinaryExpression(BinaryExpression(Identifier, TimesOp, Identifier), PlusOp, Identifier),
   BinaryExpression(
     TupleExpression(
-      BinaryExpression(Identifier, IntegerLiteral),
-      BinaryExpression(Identifier, IntegerLiteral),
+      BinaryExpression(Identifier, BitshiftOp, IntegerLiteral),
+      BinaryExpression(Identifier, BitshiftOp, IntegerLiteral),
       Identifier,
     ),
     TimesOp,
@@ -246,7 +246,7 @@ Program(
   Operator(UnaryOp),
   Assignment(Identifier, AssignmentOp, Operator(UnaryPlusOp)),
   Assignment(Operator(ComparisonOp), AssignmentOp, Operator(ComparisonOp)),
-  CallExpression(Identifier, Arguments(Operator, Operator(TimesOp), Operator(UnaryPlusOp))),
+  CallExpression(Identifier, Arguments(Operator(PowerOp), Operator(TimesOp), Operator(UnaryPlusOp))),
 )
 
 

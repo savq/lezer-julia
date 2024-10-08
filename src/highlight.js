@@ -60,8 +60,11 @@ export const juliaHighlighting = styleTags({
   "CommandLiteral/ParenExpression/( CommandLiteral/ParenExpression/)": t.special(t.bracket),
   "CommandLiteral/VectorExpression/[ CommandLiteral/VectorExpression/]": t.special(t.bracket),
 
-  // TODO: Finish operators
+  PowerOp: t.arithmeticOperator,
   "UnaryOp UnaryPlusOp": t.arithmeticOperator,
+  // juxt
+  BitshiftOp: t.operator,
+  RationalOp: t.arithmeticOperator,
   TimesOp: t.arithmeticOperator,
   "PlusOp Dollar": t.arithmeticOperator,
   "EllipsisOp Colon": t.operator,
