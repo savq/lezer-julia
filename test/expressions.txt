@@ -209,6 +209,7 @@ Program(
   ),
   BinaryExpression(
     JuxtapositionExpression(AdjointExpression(Identifier), Identifier),
+    Colon,
     JuxtapositionExpression(AdjointExpression(Identifier), Identifier),
   )
 )

@@ -117,7 +117,7 @@ xs[i += 1]
 ==>
 Program(
   IndexExpression(Identifier, VectorExpression()),
-  IndexExpression(Identifier, VectorExpression(IntegerLiteral, Operator)),
+  IndexExpression(Identifier, VectorExpression(IntegerLiteral, Operator(Colon))),
   IndexExpression(StringLiteral, VectorExpression(IntegerLiteral)),
   IndexExpression(Identifier, VectorExpression(Assignment(Identifier, UpdateOp, IntegerLiteral))),
 ),

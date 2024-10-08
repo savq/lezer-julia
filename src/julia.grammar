@@ -286,7 +286,7 @@ BinaryExpression<expr> {
   | expr !rational   rational-operator !rational expr
   | expr !times      times-operator !times expr
   | expr !plus       (plus-operator | UnaryPlusOp | '$') !plus expr
-  | expr !colon      (ellipsis-operator | ':') !colon expr
+  | expr !colon      (EllipsisOp | Colon { ':' }) !colon expr
   | expr !pipe-right PipeRightOp !pipe-right expr
   | expr !pipe-left  PipeLeftOp !pipe-left expr
   | expr !comparison (ComparisonOp | TypeComparisonOp | membership-operator) !comparison expr
@@ -321,9 +321,9 @@ Operator {
   | rational-operator
   | times-operator
   | plus-operator
-  | ellipsis-operator
+  | EllipsisOp
   | '$'
-  | ':'
+  | Colon { ':' }
   | PipeRightOp
   | PipeLeftOp
   | ComparisonOp
@@ -423,7 +423,7 @@ _t { newline | semicolon }
   rational-operator { op<'//'> }
   times-operator { op<$[*/%&\\] | $[⌿÷··⋅∘×∩∧⊗⊘⊙⊚⊛⊠⊡⊓∗∙∤⅋≀⊼⋄⋆⋇⋉⋊⋋⋌⋏⋒⟑⦸⦼⦾⦿⧶⧷⨇⨰⨱⨲⨳⨴⨵⨶⨷⨸⨻⨼⨽⩀⩃⩄⩋⩍⩎⩑⩓⩕⩘⩚⩜⩞⩟⩠⫛⊍▷⨝⟕⟖⟗⨟]> }
   plus-operator { op<'++' | '|' | $[−¦⊕⊖⊞⊟∪∨⊔∔∸≏⊎⊻⊽⋎⋓⟇⧺⧻⨈⨢⨣⨤⨥⨦⨧⨨⨩⨪⨫⨬⨭⨮⨹⨺⩁⩂⩅⩊⩌⩏⩐⩒⩔⩖⩗⩛⩝⩡⩢⩣]> }
-  ellipsis-operator { op<$[…⁝⋮⋱⋰⋯]> } // TODO: `..` conflicts with ImportPath
+  EllipsisOp { op<$[…⁝⋮⋱⋰⋯]> } // TODO: `..` conflicts with ImportPath
   PipeRightOp { op<'|>'> }
   PipeLeftOp { op<'<|'> }
   ComparisonOp { op<'>=' | '<=' | '==' | '===' | '!=' | '!==' | $[><] | $[≥≤≡≠≢∈∉∋∌⊆⊈⊂⊄⊊∝∊∍∥∦∷∺∻∽∾≁≃≂≄≅≆≇≈≉≊≋≌≍≎≐≑≒≓≖≗≘≙≚≛≜≝≞≟≣≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊃⊅⊇⊉⊋⊏⊐⊑⊒⊜⊩⊬⊮⊰⊱⊲⊳⊴⊵⊶⊷⋍⋐⋑⋕⋖⋗⋘⋙⋚⋛⋜⋝⋞⋟⋠⋡⋢⋣⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋲⋳⋴⋵⋶⋷⋸⋹⋺⋻⋼⋽⋾⋿⟈⟉⟒⦷⧀⧁⧡⧣⧤⧥⩦⩧⩪⩫⩬⩭⩮⩯⩰⩱⩲⩳⩵⩶⩷⩸⩹⩺⩻⩼⩽⩾⩿⪀⪁⪂⪃⪄⪅⪆⪇⪈⪉⪊⪋⪌⪍⪎⪏⪐⪑⪒⪓⪔⪕⪖⪗⪘⪙⪚⪛⪜⪝⪞⪟⪠⪡⪢⪣⪤⪥⪦⪧⪨⪩⪪⪫⪬⪭⪮⪯⪰⪱⪲⪳⪴⪵⪶⪷⪸⪹⪺⪻⪼⪽⪾⪿⫀⫁⫂⫃⫄⫅⫆⫇⫈⫉⫊⫋⫌⫍⫎⫏⫐⫑⫒⫓⫔⫕⫖⫗⫘⫙⫷⫸⫹⫺⊢⊣⟂⫪⫫]> }

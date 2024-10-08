@@ -152,8 +152,8 @@ x:y+1
 
 ==>
 Program(
-  BinaryExpression(IntegerLiteral, IntegerLiteral),
-  BinaryExpression(Identifier, BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral)),
+  BinaryExpression(IntegerLiteral, Colon, IntegerLiteral),
+  BinaryExpression(Identifier, Colon, BinaryExpression(Identifier, UnaryPlusOp, IntegerLiteral)),
   LineComment,
 )
 
@@ -167,10 +167,10 @@ Program(
 
 ==>
 Program(
+  QuoteExpression(ParenExpression(Operator(Colon))),
   QuoteExpression(ParenExpression(Operator)),
-  QuoteExpression(ParenExpression(Operator)),
-  QuoteExpression(ParenExpression(UnaryExpression(Type(Operator)))),
-  QuoteExpression(ParenExpression(UnaryExpression(Type(UnaryExpression(Type(Operator)))))),
+  QuoteExpression(ParenExpression(UnaryExpression(Type(Operator(Colon))))),
+  QuoteExpression(ParenExpression(UnaryExpression(Type(UnaryExpression(Type(Operator(Colon))))))),
 )
 
 

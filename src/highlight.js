@@ -62,6 +62,7 @@ export const juliaHighlighting = styleTags({
 
   // TODO: Finish operators
   "UnaryOp UnaryPlusOp": t.arithmeticOperator,
+  "EllipsisOp Colon": t.operator,
   "PipeLeftOp PipeRightOp": t.operator,
   ComparisonOp: t.compareOperator,
   "LazyAndOp LazyOrOp": t.logicOperator,
